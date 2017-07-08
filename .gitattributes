@@ -1,5 +1,2 @@
 # Auto detect text files and perform LF normalization
 * text=auto
-
-# Linguist overrides
-Bookmarks[[:space:]]and[[:space:]]Hyperlinks/BookmarksandHyperlinksVb/My[[:space:]]Project/*.vb linguist-generated=true
