@@ -2,4 +2,4 @@
 * text=auto
 
 # Linguist overrides
-**/My Project/*.vb linguist-generated=true
+**/My Project/* linguist-generated=true
