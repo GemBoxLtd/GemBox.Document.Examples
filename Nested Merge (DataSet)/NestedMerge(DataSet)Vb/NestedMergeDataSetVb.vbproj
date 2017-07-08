@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{3DEE628C-BE03-4001-92C6-B7A331BDEDB1}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <StartupObject>NestedMergeDataSetVb.Module1</StartupObject>
+    <RootNamespace>NestedMergeDataSetVb</RootNamespace>
+    <AssemblyName>NestedMergeDataSetVb</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <MyType>Console</MyType>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\Debug\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionExplicit>On</OptionExplicit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionCompare>Binary</OptionCompare>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionStrict>Off</OptionStrict>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionInfer>On</OptionInfer>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="GemBox.Document, Version=27.3.30.1028, Culture=neutral, PublicKeyToken=b1b72c69714d4847, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\GemBox.Document.27.3.30.1028\lib\net30\GemBox.Document.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Module1.vb" />
+    <Compile Include="My Project\AssemblyInfo.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\packages.config" />
+    <None Include="InvoiceForNestedMailMerge.docx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.6">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.6 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

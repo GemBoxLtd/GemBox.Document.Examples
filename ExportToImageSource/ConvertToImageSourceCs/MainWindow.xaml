@@ -1,0 +1,11 @@
+﻿<Window x:Class="ConvertToImageSourceCs.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Export to ImageSource Sample" 
+        SizeToContent="WidthAndHeight">
+
+    <Border Margin="10" BorderBrush="Black" BorderThickness="1">
+        <Image x:Name="ImageControl"/>
+    </Border>
+
+</Window>

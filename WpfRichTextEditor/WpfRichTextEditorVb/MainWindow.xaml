@@ -1,0 +1,126 @@
+﻿<Window x:Class="WpfRichTextEditor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Rich Text Editor" WindowState="Maximized">
+
+    <DockPanel>
+
+        <ToolBarTray DockPanel.Dock="Top">
+
+            <ToolBarTray.Resources>
+                <Style TargetType="Image">
+                    <Style.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Width" Value="30"/>
+                    <Setter Property="TextAlignment" Value="Center"/>
+                    <Setter Property="FontFamily" Value="Palatino Linotype"/>
+                    <Setter Property="FontSize" Value ="14"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                </Style>
+            </ToolBarTray.Resources>
+
+            <ToolBar Header="GemBox ToolBar" ToolTip="Commands in this group use GemBox.Document component">
+                <ToolBar.CommandBindings>
+                    <CommandBinding Command="Open" Executed="Open"/>
+                    <CommandBinding Command="Save" Executed="Save" CanExecute="CanSave" />
+                    <CommandBinding Command="SaveAs" Executed="Save" CanExecute="CanSave" />
+                    <CommandBinding Command="Cut" Executed="Cut" CanExecute="CanCut" />
+                    <CommandBinding Command="Copy" Executed="Copy" CanExecute="CanCopy" />
+                    <CommandBinding Command="Paste" Executed="Paste" CanExecute="CanPaste"/>
+                </ToolBar.CommandBindings>
+                <Button Command="Open" ToolTip="Open">
+                    <Image Source="Icons/Open.png"/>
+                </Button>
+                <Button Command="Save" ToolTip="Save">
+                    <Image Source="Icons/Save.png"/>
+                </Button>
+                <Separator/>
+                <Button Command="Cut" ToolTip="Cut with GemBox.Document">
+                    <Image Source="Icons/Cut.png"/>
+                </Button>
+                <Button Command="Copy" ToolTip="Copy with GemBox.document">
+                    <Image Source="Icons/Copy.png"/>
+                </Button>
+                <Button Command="Paste" CommandParameter="prepend" ToolTip="Paste prepend with GemBox.Document">
+                    <Image Source="Icons/Paste.png"/>
+                </Button>
+                <Button Command="Paste" CommandParameter="append" ToolTip="Paste append with GemBox.Document">
+                    <Image Source="Icons/Paste.png"/>
+                </Button>
+            </ToolBar>
+
+            <ToolBar Header="WPF ToolBar" ToolTip="Commands in this group use only WPF">
+                <Button Command="Undo" ToolTip="Undo">
+                    <Image Source="Icons/Undo.png"/>
+                </Button>
+                <Button Command="Redo" ToolTip="Redo">
+                    <Image Source="Icons/Redo.png"/>
+                </Button>
+                <Separator/>
+                <Button Command="Cut" ToolTip="Cut">
+                    <Image Source="Icons/Cut.png"/>
+                </Button>
+                <Button Command="Copy" ToolTip="Copy">
+                    <Image Source="Icons/Copy.png"/>
+                </Button>
+                <Button Command="Paste" ToolTip="Paste">
+                    <Image Source="Icons/Paste.png"/>
+                </Button>
+                <Separator/>
+                <Button Command="ToggleBold" ToolTip="Bold">
+                    <TextBlock Text="B" FontWeight="Bold"/>
+                </Button>
+                <Button Command="ToggleItalic" ToolTip="Italic">
+                    <TextBlock Text="I" FontStyle="Italic"/>
+                </Button>
+                <Button Command="ToggleUnderline" ToolTip="Underline">
+                    <TextBlock Text="U" TextDecorations="Underline"/>
+                </Button>
+                <Separator/>
+                <Button Command="IncreaseFontSize" ToolTip="Increase Font Size">
+                    <Image Source="Icons/IncreaseFontSize.png"/>
+                </Button>
+                <Button Command="DecreaseFontSize" ToolTip="Decrease Font Size">
+                    <Image Source="Icons/DecreaseFontSize.png"/>
+                </Button>
+                <Separator/>
+                <Button Command="ToggleBullets" ToolTip="Bullets">
+                    <Image Source="Icons/ToggleBullets.png"/>
+                </Button>
+                <Button Command="ToggleNumbering" ToolTip="Numbering">
+                    <Image Source="Icons/ToggleNumbering.png"/>
+                </Button>
+                <Separator/>
+                <Button Command="DecreaseIndentation" ToolTip="Decrease Indentation">
+                    <Image Source="Icons/DecreaseIndentation.png"/>
+                </Button>
+                <Button Command="IncreaseIndentation" ToolTip="Increase Indentation">
+                    <Image Source="Icons/IncreaseIndentation.png"/>
+                </Button>
+                <Separator/>
+                <Button Command="AlignLeft" ToolTip="Align Left">
+                    <Image Source="Icons/AlignLeft.png"/>
+                </Button>
+                <Button Command="AlignCenter" ToolTip="Align Center">
+                    <Image Source="Icons/AlignCenter.png"/>
+                </Button>
+                <Button Command="AlignRight" ToolTip="Align Right">
+                    <Image Source="Icons/AlignRight.png"/>
+                </Button>
+                <Button Command="AlignJustify" ToolTip="Align Justify">
+                    <Image Source="Icons/AlignJustify.png"/>
+                </Button>
+            </ToolBar>
+
+        </ToolBarTray>
+
+        <RichTextBox x:Name="richTextBox" AcceptsTab="True" VerticalScrollBarVisibility="Auto"/>
+
+    </DockPanel>
+
+</Window>

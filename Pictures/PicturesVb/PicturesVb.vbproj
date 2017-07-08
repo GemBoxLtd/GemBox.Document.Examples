@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{465136BD-ABCF-45ED-A1B9-EFEAA0B888CB}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <StartupObject>PicturesVb.Module1</StartupObject>
+    <RootNamespace>PicturesVb</RootNamespace>
+    <AssemblyName>PicturesVb</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <MyType>Console</MyType>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\Debug\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionExplicit>On</OptionExplicit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionCompare>Binary</OptionCompare>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionStrict>Off</OptionStrict>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionInfer>On</OptionInfer>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="GemBox.Document, Version=27.3.30.1028, Culture=neutral, PublicKeyToken=b1b72c69714d4847, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\GemBox.Document.27.3.30.1028\lib\net30\GemBox.Document.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Module1.vb" />
+    <Compile Include="My Project\AssemblyInfo.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Resources\Dices.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Graphics1.wmf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Zahnrad.gif">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
