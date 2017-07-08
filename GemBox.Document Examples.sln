@@ -527,7 +527,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{86D99294-529C-4C7D-997C-AABBB23FAD1C}"
 	ProjectSection(SolutionItems) = preProject
 		LICENSE = LICENSE
-		packages.config = packages.config
 		README.md = README.md
 	EndProjectSection
 EndProject

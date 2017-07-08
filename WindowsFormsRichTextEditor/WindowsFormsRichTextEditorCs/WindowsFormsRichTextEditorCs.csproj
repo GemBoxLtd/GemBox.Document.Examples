@@ -36,8 +36,8 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="GemBox.Document, Version=27.3.30.1028, Culture=neutral, PublicKeyToken=b1b72c69714d4847, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\GemBox.Document.27.3.30.1028\lib\net30\GemBox.Document.dll</HintPath>
+    <Reference Include="GemBox.Document, Version=27.3.30.1043, Culture=neutral, PublicKeyToken=b1b72c69714d4847, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\GemBox.Document.27.3.30.1043\lib\net30\GemBox.Document.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
@@ -65,6 +65,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="packages.config" />
     <None Include="Resources\Character Formatting.docx" />
     <None Include="Resources\Lists.docx" />
     <None Include="Resources\Paragraph Formatting.docx" />
@@ -72,7 +73,6 @@
     <None Include="Resources\Style Resolution.docx" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -74,8 +74,8 @@
     </StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="GemBox.Document, Version=27.3.30.1028, Culture=neutral, PublicKeyToken=b1b72c69714d4847, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\GemBox.Document.27.3.30.1028\lib\net30\GemBox.Document.dll</HintPath>
+    <Reference Include="GemBox.Document, Version=27.3.30.1043, Culture=neutral, PublicKeyToken=b1b72c69714d4847, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\GemBox.Document.27.3.30.1043\lib\net30\GemBox.Document.dll</HintPath>
     </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System" />
@@ -150,6 +150,7 @@
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
     <AppDesigner Include="My Project\" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0,Profile=Client">
@@ -225,7 +226,6 @@
     <Resource Include="Icons\Undo.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>
