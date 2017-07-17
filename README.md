@@ -6,12 +6,7 @@ GemBox.Document is a .NET component which enables developers to read, write, con
 
 [GemBox.Document Free](https://www.gemboxsoftware.com/document/free-version) is free of charge while [GemBox.Document Professional](https://www.gemboxsoftware.com/document/pricelist) is a commercial version licensed per developer. Server deployment is royalty free.
 
-<p align="center">
-  <br>
-  <a title="Download GemBox.Document Examples source code" href="https://github.com/gemboxsoftware-dev-team/GemBox.Document.Examples/archive/master.zip">
-    <img src="https://www.gemboxsoftware.com/Images/download.png" />
-  </a>
-</p>
+[![Download GemBox.Document Examples source code](https://www.gemboxsoftware.com/Images/download.png)](https://github.com/gemboxsoftware-dev-team/GemBox.Document.Examples/archive/master.zip)
 
 This repository contains the source code of GemBox.Document example projects. The demos or live examples are available online on:  
 [GemBox.Document - C# / VB.NET Word / PDF - Examples](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-word-pdf-library/801)
