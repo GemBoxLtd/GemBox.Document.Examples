@@ -1,6 +1,6 @@
 # GemBox.Document Examples
 
-![GemBox.Document](https://www.gemboxsoftware.com/document/examples/content/Document.png)
+![GemBox.Document](https://www.gemboxsoftware.com/images/gbd-256x256.png)
 
 GemBox.Document is a .NET component which enables developers to read, write, convert and print document files (DOCX, DOC, PDF, HTML, XPS, RTF and TXT) from .NET applications in a simple and efficient way.
 
@@ -12,7 +12,7 @@ This repository contains the source code of GemBox.Document example projects. Th
 [GemBox.Document - C# / VB.NET Word / PDF - Examples](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-word-pdf-library/801)
 
 ## Resources
-+ **[Overview](https://www.gemboxsoftware.com/document/overview)**
++ **[Overview](https://www.gemboxsoftware.com/document)**
 + **[Documentation](https://www.gemboxsoftware.com/document/help/html/Introduction.htm)**
 + **[Support](https://www.gemboxsoftware.com/document/support)**
 + **[Blog](https://www.gemboxsoftware.com/gembox-document)**
