@@ -1,10 +1,4 @@
 # Auto detect text files and perform LF normalization
 * text=auto
 
-*.js linguist-generated=true
-*/*.js linguist-generated=true
-*/*/*.js linguist-generated=true
-*/*/*/*.js linguist-generated=true
-*/*/*/*/*.js linguist-generated=true
-*/*/*/*/*/*.js linguist-generated=true
-*/*/*/*/*/*/*.js linguist-generated=true
+*.js linguist-detectable=false
