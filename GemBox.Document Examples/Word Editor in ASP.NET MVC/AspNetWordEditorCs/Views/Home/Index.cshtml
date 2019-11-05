@@ -1,0 +1,62 @@
+﻿@model AspNetWordEditor.Models.FileModel
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Word Editor in ASP.NET MVC</title>
+    <script src="~/Scripts/TinyMCE/tinymce.min.js"></script>
+    <script type="text/javascript">
+        tinyMCE.init({
+            selector: "textarea#file-editor",
+            height: 400,
+            setup: (editor) => editor.on('init', () =>
+                editor.setContent("<p>Welcome to ASP.NET MVC demo that uses <strong>GemBox.Document</strong> library and <strong>TinyMCE</strong> editor.</p>")),
+        });
+    </script>
+    <style>
+        body {
+            font-family: Calibri;
+            color: #514E52;
+        }
+
+        form { max-width: 800px; }
+
+        #file-generator * {
+            padding: 10px;
+            margin: 10px
+        }
+    </style>
+</head>
+<body>
+    @using (Html.BeginForm("Download", "Home"))
+    {
+        @Html.AntiForgeryToken()
+
+        @Html.TextAreaFor(model => model.Content, new { id = "file-editor" })
+
+        <div id="file-generator">
+            <input type="submit" value="Download" />
+            as
+            @Html.DropDownListFor(model => model.Extension,
+                new[]
+                {
+                    new SelectListItem() { Text = "DOCX", Value = ".docx" },
+                    new SelectListItem() { Text = "PDF", Value = ".pdf", Selected = true },
+                    new SelectListItem() { Text = "XPS", Value = ".xps" },
+                    new SelectListItem() { Text = "HTML", Value = ".html" },
+                    new SelectListItem() { Text = "MHTML", Value = ".mhtml" },
+                    new SelectListItem() { Text = "RTF", Value = ".rtf" },
+                    new SelectListItem() { Text = "XML", Value = ".xml" },
+                    new SelectListItem() { Text = "TXT", Value = ".txt" },
+                    new SelectListItem() { Text = "PNG", Value = ".png" },
+                    new SelectListItem() { Text = "JPEG", Value = ".jpeg" },
+                    new SelectListItem() { Text = "GIF", Value = ".gif" },
+                    new SelectListItem() { Text = "BMP", Value = ".bmp" },
+                    new SelectListItem() { Text = "TIFF", Value = ".tiff" },
+                    new SelectListItem() { Text = "WMP", Value = ".wmp" }
+                })
+        </div>
+    }
+</body>
+</html>

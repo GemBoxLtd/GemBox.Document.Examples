@@ -1,0 +1,172 @@
+﻿@using System.Globalization
+@model Document.Samples.Core.Controllers.InvoiceModel
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <meta charset="utf-8" />
+    <title>Create a Word Document</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <style type="text/css">
+        thead tr {
+            text-align: center;
+        }
+
+        .table th {
+            color: white;
+            background-color: rgb(242, 101, 34);
+            padding: 0.5rem;
+        }
+
+        .table td {
+            padding: 0.5rem;
+        }
+
+        .table input {
+            font-size: 0.9rem;
+            padding: 0.3rem 0.35rem;
+        }
+
+        .center-column {
+            text-align: center;
+        }
+
+        .right-column {
+            text-align: right;
+        }
+
+        .col-form-label {
+            font-weight: bold;
+        }
+
+        input.form-control, select.form-control {
+            font-size: 0.9rem;
+        }
+
+        .form-group > label:after {
+            content: ": ";
+        }
+
+        .last-row {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body style="padding:20px; font-size: 0.9rem">
+    <form asp-action="Create">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-group row">
+            <label asp-for="Number" class="col-md-2 col-sm-3 col-form-label"></label>
+            <div class="col-md-5 col-sm-7">
+                <input asp-for="Number" type="text" class="form-control" readonly />
+            </div>
+        </div>
+        <div class="form-group row">
+            <label asp-for="Date" class="col-md-2 col-sm-3 col-form-label"></label>
+            <div class="col-md-5 col-sm-7">
+                <input asp-for="Date" type="date" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group row">
+            <label asp-for="Name" class="col-md-2 col-sm-3 col-form-label"></label>
+            <div class="col-md-5 col-sm-7">
+                <input asp-for="Name" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group row">
+            <label asp-for="Address" class="col-md-2 col-sm-3 col-form-label"></label>
+            <div class="col-md-5 col-sm-7">
+                <input asp-for="Address" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group row">
+            <label asp-for="Country" class="col-md-2 col-sm-3 col-form-label"></label>
+            <div class="col-md-5 col-sm-7">
+                @Html.DropDownListFor(m => m.Country, Model.Countries, null, new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group row">
+            <label asp-for="ContactPerson" class="col-md-2 col-sm-3 col-form-label"></label>
+            <div class="col-md-5 col-sm-7">
+                <input asp-for="ContactPerson" class="form-control" />
+            </div>
+        </div>
+
+        <table class="table table-bordered table-condensed">
+            <colgroup>
+                <col style="width: 30%" />
+                <col style="width: 20%" />
+                <col style="width: 25%" />
+                <col style="width: 25%" />
+            </colgroup>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Work Hours</th>
+                    <th>Hour price [USD]</th>
+                    <th>Total [USD]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.Items.Count; i++)
+                {
+                    <tr>
+                        <td><input asp-for="Items[i].Date" type="date" class="form-control center-column" /></td>
+                        <td><input asp-for="Items[i].Hours" type="number" class="form-control center-column" min="1" max="8" /></td>
+                        <td><input asp-for="Items[i].PriceText" type="text" class="form-control-plaintext right-column" readonly /></td>
+                        <td><input asp-for="Items[i].TotalText" type="text" class="form-control-plaintext right-column" readonly /></td>
+                    </tr>
+                }
+
+                <tr class="last-row">
+                    <td colspan="3" class="right-column">Grand total:</td>
+                    <td id="grandTotal" class="right-column">@Model.GrandTotalText</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="form-group">
+            <label asp-for="Notes" style="font-weight: bold"></label>
+            <textarea asp-for="Notes" class="form-control"></textarea>
+        </div>
+        <div>
+            <h4>Output format:</h4>
+            <div class="form-check">
+                <input id="DOCX" name="SelectedFormat" type="radio" class="form-check-input" checked value="DOCX" />
+                <label for="DOCX" class="form-check-label">DOCX</label>
+            </div>
+            <div class="form-check">
+                <input id="HTML" name="SelectedFormat" type="radio" class="form-check-input" value="HTML" />
+                <label for="HTML" class="form-check-label">HTML</label>
+            </div>
+            <div class="form-check">
+                <input id="RTF" name="SelectedFormat" type="radio" class="form-check-input" value="RTF" />
+                <label for="RTF" class="form-check-label">RTF</label>
+            </div>
+            <div class="form-check">
+                <input id="TXT" name="SelectedFormat" type="radio" class="form-check-input" value="TXT" />
+                <label for="TXT" class="form-check-label">TXT</label>
+            </div>
+        </div>
+        <hr />
+        <button type="submit" class="btn btn-default">Generate</button>
+    </form>
+
+    <script type="text/javascript">
+        $("input[id$='__Hours']").change(function () {
+            var prefix = $(this).attr("id").substring(0, 7);
+            var value = parseFloat($(this).val()) * parseFloat($("input[id$='" + prefix + "__PriceText']").val());
+
+            $("input[id$='" + prefix + "__TotalText']").val(value.toFixed(2));
+
+            var grandTotal = 0.0;
+            $("input[id$='__TotalText']").each(function () {
+                grandTotal += parseFloat($(this).val());
+            });
+
+            $("#grandTotal").text(grandTotal.toFixed(2));
+        });
+    </script>
+</body>
+</html>

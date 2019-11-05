@@ -1,0 +1,12 @@
+﻿<Window x:Class="MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Printing in WPF application" Height="450" Width="800">
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="5">
+            <Button x:Name="LoadFileBtn" Content="Load" Width="100" Margin="5,0" Click="LoadFileBtn_Click"/>
+            <Button x:Name="PrintFileBtn" Content="Print" Width="100" Margin="5,0" Click="PrintFileBtn_Click"/>
+        </StackPanel>
+        <DocumentViewer x:Name="DocViewer"/>
+    </DockPanel>
+</Window>
