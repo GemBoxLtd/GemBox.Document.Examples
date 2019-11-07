@@ -2,15 +2,16 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net48;netcoreapp2.2</TargetFrameworks>
+    <TargetFramework>net48</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="GemBox.Document" Version="*" />
+    <PackageReference Include="GemBox.Spreadsheet" Version="*" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="XmlMapping.docx">
+    <None Update="Charts.docx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -1,5 +1,9 @@
+using System.IO;
+using System.Xml;
+using System.Linq;
 using GemBox.Document;
 using GemBox.Document.CustomMarkups;
+using System;
 
 class Program
 {
@@ -8,6 +12,12 @@ class Program
         // If using Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
+        Example1();
+        Example2();
+    }
+
+    static void Example1()
+    {
         var document = new DocumentModel();
 
         var section = new Section(document);
@@ -49,5 +59,44 @@ class Program
             comboBoxControl));
 
         document.Save("Content Controls.docx");
+    }
+
+    static void Example2()
+    {
+        var document = DocumentModel.Load("XmlMapping.docx");
+
+        // Get the Content Control.
+        var contentControl = (InlineContentControl)document.GetChildElements(true, ElementType.InlineContentControl).First();
+        var xmlMapping = contentControl.Properties.XmlMapping;
+
+        // Get the mapped XML part.
+        var xmlPart = xmlMapping.CustomXmlPart;
+
+        // Create XmlDocument from XML.
+        var xmlDocument = new XmlDocument();
+        xmlDocument.Load(new MemoryStream(xmlPart.Data));
+
+        // Locate the node to which is the Content Control mapped using XPath.
+        var node = xmlDocument.SelectSingleNode(xmlMapping.XPath);
+
+        // Change the node value.
+        node.InnerText = "Jonathan";
+
+        // Update the XmlPart Data.
+        var outputMemoryStream = new MemoryStream();
+        xmlDocument.Save(outputMemoryStream);
+        xmlPart.Data = outputMemoryStream.ToArray();
+
+        // Get the node value.
+        var nodeValue = node.InnerText;
+
+        // Update Content Control inlines.
+        contentControl.Inlines.Clear();
+        contentControl.Inlines.Add(new Run(document, nodeValue)
+        {
+            CharacterFormat = contentControl.Properties.CharacterFormat
+        });
+
+        document.Save("Xml Mapping.docx");
     }
 }

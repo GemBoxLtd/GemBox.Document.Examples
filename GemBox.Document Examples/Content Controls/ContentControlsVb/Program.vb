@@ -1,3 +1,6 @@
+Imports System.IO
+Imports System.Xml
+Imports System.Linq
 Imports GemBox.Document
 Imports GemBox.Document.CustomMarkups
 
@@ -8,6 +11,12 @@ Module Program
         ' If using Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
+        Example1()
+        Example2()
+
+    End Sub
+
+    Sub Example1()
         Dim document As New DocumentModel()
 
         Dim section As New Section(document)
@@ -49,6 +58,44 @@ Module Program
             comboBoxControl))
 
         document.Save("Content Controls.docx")
-
     End Sub
+
+    Sub Example2()
+        Dim document = DocumentModel.Load("XmlMapping.docx")
+
+        ' Get the Content Control.
+        Dim contentControl = CType(document.GetChildElements(True, ElementType.InlineContentControl).First(), InlineContentControl)
+        Dim xmlMapping = contentControl.Properties.XmlMapping
+
+        ' Get the mapped XML part.
+        Dim xmlPart = xmlMapping.CustomXmlPart
+
+        ' Create XmlDocument from XML.
+        Dim xmlDocument = New XmlDocument()
+        xmlDocument.Load(New MemoryStream(xmlPart.Data))
+
+        ' Locate the node to which is the Content Control mapped using XPath.
+        Dim node = xmlDocument.SelectSingleNode(xmlMapping.XPath)
+
+        ' Change the node value.
+        node.InnerText = "Jonathan"
+
+        ' Update the XmlPart Data.
+        Dim outputMemoryStream = New MemoryStream()
+        xmlDocument.Save(outputMemoryStream)
+        xmlPart.Data = outputMemoryStream.ToArray()
+
+        ' Get the node value.
+        Dim nodeValue = node.InnerText
+
+        ' Update Content Control inlines.
+        contentControl.Inlines.Clear()
+        contentControl.Inlines.Add(New Run(document, nodeValue) With
+        {
+            .CharacterFormat = contentControl.Properties.CharacterFormat
+        })
+
+        document.Save("Xml Mapping.docx")
+    End Sub
+
 End Module
