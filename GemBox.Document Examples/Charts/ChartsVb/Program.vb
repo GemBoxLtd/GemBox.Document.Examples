@@ -6,11 +6,10 @@ Module Program
 
     Sub Main()
 
-        ' If using Professional version, put your serial key below.
+        ' If using Professional version, put your GemBox.Document serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
-        ' This is needed to enable chart rendering in the GemBox.Document.
-        ' If you own a professional version, put your serial key below.
+        ' If using Professional version, put your GemBox.Spreadsheet serial key below.
         SpreadsheetInfo.SetLicense("FREE-LIMITED-KEY")
 
         Example1()
@@ -19,31 +18,25 @@ Module Program
     End Sub
 
     Sub Example1
-        ' Load input file and save it in selected output format
-        Dim document As DocumentModel = DocumentModel.Load("Charts.docx")
-        document.Save("Output.pdf")
-    End Sub
+        Dim document As New DocumentModel()
 
-    Sub Example2
-        Dim document As DocumentModel = New DocumentModel()
-
-        ' Create simple document title
-        Dim title As Paragraph = New Paragraph(document, "GemBox.Document - Create chart example")
-
-        title.ParagraphFormat.Alignment = HorizontalAlignment.Center
-
-        ' Create chart
-        Dim chart As Chart = New Chart(document, GemBox.Document.ChartType.Bar,
+        ' Create Word chart and add it to document.
+        Dim chart As New Chart(document, GemBox.Document.ChartType.Bar,
             New FloatingLayout(
                 New HorizontalPosition(HorizontalPositionType.Center, HorizontalPositionAnchor.Margin),
                 New VerticalPosition(VerticalPositionType.Top, VerticalPositionAnchor.Paragraph),
                 New Size(14, 7, GemBox.Document.LengthUnit.Centimeter)))
 
+        document.Sections.Add(
+            New Section(document,
+                New Paragraph(document, "New document with chart element."),
+                New Paragraph(document, chart)))
+
         ' Get underlying Excel chart
         Dim excelChart As ExcelChart = DirectCast(chart.ExcelChart, ExcelChart)
         Dim worksheet As ExcelWorksheet = excelChart.Worksheet
 
-        ' Add data which will be used by the Excel chart.
+        ' Add data for Excel chart.
         worksheet.Cells("A1").Value = "Name"
         worksheet.Cells("A2").Value = "John Doe"
         worksheet.Cells("A3").Value = "Fred Nurk"
@@ -56,15 +49,26 @@ Module Program
         worksheet.Cells("B4").Value = 3200
         worksheet.Cells("B5").Value = 4100
 
-        ' Select data
-        excelChart.SelectData(
-            worksheet.Cells.GetSubrangeAbsolute(0, 0, 4, 1), True)
+        ' Select data.
+        excelChart.SelectData(worksheet.Cells.GetSubrange("A1:B5"), True)
 
-        ' Add document elements
-        document.Sections.Add(New Section(document,
-            title, New Paragraph(document, chart)))
+        document.Save("Created Chart.pdf")
+    End Sub
 
-        document.Save("Chart.docx")
+    Sub Example2
+        Dim document = DocumentModel.Load("Chart.docx")
+
+        ' Get Word chart.
+        Dim chart = DirectCast(document.GetChildElements(True, ElementType.Chart).First(), Chart)
+
+        ' Get underlying Excel chart and cast it as LineChart.
+        Dim lineChart = DirectCast(chart.ExcelChart, LineChart)
+
+        ' Add new line series which has doubled values from the first series.
+        lineChart.Series.Add("Series 3", lineChart.Series.First() _
+            .Values.Cast(Of Double)().Select(Function(val) val * 2))
+
+        document.Save("Updated Chart.docx")
     End Sub
 
 End Module
