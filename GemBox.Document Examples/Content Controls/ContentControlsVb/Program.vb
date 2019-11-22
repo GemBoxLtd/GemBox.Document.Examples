@@ -1,6 +1,7 @@
 Imports System.IO
 Imports System.Xml
 Imports System.Linq
+Imports System.Text.RegularExpressions
 Imports GemBox.Document
 Imports GemBox.Document.CustomMarkups
 
@@ -74,8 +75,19 @@ Module Program
         Dim xmlDocument = New XmlDocument()
         xmlDocument.Load(New MemoryStream(xmlPart.Data))
 
+        ' Create a namespace manager.
+        Dim namespaceManager = New XmlNamespaceManager(xmlDocument.NameTable)
+
+        ' If XmlMapping specifies prefixes, parse them and fill the namespace manager.
+        If Not String.IsNullOrEmpty(xmlMapping.PrefixMappings) Then
+            Dim regex = New Regex("xmlns:(?<prefix>[\\S]+)='(?<namespace>[\\S]+)'")
+            For Each match As Match In regex.Matches(xmlMapping.PrefixMappings)
+                namespaceManager.AddNamespace(match.Groups("prefix").Value, match.Groups("namespace").Value)
+            Next
+        End If
+
         ' Locate the node to which is the Content Control mapped using XPath.
-        Dim node = xmlDocument.SelectSingleNode(xmlMapping.XPath)
+        Dim node = xmlDocument.SelectSingleNode(xmlMapping.XPath, namespaceManager)
 
         ' Change the node value.
         node.InnerText = "Jonathan"

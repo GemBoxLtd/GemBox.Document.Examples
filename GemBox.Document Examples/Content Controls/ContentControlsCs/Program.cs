@@ -1,6 +1,7 @@
 using System.IO;
 using System.Xml;
 using System.Linq;
+using System.Text.RegularExpressions;
 using GemBox.Document;
 using GemBox.Document.CustomMarkups;
 using System;
@@ -76,8 +77,19 @@ class Program
         var xmlDocument = new XmlDocument();
         xmlDocument.Load(new MemoryStream(xmlPart.Data));
 
+        // Create a namespace manager.
+        var namespaceManager = new XmlNamespaceManager(xmlDocument.NameTable);
+
+        // If XmlMapping specifies prefixes, parse them and fill the namespace manager.
+        if (!string.IsNullOrEmpty(xmlMapping.PrefixMappings))
+        {
+            var regex = new Regex("xmlns:(?<prefix>[\\S]+)='(?<namespace>[\\S]+)'");
+            foreach (Match match in regex.Matches(xmlMapping.PrefixMappings))
+                namespaceManager.AddNamespace(match.Groups["prefix"].Value, match.Groups["namespace"].Value);
+        }
+
         // Locate the node to which is the Content Control mapped using XPath.
-        var node = xmlDocument.SelectSingleNode(xmlMapping.XPath);
+        var node = xmlDocument.SelectSingleNode(xmlMapping.XPath, namespaceManager);
 
         // Change the node value.
         node.InnerText = "Jonathan";
