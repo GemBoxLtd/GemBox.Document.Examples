@@ -1,3 +1,4 @@
+Imports System.Linq
 Imports GemBox.Document
 Imports GemBox.Spreadsheet
 Imports GemBox.Spreadsheet.Charts
@@ -17,7 +18,7 @@ Module Program
 
     End Sub
 
-    Sub Example1
+    Sub Example1()
         Dim document As New DocumentModel()
 
         ' Create Word chart and add it to document.
@@ -55,7 +56,7 @@ Module Program
         document.Save("Created Chart.pdf")
     End Sub
 
-    Sub Example2
+    Sub Example2()
         Dim document = DocumentModel.Load("Chart.docx")
 
         ' Get Word chart.

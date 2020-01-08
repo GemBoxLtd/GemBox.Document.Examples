@@ -9,4 +9,10 @@
     <PackageReference Include="GemBox.Document" Version="*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Acme.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

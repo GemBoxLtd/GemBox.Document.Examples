@@ -1,3 +1,4 @@
+using System.Linq;
 using GemBox.Document;
 using GemBox.Spreadsheet;
 using GemBox.Spreadsheet.Charts;
