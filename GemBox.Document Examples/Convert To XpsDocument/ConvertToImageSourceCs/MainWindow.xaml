@@ -1,9 +1,0 @@
-﻿<Window x:Class="ConvertToImageSource.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Export to XpsDocument / DocumentViewer Control"
-        SizeToContent="WidthAndHeight">
-
-    <DocumentViewer x:Name="DocumentViewer"/>
-
-</Window>
