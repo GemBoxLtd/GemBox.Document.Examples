@@ -175,7 +175,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Linux_macOS", "Linux_macOS\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Preservation", "Preservation", "{BB501EA9-6D42-4E09-8CED-178AFFD01BC0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Comments", "Preservation\Comments\Comments.csproj", "{BDDEC2C7-B4C8-4692-8420-3D59B36DD632}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TrackedChanges", "Preservation\Tracked Changes\TrackedChanges.csproj", "{BDDEC2C7-B4C8-4692-8420-3D59B36DD632}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Macros", "Preservation\Macros\Macros.csproj", "{BEE4C624-997A-4D10-A568-B254F6622AB3}"
 EndProject
@@ -190,6 +190,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExportToXpsDocument", "WPF\Export to XpsDocument\ExportToXpsDocument.csproj", "{BD063B1D-E7BF-479D-8586-728E4589A118}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfRichTextEditor", "WPF\Word Editor in WPF\WpfRichTextEditor.csproj", "{0229BF2E-0837-4CC5-8AE1-79FA56ED7308}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Comments", "Basic Features\Comments\Comments.csproj", "{BB8EA260-BF28-413B-8EA2-98A8917C744F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -493,6 +495,10 @@ Global
 		{0229BF2E-0837-4CC5-8AE1-79FA56ED7308}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0229BF2E-0837-4CC5-8AE1-79FA56ED7308}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0229BF2E-0837-4CC5-8AE1-79FA56ED7308}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB8EA260-BF28-413B-8EA2-98A8917C744F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB8EA260-BF28-413B-8EA2-98A8917C744F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB8EA260-BF28-413B-8EA2-98A8917C744F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB8EA260-BF28-413B-8EA2-98A8917C744F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -574,6 +580,7 @@ Global
 		{4A93E440-0C1E-429B-8A50-C1CE789E31D5} = {81474230-8DE4-40BF-B6A4-46595A425DB1}
 		{BD063B1D-E7BF-479D-8586-728E4589A118} = {81474230-8DE4-40BF-B6A4-46595A425DB1}
 		{0229BF2E-0837-4CC5-8AE1-79FA56ED7308} = {81474230-8DE4-40BF-B6A4-46595A425DB1}
+		{BB8EA260-BF28-413B-8EA2-98A8917C744F} = {1DA7C158-C1C9-4E2B-A31B-3DE822647F43}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B77A3C47-0A11-4E2C-A780-DA1AA1200FA2}

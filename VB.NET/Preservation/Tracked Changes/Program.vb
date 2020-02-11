@@ -9,11 +9,11 @@ Module Program
 
         ' Load Word document with preservation feature enabled.
         Dim loadOptions As New DocxLoadOptions() With {.PreserveUnsupportedFeatures = True}
-        Dim document = DocumentModel.Load("Comments.docx", loadOptions)
+        Dim document = DocumentModel.Load("TrackedChanges.docx", loadOptions)
 
         ' Save Word document to output file of same format together with
         ' preserved information (unsupported features) from input file.
-        document.Save("Comments Output.docx")
+        document.Save("Changes.docx")
 
     End Sub
 End Module

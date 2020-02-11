@@ -9,10 +9,4 @@
     <PackageReference Include="GemBox.Document" Version="*" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="Comments.docx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>

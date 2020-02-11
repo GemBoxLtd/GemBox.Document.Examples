@@ -9,10 +9,10 @@ class Program
 
         // Load Word document with preservation feature enabled.
         var loadOptions = new DocxLoadOptions() { PreserveUnsupportedFeatures = true };
-        var document = DocumentModel.Load("Comments.docx", loadOptions);
+        var document = DocumentModel.Load("TrackedChanges.docx", loadOptions);
 
         // Save Word document to output file of same format together with
         // preserved information (unsupported features) from input file.
-        document.Save("Comments Output.docx");
+        document.Save("Changes.docx");
     }
 }
