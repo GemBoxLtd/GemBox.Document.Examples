@@ -1,7 +1,7 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Default.aspx.cs" Inherits="MediumTrust.Default" %>
 
 <!DOCTYPE html>
-<html>
+<html lang="en-US">
 <head runat="server">
     <title>Create PDF documents or Word files (DOCX, RTF, XML, HTML) from ASP.NET Web Forms</title>
     <style>

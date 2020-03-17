@@ -2,14 +2,14 @@
 @model AspNetCore.Controllers.InvoiceModel
 
 <!DOCTYPE html>
-<html>
+<html lang="en-US">
 <head>
     <meta name="viewport" content="width=device-width" />
     <meta charset="utf-8" />
     <title>Create a Word Document</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <style type="text/css">
+    <style>
         thead tr {
             text-align: center;
         }
@@ -147,6 +147,10 @@
             <div class="form-check">
                 <input id="TXT" name="SelectedFormat" type="radio" class="form-check-input" value="TXT" />
                 <label for="TXT" class="form-check-label">TXT</label>
+            </div>
+            <div class="form-check">
+                <input id="PDF" name="SelectedFormat" type="radio" class="form-check-input" value="PDF" />
+                <label for="PDF" class="form-check-label">PDF</label>
             </div>
         </div>
         <hr />

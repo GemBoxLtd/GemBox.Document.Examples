@@ -29,9 +29,9 @@ namespace AspNetCore.Controllers
             .ToArray();
 
         private static int invoiceNumber = 1;
-        private IHostingEnvironment environment;
+        private IWebHostEnvironment environment;
 
-        public DocumentController(IHostingEnvironment environment)
+        public DocumentController(IWebHostEnvironment environment)
         {
             this.environment = environment;
         }
@@ -48,6 +48,8 @@ namespace AspNetCore.Controllers
                     return SaveOptions.RtfDefault;
                 case "TXT":
                     return SaveOptions.TxtDefault;
+                case "PDF":
+                    return SaveOptions.PdfDefault;
                 default:
                     throw new NotSupportedException("Format '" + format + "' is not supported.");
             }

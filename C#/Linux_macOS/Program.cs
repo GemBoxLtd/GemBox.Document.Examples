@@ -19,5 +19,6 @@ class Program
         paragraph.Inlines.Add(run);
 
         document.Save("Output.docx");
+        document.Save("Output.pdf");
     }
 }
