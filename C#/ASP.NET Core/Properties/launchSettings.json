@@ -15,7 +15,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "AspNetCore": {
+    "DocumentCore": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {

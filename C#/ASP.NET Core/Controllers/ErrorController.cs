@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AspNetCore.Controllers
+namespace DocumentCore.Controllers
 {
     public class ErrorController : Controller
     {
