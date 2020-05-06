@@ -27,15 +27,13 @@ class Program
         int charactersCount = text.Replace(Environment.NewLine, string.Empty).Length;
         int wordsCount = Regex.Matches(text, @"[\S]+").Count;
         int paragraphsCount = document.GetChildElements(true, ElementType.Paragraph).Count();
-        /* DocumentModel.GetPaginator method is available in .NET Framework +3.5 and .NET Core +3.0. */
-        /* Currently this method is not available in .NET Standard 2.0. */
-        /* int pageCount = document.GetPaginator().Pages.Count; */
+        int pageCount = document.GetPaginator().Pages.Count;
 
         // Display file's count statistics.
         Console.WriteLine($"Characters count: {charactersCount}");
         Console.WriteLine($"     Words count: {wordsCount}");
         Console.WriteLine($"Paragraphs count: {paragraphsCount}");
-        /* Console.WriteLine($"     Pages count: {pageCount}"); */
+        Console.WriteLine($"     Pages count: {pageCount}");
         Console.WriteLine();
 
         // Display file's text content.

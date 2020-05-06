@@ -85,14 +85,14 @@ Partial Public Class Form1
 
     Private Function CreatePrintPreviewImages() As Image()
 
-        Dim pageCount As Integer = Me.document.GetPaginator().Pages.Count
-        Dim images = New Image(pageCount - 1) {}
+        Dim pages = Me.document.GetPaginator().Pages
 
-        For pageIndex As Integer = 0 To pageCount - 1
+        Dim images = New Image(pages.Count - 1) {}
+        Dim imageOptions As New ImageSaveOptions()
+
+        For pageIndex As Integer = 0 To pages.Count - 1
             Dim imageStream = New MemoryStream()
-            Dim imageOptions = New ImageSaveOptions() With {.PageNumber = pageIndex}
-
-            Me.document.Save(imageStream, imageOptions)
+            pages(pageIndex).Save(imageStream, imageOptions)
             images(pageIndex) = Image.FromStream(imageStream)
         Next
 

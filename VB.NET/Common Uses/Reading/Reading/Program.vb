@@ -27,15 +27,13 @@ Module Program
         Dim charactersCount As Integer = text.Replace(Environment.NewLine, String.Empty).Length
         Dim wordsCount As Integer = Regex.Matches(text, "[\S]+").Count
         Dim paragraphsCount As Integer = document.GetChildElements(True, ElementType.Paragraph).Count()
-        ' DocumentModel.GetPaginator method is available in .NET Framework +3.5 and .NET Core +3.0.
-        ' Currently this method is not available in .NET Standard 2.0.
-        ' Dim pageCount As Integer = document.GetPaginator().Pages.Count
+        Dim pageCount As Integer = document.GetPaginator().Pages.Count
 
         ' Display file's count statistics.
         Console.WriteLine($"Characters count: {charactersCount}")
         Console.WriteLine($"     Words count: {wordsCount}")
         Console.WriteLine($"Paragraphs count: {paragraphsCount}")
-        ' Console.WriteLine($"     Pages count: {pageCount}")
+        Console.WriteLine($"     Pages count: {pageCount}")
         Console.WriteLine()
 
         ' Display file's text content.

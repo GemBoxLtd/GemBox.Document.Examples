@@ -86,15 +86,15 @@ public partial class Form1 : Form
 
     private Image[] CreatePrintPreviewImages()
     {
-        int pageCount = this.document.GetPaginator().Pages.Count;
-        var images = new Image[pageCount];
+        var pages = this.document.GetPaginator().Pages;
 
-        for (int pageIndex = 0; pageIndex < pageCount; ++pageIndex)
+        var images = new Image[pages.Count];
+        var imageOptions = new ImageSaveOptions();
+
+        for (int pageIndex = 0; pageIndex < pages.Count; ++pageIndex)
         {
             var imageStream = new MemoryStream();
-            var imageOptions = new ImageSaveOptions() { PageNumber = pageIndex };
-
-            this.document.Save(imageStream, imageOptions);
+            pages[pageIndex].Save(imageStream, imageOptions);
             images[pageIndex] = Image.FromStream(imageStream);
         }
 

@@ -8,6 +8,12 @@ Module Program
         ' If using Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
+        Example1()
+        Example2()
+
+    End Sub
+
+    Sub Example1()
         Dim document As New DocumentModel()
 
         Dim table As New Table(document)
@@ -57,6 +63,39 @@ Module Program
         document.Sections.Add(New Section(document, table))
 
         document.Save("Table Formatting.docx")
-
     End Sub
+
+    Sub Example2()
+        Dim document As New DocumentModel()
+
+        Dim section As New Section(document)
+        document.Sections.Add(section)
+
+        section.Blocks.Add(New Paragraph(document,
+            New Run(document, "Keep table on same page.") With {.CharacterFormat = New CharacterFormat With {.Size = 36}},
+            New SpecialCharacter(document, SpecialCharacterType.LineBreak),
+            New Run(document, "This paragraph has a large spacing before to occupy most of the page.") With {.CharacterFormat = New CharacterFormat With {.Size = 14}}) With
+        {.ParagraphFormat = New ParagraphFormat With {.SpaceBefore = 400}})
+
+        Dim table As New Table(document, 20, 4)
+        table.TableFormat.PreferredWidth = New TableWidth(100, TableWidthUnit.Percentage)
+        section.Blocks.Add(table)
+
+        ' If you were to save a document at this point, you'd notice that the last few rows don't fit on the same page.
+        ' In other words, the table rows break across first and second page.
+        'document.Save("TableOnTwoPages.docx")
+
+        ' To prevent table's breaking across two pages, you need to set KeepWithNext formatting.
+        For Each cell As TableCell In table.GetChildElements(True, ElementType.TableCell)
+            ' Cell should have at least one paragraph.
+            If cell.Blocks.Count = 0 Then cell.Blocks.Add(New Paragraph(cell.Document))
+
+            For Each paragraph As Paragraph In cell.GetChildElements(True, ElementType.Paragraph)
+                paragraph.ParagraphFormat.KeepWithNext = True
+            Next
+        Next
+
+        document.Save("TableOnOnePage.docx")
+    End Sub
+
 End Module

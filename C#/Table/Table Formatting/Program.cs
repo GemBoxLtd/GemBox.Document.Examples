@@ -8,6 +8,12 @@ class Program
         // If using Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
+        Example1();
+        Example2();
+    }
+
+    static void Example1()
+    {
         var document = new DocumentModel();
 
         var table = new Table(document);
@@ -55,5 +61,40 @@ class Program
         document.Sections.Add(new Section(document, table));
 
         document.Save("Table Formatting.docx");
+    }
+
+    static void Example2()
+    {
+        var document = new DocumentModel();
+
+        var section = new Section(document);
+        document.Sections.Add(section);
+
+        section.Blocks.Add(new Paragraph(document,
+            new Run(document, "Keep table on same page.") { CharacterFormat = { Size = 36 } },
+            new SpecialCharacter(document, SpecialCharacterType.LineBreak),
+            new Run(document, "This paragraph has a large spacing before to occupy most of the page.") { CharacterFormat = { Size = 14 } })
+        { ParagraphFormat = { SpaceBefore = 400 } });
+
+        var table = new Table(document, 20, 4);
+        table.TableFormat.PreferredWidth = new TableWidth(100, TableWidthUnit.Percentage);
+        section.Blocks.Add(table);
+
+        // If you were to save a document at this point, you'd notice that the last few rows don't fit on the same page.
+        // In other words, the table rows break across first and second page.
+        //document.Save("TableOnTwoPages.docx");
+
+        // To prevent table's breaking across two pages, you need to set KeepWithNext formatting.
+        foreach (TableCell cell in table.GetChildElements(true, ElementType.TableCell))
+        {
+            // Cell should have at least one paragraph.
+            if (cell.Blocks.Count == 0)
+                cell.Blocks.Add(new Paragraph(cell.Document));
+
+            foreach (Paragraph paragraph in cell.GetChildElements(true, ElementType.Paragraph))
+                paragraph.ParagraphFormat.KeepWithNext = true;
+        }
+
+        document.Save("TableOnOnePage.docx");
     }
 }
