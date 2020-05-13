@@ -1,44 +1,109 @@
-Imports System.Linq
 Imports GemBox.Document
-Imports GemBox.Document.Drawing
+Imports GemBox.Pdf.Forms
+Imports GemBox.Pdf.Security
 
 Module Program
 
     Sub Main()
 
+        PAdES_B_B()
+
+        PAdES_B_LTA()
+    End Sub
+
+    Sub PAdES_B_B()
+
         ' If using Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
-        Dim document = DocumentModel.Load("DigitalSignature.docx")
-
-        ' Get placeholder where signature should be visualized.
-        ' Signature line was added with: Microsoft Word => Insert => Signature Line
-        ' By default it'll have "Microsoft Office Signature Line..." description.
-        Dim signatureLine As DrawingElement = document.GetChildElements(True).OfType(Of DrawingElement)().FirstOrDefault(
-            Function(de) de.Metadata.Description = "Microsoft Office Signature Line...")
+        Dim document = DocumentModel.Load("Reading.docx")
 
         ' Create visual representation of digital signature.
         Dim signature As New Picture(document, "GemBoxSignature.png")
 
-        ' Position signature image in a signature line.
-        ' Image will be placed 1.5cm right and 0.5cm below the top-left corner of signature line.
-        signature.Layout = Layout.Floating(
-            New HorizontalPosition(1.5, LengthUnit.Centimeter, HorizontalPositionAnchor.Page),
-            New VerticalPosition(0.5, LengthUnit.Centimeter, VerticalPositionAnchor.Page),
-            signature.Layout.Size)
+        ' Position signature image at the end of the document.
+        Dim lastSection = document.Sections(document.Sections.Count - 1)
+        lastSection.Blocks.Add(New Paragraph(document, signature))
 
         Dim options As New PdfSaveOptions() With
         {
             .DigitalSignature = New PdfDigitalSignatureSaveOptions() With
             {
-                .CertificatePath = "GemBoxExampleExplorer.pfx",
+                .CertificatePath = "GemBoxECDsa521.pfx",
                 .CertificatePassword = "GemBoxPassword",
-                .signatureLine = signatureLine,
-                .signature = signature
+                .Signature = signature,
+                .IsAdvancedElectronicSignature = True
             }
         }
 
         document.Save("PDF Digital Signature.pdf", options)
+    End Sub
 
+    Sub PAdES_B_LTA()
+
+        ' If using Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
+        Dim document = DocumentModel.Load("Reading.docx")
+
+        ' Create visual representation of digital signature.
+        Dim signature As New Picture(document, "GemBoxSignature.png")
+
+        ' Position signature image at the end of the document.
+        Dim lastSection = document.Sections(document.Sections.Count - 1)
+        lastSection.Blocks.Add(New Paragraph(document, signature))
+
+        ' If using Professional version, put your serial key below.
+        GemBox.Pdf.ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
+        ' Get a digital ID from PKCS#12/PFX file.
+        Dim digitalId = New PdfDigitalId("GemBoxECDsa521.pfx", "GemBoxPassword")
+
+        ' Create a PDF signer that will create PAdES B-LTA level signature.
+        Dim signer = New PdfSigner(digitalId)
+
+        ' PdfSigner should create CAdES-equivalent signature.
+        signer.SignatureFormat = PdfSignatureFormat.CAdES
+
+        ' PdfSigner will embed a timestamp created by freeTSA.org Time Stamp Authority in the signature.
+        signer.Timestamper = New PdfTimestamper("https://freetsa.org/tsr")
+
+        ' Make sure that all properties specified on PdfSigner are according to PAdES B-LTA level.
+        signer.SignatureLevel = PdfSignatureLevel.PAdES_B_LTA
+
+        ' Inject PdfSigner from GemBox.Pdf into
+        ' PdfDigitalSignatureSaveOptions from GemBox.Document.
+        Dim signatureOptions = PdfDigitalSignatureSaveOptions.FromSigner(
+            Function() signer.SignatureFormat.ToString(),
+            Function() signer.EstimatedSignatureContentsLength,
+            Function(pdfFileStream) signer.ComputeSignature(pdfFileStream))
+
+        signatureOptions.Signature = signature
+
+        Dim options = New PdfSaveOptions() With
+        {
+            .DigitalSignature = signatureOptions
+        }
+
+        document.Save("PAdES B-LTA.pdf", options)
+
+        Using pdfDocument = GemBox.Pdf.PdfDocument.Load("PAdES B-LTA.pdf")
+
+            Dim signatureField = CType(pdfDocument.Form.Fields(0), PdfSignatureField)
+
+            ' Download validation-related information for the signature and the signature's timestamp and embed it in the PDF file.
+            ' This will make the signature "LTV enabled".
+            pdfDocument.SecurityStore.AddValidationInfo(signatureField.Value)
+
+            ' Add an invisible signature field to the PDF document that will hold the document timestamp.
+            Dim timestampField = pdfDocument.Form.Fields.AddSignature()
+
+            ' Initiate timestamping of a PDF file with the specified timestamper.
+            timestampField.Timestamp(signer.Timestamper)
+
+            ' Save any changes done to the PDF file that were done since the last time Save was called and
+            ' finish timestamping of a PDF file.
+            pdfDocument.Save()
+        End Using
     End Sub
 End Module
