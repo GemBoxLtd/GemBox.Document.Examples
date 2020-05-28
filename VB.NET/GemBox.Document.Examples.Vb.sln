@@ -175,6 +175,20 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "WpfRichTextEditor", "WPF\Wo
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Comments", "Basic Features\Comments\Comments.vbproj", "{2E889756-02BF-4A6A-95AE-6C94213C0CF6}"
 EndProject
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "AutoHyphenation", "Advanced Features\Auto Hyphenation\AutoHyphenation.vbproj", "{5FADA53E-7D7E-44B7-A794-C8107CAB849E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Progress Reporting And Cancellation", "Progress Reporting And Cancellation", "{227100DA-88D1-47DA-AC70-1421D606FEE3}"
+EndProject
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "CancellationInConsole", "Advanced Features\Progress Reporting And Cancellation\CancellationInConsole\CancellationInConsole.vbproj", "{837B7DF0-7F71-40CB-A284-196C79389339}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "CancellationInWpf", "Advanced Features\Progress Reporting And Cancellation\CancellationInWpf\CancellationInWpf.vbproj", "{DD8E6270-16F0-4686-B4B5-23B319258511}"
+EndProject
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ProgressReportingInConsole", "Advanced Features\Progress Reporting And Cancellation\ProgressReportingInConsole\ProgressReportingInConsole.vbproj", "{F8BD2965-C754-45BD-8DC4-A2D6115091E6}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ProgressReportingInWindowsForms", "Advanced Features\Progress Reporting And Cancellation\ProgressReportingInWindowsForms\ProgressReportingInWindowsForms.vbproj", "{F739C5F2-A529-4381-AB93-93662F64404C}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ProgressReportingInWpf", "Advanced Features\Progress Reporting And Cancellation\ProgressReportingInWpf\ProgressReportingInWpf.vbproj", "{5FC557FB-0756-4A27-9498-B08A31CE9D26}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -461,6 +475,30 @@ Global
 		{2E889756-02BF-4A6A-95AE-6C94213C0CF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E889756-02BF-4A6A-95AE-6C94213C0CF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E889756-02BF-4A6A-95AE-6C94213C0CF6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5FADA53E-7D7E-44B7-A794-C8107CAB849E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5FADA53E-7D7E-44B7-A794-C8107CAB849E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5FADA53E-7D7E-44B7-A794-C8107CAB849E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5FADA53E-7D7E-44B7-A794-C8107CAB849E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{837B7DF0-7F71-40CB-A284-196C79389339}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{837B7DF0-7F71-40CB-A284-196C79389339}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{837B7DF0-7F71-40CB-A284-196C79389339}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{837B7DF0-7F71-40CB-A284-196C79389339}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD8E6270-16F0-4686-B4B5-23B319258511}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD8E6270-16F0-4686-B4B5-23B319258511}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD8E6270-16F0-4686-B4B5-23B319258511}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD8E6270-16F0-4686-B4B5-23B319258511}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8BD2965-C754-45BD-8DC4-A2D6115091E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8BD2965-C754-45BD-8DC4-A2D6115091E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8BD2965-C754-45BD-8DC4-A2D6115091E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8BD2965-C754-45BD-8DC4-A2D6115091E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F739C5F2-A529-4381-AB93-93662F64404C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F739C5F2-A529-4381-AB93-93662F64404C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F739C5F2-A529-4381-AB93-93662F64404C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F739C5F2-A529-4381-AB93-93662F64404C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5FC557FB-0756-4A27-9498-B08A31CE9D26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5FC557FB-0756-4A27-9498-B08A31CE9D26}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5FC557FB-0756-4A27-9498-B08A31CE9D26}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5FC557FB-0756-4A27-9498-B08A31CE9D26}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -538,6 +576,13 @@ Global
 		{6F85609F-511C-462A-A52A-5F0F6816E7DD} = {69907768-F5C3-432F-B335-A40B2D8F4AFC}
 		{B5028236-A94C-4CA2-AA88-647ECF4236E7} = {69907768-F5C3-432F-B335-A40B2D8F4AFC}
 		{2E889756-02BF-4A6A-95AE-6C94213C0CF6} = {380BC34D-9A13-4794-B498-A6B5C6B81305}
+		{5FADA53E-7D7E-44B7-A794-C8107CAB849E} = {35B156E4-67A4-4CCE-BAAF-15F2AB1EB95D}
+		{227100DA-88D1-47DA-AC70-1421D606FEE3} = {35B156E4-67A4-4CCE-BAAF-15F2AB1EB95D}
+		{837B7DF0-7F71-40CB-A284-196C79389339} = {227100DA-88D1-47DA-AC70-1421D606FEE3}
+		{DD8E6270-16F0-4686-B4B5-23B319258511} = {227100DA-88D1-47DA-AC70-1421D606FEE3}
+		{F8BD2965-C754-45BD-8DC4-A2D6115091E6} = {227100DA-88D1-47DA-AC70-1421D606FEE3}
+		{F739C5F2-A529-4381-AB93-93662F64404C} = {227100DA-88D1-47DA-AC70-1421D606FEE3}
+		{5FC557FB-0756-4A27-9498-B08A31CE9D26} = {227100DA-88D1-47DA-AC70-1421D606FEE3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3F9A0C8B-7A43-4F13-8C1E-91313E4DEB88}

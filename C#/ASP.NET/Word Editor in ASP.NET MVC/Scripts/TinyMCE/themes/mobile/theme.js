@@ -4,7 +4,7 @@
  * For LGPL see License.txt in the project root for license information.
  * For commercial licenses see https://www.tiny.cloud/
  *
- * Version: 5.1.0 (2019-10-17)
+ * Version: 5.3.0 (2020-05-21)
  */
 (function (domGlobals) {
     'use strict';
@@ -32,6 +32,14 @@
             t[p[i]] = s[p[i]];
         }
       return t;
+    }
+    function __spreadArrays() {
+      for (var s = 0, i = 0, il = arguments.length; i < il; i++)
+        s += arguments[i].length;
+      for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+          r[k] = a[j];
+      return r;
     }
 
     var noop = function () {
@@ -68,12 +76,8 @@
       };
     }
     var not = function (f) {
-      return function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-          args[_i] = arguments[_i];
-        }
-        return !f.apply(null, args);
+      return function (t) {
+        return !f(t);
       };
     };
     var die = function (msg) {
@@ -101,7 +105,7 @@
         return n;
       };
       var me = {
-        fold: function (n, s) {
+        fold: function (n, _s) {
           return n();
         },
         is: never,
@@ -129,9 +133,6 @@
         },
         toString: constant('none()')
       };
-      if (Object.freeze) {
-        Object.freeze(me);
-      }
       return me;
     }();
     var some = function (a) {
@@ -222,6 +223,23 @@
       });
       return r;
     };
+    var objAcc = function (r) {
+      return function (x, i) {
+        r[i] = x;
+      };
+    };
+    var internalFilter = function (obj, pred, onTrue, onFalse) {
+      var r = {};
+      each(obj, function (x, i) {
+        (pred(x, i) ? onTrue : onFalse)(x, i);
+      });
+      return r;
+    };
+    var filter = function (obj, pred) {
+      var t = {};
+      internalFilter(obj, pred, objAcc(t), noop);
+      return t;
+    };
     var mapToArray = function (obj, f) {
       var r = [];
       each(obj, function (value, name) {
@@ -245,40 +263,29 @@
         return v;
       });
     };
+    var get = function (obj, key) {
+      return has(obj, key) ? Option.from(obj[key]) : Option.none();
+    };
     var has = function (obj, key) {
       return hasOwnProperty.call(obj, key);
     };
+    var hasNonNullableKey = function (obj, key) {
+      return has(obj, key) && obj[key] !== undefined && obj[key] !== null;
+    };
 
-    var touchstart = constant('touchstart');
-    var touchmove = constant('touchmove');
-    var touchend = constant('touchend');
-    var mousedown = constant('mousedown');
-    var mousemove = constant('mousemove');
-    var mouseup = constant('mouseup');
-    var mouseover = constant('mouseover');
-    var keydown = constant('keydown');
-    var keyup = constant('keyup');
-    var input = constant('input');
-    var change = constant('change');
-    var click = constant('click');
-    var transitionend = constant('transitionend');
-    var selectstart = constant('selectstart');
-
-    var Cell = function (initial) {
-      var value = initial;
-      var get = function () {
-        return value;
-      };
-      var set = function (v) {
-        value = v;
-      };
-      var clone = function () {
-        return Cell(get());
-      };
-      return {
-        get: get,
-        set: set,
-        clone: clone
+    var cached = function (f) {
+      var called = false;
+      var r;
+      return function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+          args[_i] = arguments[_i];
+        }
+        if (!called) {
+          called = true;
+          r = f.apply(null, args);
+        }
+        return r;
       };
     };
 
@@ -332,11 +339,6 @@
     var opera = 'Opera';
     var firefox = 'Firefox';
     var safari = 'Safari';
-    var isBrowser = function (name, current) {
-      return function () {
-        return current === name;
-      };
-    };
     var unknown$1 = function () {
       return nu$1({
         current: undefined,
@@ -346,15 +348,20 @@
     var nu$1 = function (info) {
       var current = info.current;
       var version = info.version;
+      var isBrowser = function (name) {
+        return function () {
+          return current === name;
+        };
+      };
       return {
         current: current,
         version: version,
-        isEdge: isBrowser(edge, current),
-        isChrome: isBrowser(chrome, current),
-        isIE: isBrowser(ie, current),
-        isOpera: isBrowser(opera, current),
-        isFirefox: isBrowser(firefox, current),
-        isSafari: isBrowser(safari, current)
+        isEdge: isBrowser(edge),
+        isChrome: isBrowser(chrome),
+        isIE: isBrowser(ie),
+        isOpera: isBrowser(opera),
+        isFirefox: isBrowser(firefox),
+        isSafari: isBrowser(safari)
       };
     };
     var Browser = {
@@ -375,11 +382,7 @@
     var osx = 'OSX';
     var solaris = 'Solaris';
     var freebsd = 'FreeBSD';
-    var isOS = function (name, current) {
-      return function () {
-        return current === name;
-      };
-    };
+    var chromeos = 'ChromeOS';
     var unknown$2 = function () {
       return nu$2({
         current: undefined,
@@ -389,16 +392,22 @@
     var nu$2 = function (info) {
       var current = info.current;
       var version = info.version;
+      var isOS = function (name) {
+        return function () {
+          return current === name;
+        };
+      };
       return {
         current: current,
         version: version,
-        isWindows: isOS(windows, current),
-        isiOS: isOS(ios, current),
-        isAndroid: isOS(android, current),
-        isOSX: isOS(osx, current),
-        isLinux: isOS(linux, current),
-        isSolaris: isOS(solaris, current),
-        isFreeBSD: isOS(freebsd, current)
+        isWindows: isOS(windows),
+        isiOS: isOS(ios),
+        isAndroid: isOS(android),
+        isOSX: isOS(osx),
+        isLinux: isOS(linux),
+        isSolaris: isOS(solaris),
+        isFreeBSD: isOS(freebsd),
+        isChromeOS: isOS(chromeos)
       };
     };
     var OperatingSystem = {
@@ -410,7 +419,8 @@
       linux: constant(linux),
       osx: constant(osx),
       solaris: constant(solaris),
-      freebsd: constant(freebsd)
+      freebsd: constant(freebsd),
+      chromeos: constant(chromeos)
     };
 
     var DeviceType = function (os, browser, userAgent, mediaMatch) {
@@ -436,29 +446,33 @@
     };
 
     var typeOf = function (x) {
+      var t = typeof x;
       if (x === null) {
         return 'null';
-      }
-      var t = typeof x;
-      if (t === 'object' && (Array.prototype.isPrototypeOf(x) || x.constructor && x.constructor.name === 'Array')) {
+      } else if (t === 'object' && (Array.prototype.isPrototypeOf(x) || x.constructor && x.constructor.name === 'Array')) {
         return 'array';
-      }
-      if (t === 'object' && (String.prototype.isPrototypeOf(x) || x.constructor && x.constructor.name === 'String')) {
+      } else if (t === 'object' && (String.prototype.isPrototypeOf(x) || x.constructor && x.constructor.name === 'String')) {
         return 'string';
+      } else {
+        return t;
       }
-      return t;
     };
     var isType = function (type) {
       return function (value) {
         return typeOf(value) === type;
       };
     };
+    var isSimpleType = function (type) {
+      return function (value) {
+        return typeof value === type;
+      };
+    };
     var isString = isType('string');
     var isObject = isType('object');
     var isArray = isType('array');
-    var isBoolean = isType('boolean');
-    var isFunction = isType('function');
-    var isNumber = isType('number');
+    var isBoolean = isSimpleType('boolean');
+    var isFunction = isSimpleType('function');
+    var isNumber = isSimpleType('number');
 
     var nativeSlice = Array.prototype.slice;
     var nativeIndexOf = Array.prototype.indexOf;
@@ -499,7 +513,7 @@
         f(x, i);
       }
     };
-    var filter = function (xs, pred) {
+    var filter$1 = function (xs, pred) {
       var r = [];
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
@@ -521,14 +535,19 @@
       });
       return acc;
     };
-    var find$2 = function (xs, pred) {
+    var findUntil = function (xs, pred, until) {
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
         if (pred(x, i)) {
           return Option.some(x);
+        } else if (until(x, i)) {
+          break;
         }
       }
       return Option.none();
+    };
+    var find$2 = function (xs, pred) {
+      return findUntil(xs, pred, never);
     };
     var findIndex = function (xs, pred) {
       for (var i = 0, len = xs.length; i < len; i++) {
@@ -550,8 +569,7 @@
       return r;
     };
     var bind = function (xs, f) {
-      var output = map$1(xs, f);
-      return flatten(output);
+      return flatten(map$1(xs, f));
     };
     var forall = function (xs, pred) {
       for (var i = 0, len = xs.length; i < len; ++i) {
@@ -568,15 +586,26 @@
       return r;
     };
     var difference = function (a1, a2) {
-      return filter(a1, function (x) {
+      return filter$1(a1, function (x) {
         return !contains(a2, x);
       });
     };
     var pure = function (x) {
       return [x];
     };
-    var from$1 = isFunction(Array.from) ? Array.from : function (x) {
-      return nativeSlice.call(x);
+    var sort = function (xs, comparator) {
+      var copy = nativeSlice.call(xs, 0);
+      copy.sort(comparator);
+      return copy;
+    };
+    var findMap = function (arr, f) {
+      for (var i = 0; i < arr.length; i++) {
+        var r = f(arr[i], i);
+        if (r.isSome()) {
+          return r;
+        }
+      }
+      return Option.none();
     };
 
     var detect$1 = function (candidates, userAgent) {
@@ -609,14 +638,7 @@
     };
 
     var checkRange = function (str, substr, start) {
-      if (substr === '') {
-        return true;
-      }
-      if (str.length < substr.length) {
-        return false;
-      }
-      var x = str.substr(start, start + substr.length);
-      return x === substr;
+      return substr === '' || str.length >= substr.length && str.substr(start, start + substr.length) === substr;
     };
     var supplant = function (str, obj) {
       var isStringOrNumber = function (a) {
@@ -634,9 +656,12 @@
     var endsWith = function (str, suffix) {
       return checkRange(str, suffix, str.length - suffix.length);
     };
-    var trim = function (str) {
-      return str.replace(/^\s+|\s+$/g, '');
+    var blank = function (r) {
+      return function (s) {
+        return s.replace(r, '');
+      };
     };
+    var trim = blank(/^\s+|\s+$/g);
 
     var normalVersionRegex = /.*?version\/\ ?([0-9]+)\.([0-9]+).*/;
     var checkContains = function (target) {
@@ -720,8 +745,8 @@
       },
       {
         name: 'OSX',
-        search: checkContains('os x'),
-        versionRegexes: [/.*?os\ x\ ?([0-9]+)_([0-9]+).*/]
+        search: checkContains('mac os x'),
+        versionRegexes: [/.*?mac\ os\ x\ ?([0-9]+)_([0-9]+).*/]
       },
       {
         name: 'Linux',
@@ -737,6 +762,11 @@
         name: 'FreeBSD',
         search: checkContains('freebsd'),
         versionRegexes: []
+      },
+      {
+        name: 'ChromeOS',
+        search: checkContains('cros'),
+        versionRegexes: [/.*?chrome\/([0-9]+)\.([0-9]+).*/]
       }
     ];
     var PlatformInfo = {
@@ -761,10 +791,27 @@
     var mediaMatch = function (query) {
       return domGlobals.window.matchMedia(query).matches;
     };
-    var platform = Cell(PlatformDetection.detect(domGlobals.navigator.userAgent, mediaMatch));
+    var platform = cached(function () {
+      return PlatformDetection.detect(domGlobals.navigator.userAgent, mediaMatch);
+    });
     var detect$3 = function () {
-      return platform.get();
+      return platform();
     };
+
+    var touchstart = constant('touchstart');
+    var touchmove = constant('touchmove');
+    var touchend = constant('touchend');
+    var mousedown = constant('mousedown');
+    var mousemove = constant('mousemove');
+    var mouseup = constant('mouseup');
+    var mouseover = constant('mouseover');
+    var keydown = constant('keydown');
+    var keyup = constant('keyup');
+    var input = constant('input');
+    var change = constant('change');
+    var click = constant('click');
+    var transitionend = constant('transitionend');
+    var selectstart = constant('selectstart');
 
     var alloy = { tap: constant('alloy.tap') };
     var focus = constant('alloy.focus');
@@ -774,7 +821,6 @@
     var execute = constant('alloy.execute');
     var focusItem = constant('alloy.focus.item');
     var tap = alloy.tap;
-    var tapOrClick = detect$3().deviceType.isTouch() ? alloy.tap : click;
     var longpress = constant('alloy.longpress');
     var systemInit = constant('alloy.system.init');
     var attachedToDom = constant('alloy.system.attached');
@@ -804,22 +850,6 @@
     };
     var dispatchFocus = function (component, target) {
       component.getSystem().triggerFocus(target, component.element());
-    };
-
-    var cached = function (f) {
-      var called = false;
-      var r;
-      return function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-          args[_i] = arguments[_i];
-        }
-        if (!called) {
-          called = true;
-          r = f.apply(null, args);
-        }
-        return r;
-      };
     };
 
     var fromHtml = function (html, scope) {
@@ -860,20 +890,11 @@
       fromPoint: fromPoint
     };
 
-    var ATTRIBUTE = domGlobals.Node.ATTRIBUTE_NODE;
-    var CDATA_SECTION = domGlobals.Node.CDATA_SECTION_NODE;
-    var COMMENT = domGlobals.Node.COMMENT_NODE;
-    var DOCUMENT = domGlobals.Node.DOCUMENT_NODE;
-    var DOCUMENT_TYPE = domGlobals.Node.DOCUMENT_TYPE_NODE;
-    var DOCUMENT_FRAGMENT = domGlobals.Node.DOCUMENT_FRAGMENT_NODE;
-    var ELEMENT = domGlobals.Node.ELEMENT_NODE;
-    var TEXT = domGlobals.Node.TEXT_NODE;
-    var PROCESSING_INSTRUCTION = domGlobals.Node.PROCESSING_INSTRUCTION_NODE;
-    var ENTITY_REFERENCE = domGlobals.Node.ENTITY_REFERENCE_NODE;
-    var ENTITY = domGlobals.Node.ENTITY_NODE;
-    var NOTATION = domGlobals.Node.NOTATION_NODE;
-
     var Global = typeof domGlobals.window !== 'undefined' ? domGlobals.window : Function('return this;')();
+
+    var DOCUMENT = 9;
+    var ELEMENT = 1;
+    var TEXT = 3;
 
     var name = function (element) {
       var r = element.dom().nodeName;
@@ -894,112 +915,15 @@
       var dom = isText(element) ? element.dom().parentNode : element.dom();
       return dom !== undefined && dom !== null && dom.ownerDocument.body.contains(dom);
     };
-    var body = cached(function () {
+    var body = function () {
       return getBody(Element.fromDom(domGlobals.document));
-    });
+    };
     var getBody = function (doc) {
       var b = doc.dom().body;
       if (b === null || b === undefined) {
         throw new Error('Body is not available yet');
       }
       return Element.fromDom(b);
-    };
-
-    var Immutable = function () {
-      var fields = [];
-      for (var _i = 0; _i < arguments.length; _i++) {
-        fields[_i] = arguments[_i];
-      }
-      return function () {
-        var values = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-          values[_i] = arguments[_i];
-        }
-        if (fields.length !== values.length) {
-          throw new Error('Wrong number of arguments to struct. Expected "[' + fields.length + ']", got ' + values.length + ' arguments');
-        }
-        var struct = {};
-        each$1(fields, function (name, i) {
-          struct[name] = constant(values[i]);
-        });
-        return struct;
-      };
-    };
-
-    var sort = function (arr) {
-      return arr.slice(0).sort();
-    };
-    var reqMessage = function (required, keys) {
-      throw new Error('All required keys (' + sort(required).join(', ') + ') were not specified. Specified keys were: ' + sort(keys).join(', ') + '.');
-    };
-    var unsuppMessage = function (unsupported) {
-      throw new Error('Unsupported keys for object: ' + sort(unsupported).join(', '));
-    };
-    var validateStrArr = function (label, array) {
-      if (!isArray(array)) {
-        throw new Error('The ' + label + ' fields must be an array. Was: ' + array + '.');
-      }
-      each$1(array, function (a) {
-        if (!isString(a)) {
-          throw new Error('The value ' + a + ' in the ' + label + ' fields was not a string.');
-        }
-      });
-    };
-    var checkDupes = function (everything) {
-      var sorted = sort(everything);
-      var dupe = find$2(sorted, function (s, i) {
-        return i < sorted.length - 1 && s === sorted[i + 1];
-      });
-      dupe.each(function (d) {
-        throw new Error('The field: ' + d + ' occurs more than once in the combined fields: [' + sorted.join(', ') + '].');
-      });
-    };
-
-    var MixedBag = function (required, optional) {
-      var everything = required.concat(optional);
-      if (everything.length === 0) {
-        throw new Error('You must specify at least one required or optional field.');
-      }
-      validateStrArr('required', required);
-      validateStrArr('optional', optional);
-      checkDupes(everything);
-      return function (obj) {
-        var keys$1 = keys(obj);
-        var allReqd = forall(required, function (req) {
-          return contains(keys$1, req);
-        });
-        if (!allReqd) {
-          reqMessage(required, keys$1);
-        }
-        var unsupported = filter(keys$1, function (key) {
-          return !contains(everything, key);
-        });
-        if (unsupported.length > 0) {
-          unsuppMessage(unsupported);
-        }
-        var r = {};
-        each$1(required, function (req) {
-          r[req] = constant(obj[req]);
-        });
-        each$1(optional, function (opt) {
-          r[opt] = constant(Object.prototype.hasOwnProperty.call(obj, opt) ? Option.some(obj[opt]) : Option.none());
-        });
-        return r;
-      };
-    };
-
-    var compareDocumentPosition = function (a, b, match) {
-      return (a.compareDocumentPosition(b) & match) !== 0;
-    };
-    var documentPositionPreceding = function (a, b) {
-      return compareDocumentPosition(a, b, domGlobals.Node.DOCUMENT_POSITION_PRECEDING);
-    };
-    var documentPositionContainedBy = function (a, b) {
-      return compareDocumentPosition(a, b, domGlobals.Node.DOCUMENT_POSITION_CONTAINED_BY);
-    };
-    var Node = {
-      documentPositionPreceding: documentPositionPreceding,
-      documentPositionContainedBy: documentPositionContainedBy
     };
 
     var ELEMENT$1 = ELEMENT;
@@ -1038,16 +962,6 @@
     var eq = function (e1, e2) {
       return e1.dom() === e2.dom();
     };
-    var regularContains = function (e1, e2) {
-      var d1 = e1.dom();
-      var d2 = e2.dom();
-      return d1 === d2 ? false : d1.contains(d2);
-    };
-    var ieContains = function (e1, e2) {
-      return Node.documentPositionContainedBy(e1.dom(), e2.dom());
-    };
-    var browser = detect$3().browser;
-    var contains$2 = browser.isIE() ? ieContains : regularContains;
 
     var owner = function (element) {
       return Element.fromDom(element.dom().ownerDocument);
@@ -1076,7 +990,7 @@
     };
     var siblings = function (element) {
       var filterSelf = function (elements) {
-        return filter(elements, function (x) {
+        return filter$1(elements, function (x) {
           return !eq(element, x);
         });
       };
@@ -1095,7 +1009,6 @@
     var firstChild = function (element) {
       return child(element, 0);
     };
-    var spot = Immutable('element', 'offset');
 
     var before = function (marker, element) {
       var parent$1 = parent(marker);
@@ -1241,16 +1154,16 @@
       var is = function (v) {
         return o === v;
       };
-      var or = function (opt) {
+      var or = function (_opt) {
         return value(o);
       };
-      var orThunk = function (f) {
+      var orThunk = function (_f) {
         return value(o);
       };
       var map = function (f) {
         return value(f(o));
       };
-      var mapError = function (f) {
+      var mapError = function (_f) {
         return value(o);
       };
       var each = function (f) {
@@ -1303,13 +1216,13 @@
       var orThunk = function (f) {
         return f();
       };
-      var map = function (f) {
+      var map = function (_f) {
         return error(message);
       };
       var mapError = function (f) {
         return error(f(message));
       };
-      var bind = function (f) {
+      var bind = function (_f) {
         return error(message);
       };
       var fold = function (onError, _) {
@@ -1446,138 +1359,6 @@
     var deepMerge = baseMerge(deep);
     var merge = baseMerge(shallow);
 
-    var adt = Adt.generate([
-      { strict: [] },
-      { defaultedThunk: ['fallbackThunk'] },
-      { asOption: [] },
-      { asDefaultedOptionThunk: ['fallbackThunk'] },
-      { mergeWithThunk: ['baseThunk'] }
-    ]);
-    var defaulted = function (fallback) {
-      return adt.defaultedThunk(constant(fallback));
-    };
-    var mergeWith = function (base) {
-      return adt.mergeWithThunk(constant(base));
-    };
-    var strict = adt.strict;
-    var asOption = adt.asOption;
-    var defaultedThunk = adt.defaultedThunk;
-    var mergeWithThunk = adt.mergeWithThunk;
-
-    var exclude = function (obj, fields) {
-      var r = {};
-      each(obj, function (v, k) {
-        if (!contains(fields, k)) {
-          r[k] = v;
-        }
-      });
-      return r;
-    };
-
-    var readOpt = function (key) {
-      return function (obj) {
-        return has(obj, key) ? Option.from(obj[key]) : Option.none();
-      };
-    };
-    var readOr = function (key, fallback) {
-      return function (obj) {
-        return has(obj, key) ? obj[key] : fallback;
-      };
-    };
-    var readOptFrom = function (obj, key) {
-      return readOpt(key)(obj);
-    };
-    var hasKey = function (obj, key) {
-      return has(obj, key) && obj[key] !== undefined && obj[key] !== null;
-    };
-
-    var wrap = function (key, value) {
-      var r = {};
-      r[key] = value;
-      return r;
-    };
-    var wrapAll = function (keyvalues) {
-      var r = {};
-      each$1(keyvalues, function (kv) {
-        r[kv.key] = kv.value;
-      });
-      return r;
-    };
-
-    var comparison = Adt.generate([
-      {
-        bothErrors: [
-          'error1',
-          'error2'
-        ]
-      },
-      {
-        firstError: [
-          'error1',
-          'value2'
-        ]
-      },
-      {
-        secondError: [
-          'value1',
-          'error2'
-        ]
-      },
-      {
-        bothValues: [
-          'value1',
-          'value2'
-        ]
-      }
-    ]);
-    var partition = function (results) {
-      var errors = [];
-      var values = [];
-      each$1(results, function (result) {
-        result.fold(function (err) {
-          errors.push(err);
-        }, function (value) {
-          values.push(value);
-        });
-      });
-      return {
-        errors: errors,
-        values: values
-      };
-    };
-
-    var exclude$1 = function (obj, fields) {
-      return exclude(obj, fields);
-    };
-    var readOpt$1 = function (key) {
-      return readOpt(key);
-    };
-    var readOr$1 = function (key, fallback) {
-      return readOr(key, fallback);
-    };
-    var readOptFrom$1 = function (obj, key) {
-      return readOptFrom(obj, key);
-    };
-    var wrap$1 = function (key, value) {
-      return wrap(key, value);
-    };
-    var wrapAll$1 = function (keyvalues) {
-      return wrapAll(keyvalues);
-    };
-    var mergeValues = function (values, base) {
-      return values.length === 0 ? Result.value(base) : Result.value(deepMerge(base, merge.apply(undefined, values)));
-    };
-    var mergeErrors = function (errors) {
-      return Result.error(flatten(errors));
-    };
-    var consolidate = function (objs, base) {
-      var partitions = partition(objs);
-      return partitions.errors.length > 0 ? mergeErrors(partitions.errors) : mergeValues(partitions.values, base);
-    };
-    var hasKey$1 = function (obj, key) {
-      return hasKey(obj, key);
-    };
-
     var SimpleResultType;
     (function (SimpleResultType) {
       SimpleResultType[SimpleResultType['Error'] = 0] = 'Error';
@@ -1586,7 +1367,7 @@
     var fold = function (res, onError, onValue) {
       return res.stype === SimpleResultType.Error ? onError(res.serror) : onValue(res.svalue);
     };
-    var partition$1 = function (results) {
+    var partition = function (results) {
       var values = [];
       var errors = [];
       each$1(results, function (obj) {
@@ -1657,13 +1438,116 @@
       fromResult: fromResult,
       toResult: toResult,
       svalue: svalue,
-      partition: partition$1,
+      partition: partition,
       serror: serror,
       bind: bind$1,
       bindError: bindError,
       map: map$2,
       mapError: mapError,
       fold: fold
+    };
+
+    var adt = Adt.generate([
+      { strict: [] },
+      { defaultedThunk: ['fallbackThunk'] },
+      { asOption: [] },
+      { asDefaultedOptionThunk: ['fallbackThunk'] },
+      { mergeWithThunk: ['baseThunk'] }
+    ]);
+    var defaulted = function (fallback) {
+      return adt.defaultedThunk(constant(fallback));
+    };
+    var mergeWith = function (base) {
+      return adt.mergeWithThunk(constant(base));
+    };
+    var strict = adt.strict;
+    var asOption = adt.asOption;
+    var defaultedThunk = adt.defaultedThunk;
+    var asDefaultedOptionThunk = adt.asDefaultedOptionThunk;
+    var mergeWithThunk = adt.mergeWithThunk;
+
+    var exclude = function (obj, fields) {
+      var r = {};
+      each(obj, function (v, k) {
+        if (!contains(fields, k)) {
+          r[k] = v;
+        }
+      });
+      return r;
+    };
+
+    var wrap = function (key, value) {
+      var _a;
+      return _a = {}, _a[key] = value, _a;
+    };
+    var wrapAll = function (keyvalues) {
+      var r = {};
+      each$1(keyvalues, function (kv) {
+        r[kv.key] = kv.value;
+      });
+      return r;
+    };
+
+    var comparison = Adt.generate([
+      {
+        bothErrors: [
+          'error1',
+          'error2'
+        ]
+      },
+      {
+        firstError: [
+          'error1',
+          'value2'
+        ]
+      },
+      {
+        secondError: [
+          'value1',
+          'error2'
+        ]
+      },
+      {
+        bothValues: [
+          'value1',
+          'value2'
+        ]
+      }
+    ]);
+    var partition$1 = function (results) {
+      var errors = [];
+      var values = [];
+      each$1(results, function (result) {
+        result.fold(function (err) {
+          errors.push(err);
+        }, function (value) {
+          values.push(value);
+        });
+      });
+      return {
+        errors: errors,
+        values: values
+      };
+    };
+
+    var exclude$1 = function (obj, fields) {
+      return exclude(obj, fields);
+    };
+    var wrap$1 = function (key, value) {
+      return wrap(key, value);
+    };
+    var wrapAll$1 = function (keyvalues) {
+      return wrapAll(keyvalues);
+    };
+    var mergeValues = function (values, base) {
+      return values.length === 0 ? Result.value(base) : Result.value(deepMerge(base, merge.apply(undefined, values)));
+    };
+    var mergeErrors = function (errors) {
+      return Result.error(flatten(errors));
+    };
+    var consolidate = function (objs, base) {
+      var partitions = partition$1(objs);
+      return partitions.errors.length > 0 ? mergeErrors(partitions.errors) : mergeValues(partitions.values, base);
     };
 
     var mergeValues$1 = function (values, base) {
@@ -1684,41 +1568,6 @@
       consolidateObj: consolidateObj,
       consolidateArr: consolidateArr
     };
-
-    var typeAdt = Adt.generate([
-      {
-        setOf: [
-          'validator',
-          'valueType'
-        ]
-      },
-      { arrOf: ['valueType'] },
-      { objOf: ['fields'] },
-      { itemOf: ['validator'] },
-      {
-        choiceOf: [
-          'key',
-          'branches'
-        ]
-      },
-      { thunk: ['description'] },
-      {
-        func: [
-          'args',
-          'outputSchema'
-        ]
-      }
-    ]);
-    var fieldAdt = Adt.generate([
-      {
-        field: [
-          'name',
-          'presence',
-          'type'
-        ]
-      },
-      { state: ['name'] }
-    ]);
 
     var formatObj = function (input) {
       return isObject(input) && keys(input).length > 100 ? ' removed due to size' : JSON.stringify(input, null, 2);
@@ -1784,21 +1633,21 @@
       }
     ]);
     var strictAccess = function (path, obj, key) {
-      return readOptFrom(obj, key).fold(function () {
+      return get(obj, key).fold(function () {
         return missingStrict(path, key, obj);
       }, SimpleResult.svalue);
     };
     var fallbackAccess = function (obj, key, fallbackThunk) {
-      var v = readOptFrom(obj, key).fold(function () {
+      var v = get(obj, key).fold(function () {
         return fallbackThunk(obj);
       }, identity);
       return SimpleResult.svalue(v);
     };
     var optionAccess = function (obj, key) {
-      return SimpleResult.svalue(readOptFrom(obj, key));
+      return SimpleResult.svalue(get(obj, key));
     };
     var optionDefaultedAccess = function (obj, key, fallback) {
-      var opt = readOptFrom(obj, key).map(function (val) {
+      var opt = get(obj, key).map(function (val) {
         return val === true ? fallback(obj) : val;
       });
       return SimpleResult.svalue(opt);
@@ -1859,20 +1708,15 @@
       var toString = function () {
         return 'val';
       };
-      var toDsl = function () {
-        return typeAdt.itemOf(validator);
-      };
       return {
         extract: extract,
-        toString: toString,
-        toDsl: toDsl
+        toString: toString
       };
     };
     var getSetKeys = function (obj) {
-      var keys$1 = keys(obj);
-      return filter(keys$1, function (k) {
-        return hasKey$1(obj, k);
-      });
+      return keys(filter(obj, function (value) {
+        return value !== undefined && value !== null;
+      }));
     };
     var objOfOnly = function (fields) {
       var delegate = objOf(fields);
@@ -1883,15 +1727,14 @@
       }, {});
       var extract = function (path, strength, o) {
         var keys = isBoolean(o) ? [] : getSetKeys(o);
-        var extra = filter(keys, function (k) {
-          return !hasKey$1(fieldNames, k);
+        var extra = filter$1(keys, function (k) {
+          return !hasNonNullableKey(fieldNames, k);
         });
         return extra.length === 0 ? delegate.extract(path, strength, o) : unsupportedFields(path, extra);
       };
       return {
         extract: extract,
-        toString: delegate.toString,
-        toDsl: delegate.toDsl
+        toString: delegate.toString
       };
     };
     var objOf = function (fields) {
@@ -1902,25 +1745,15 @@
         var fieldStrings = map$1(fields, function (field) {
           return field.fold(function (key, okey, presence, prop) {
             return key + ' -> ' + prop.toString();
-          }, function (okey, instantiator) {
+          }, function (okey, _instantiator) {
             return 'state(' + okey + ')';
           });
         });
         return 'obj{\n' + fieldStrings.join('\n') + '}';
       };
-      var toDsl = function () {
-        return typeAdt.objOf(map$1(fields, function (f) {
-          return f.fold(function (key, okey, presence, prop) {
-            return fieldAdt.field(key, presence, prop);
-          }, function (okey, instantiator) {
-            return fieldAdt.state(okey);
-          });
-        }));
-      };
       return {
         extract: extract,
-        toString: toString,
-        toDsl: toDsl
+        toString: toString
       };
     };
     var arrOf = function (prop) {
@@ -1933,13 +1766,9 @@
       var toString = function () {
         return 'array(' + prop.toString() + ')';
       };
-      var toDsl = function () {
-        return typeAdt.arrOf(prop);
-      };
       return {
         extract: extract,
-        toString: toString,
-        toDsl: toDsl
+        toString: toString
       };
     };
     var setOf = function (validator, prop) {
@@ -1959,13 +1788,9 @@
       var toString = function () {
         return 'setOf(' + prop.toString() + ')';
       };
-      var toDsl = function () {
-        return typeAdt.setOf(validator, prop);
-      };
       return {
         extract: extract,
-        toString: toString,
-        toDsl: toDsl
+        toString: toString
       };
     };
     var anyValue = constant(value$1(SimpleResult.svalue));
@@ -1973,7 +1798,7 @@
     var field = adt$1.field;
 
     var chooseFrom = function (path, strength, input, branches, ch) {
-      var fields = readOptFrom$1(branches, ch);
+      var fields = get(branches, ch);
       return fields.fold(function () {
         return missingBranch(path, branches, ch);
       }, function (vp) {
@@ -1982,7 +1807,7 @@
     };
     var choose = function (key, branches) {
       var extract = function (path, strength, input) {
-        var choice = readOptFrom$1(input, key);
+        var choice = get(input, key);
         return choice.fold(function () {
           return missingKey(path, key);
         }, function (chosen) {
@@ -1992,13 +1817,9 @@
       var toString = function () {
         return 'chooseOn(' + key + '). Possible values: ' + keys(branches);
       };
-      var toDsl = function () {
-        return typeAdt.choiceOf(key, branches);
-      };
       return {
         extract: extract,
-        toString: toString,
-        toDsl: toDsl
+        toString: toString
       };
     };
 
@@ -2034,7 +1855,7 @@
       return getOrDie(asRaw(label, prop, obj));
     };
     var formatError = function (errInfo) {
-      return 'Errors: \n' + formatErrors(errInfo.errors) + '\n\nInput object: ' + formatObj(errInfo.input);
+      return 'Errors: \n' + formatErrors(errInfo.errors).join('\n') + '\n\nInput object: ' + formatObj(errInfo.input);
     };
     var choose$1 = function (key, branches) {
       return choose(key, map(branches, objOf));
@@ -2058,7 +1879,7 @@
       return strictOf(key, functionProcessor);
     };
     var forbid = function (key, message) {
-      return field(key, key, asOption(), value$1(function (v) {
+      return field(key, key, asOption(), value$1(function (_v) {
         return SimpleResult.serror('The field: ' + key + ' is forbidden. ' + message);
       }));
     };
@@ -2083,6 +1904,9 @@
     var defaultedOf = function (key, fallback, schema) {
       return field(key, key, defaulted(fallback), schema);
     };
+    var defaultedFunction = function (key, fallback) {
+      return defaultedOf(key, fallback, functionProcessor);
+    };
     var defaultedObjOf = function (key, fallback, objSchema) {
       return defaultedOf(key, fallback, objOf(objSchema));
     };
@@ -2090,12 +1914,38 @@
       return state(okey, instantiator);
     };
 
+    var ensureIsRoot = function (isRoot) {
+      return isFunction(isRoot) ? isRoot : constant(false);
+    };
+    var ancestor = function (scope, transform, isRoot) {
+      var element = scope.dom();
+      var stop = ensureIsRoot(isRoot);
+      while (element.parentNode) {
+        element = element.parentNode;
+        var el = Element.fromDom(element);
+        var transformed = transform(el);
+        if (transformed.isSome()) {
+          return transformed;
+        } else if (stop(el)) {
+          break;
+        }
+      }
+      return Option.none();
+    };
+    var closest = function (scope, transform, isRoot) {
+      var current = transform(scope);
+      var stop = ensureIsRoot(isRoot);
+      return current.orThunk(function () {
+        return stop(scope) ? Option.none() : ancestor(scope, transform, stop);
+      });
+    };
+
     var isSource = function (component, simulatedEvent) {
       return eq(component.element(), simulatedEvent.event().target());
     };
 
     var nu$4 = function (parts) {
-      if (!hasKey$1(parts, 'can') && !hasKey$1(parts, 'abort') && !hasKey$1(parts, 'run')) {
+      if (!hasNonNullableKey(parts, 'can') && !hasNonNullableKey(parts, 'abort') && !hasNonNullableKey(parts, 'run')) {
         throw new Error('EventHandler defined by: ' + JSON.stringify(parts, null, 2) + ' does not have can, abort, or run!');
       }
       return asRawOrDie('Extracting event.handler', objOfOnly([
@@ -2156,54 +2006,6 @@
       });
     };
 
-    function ClosestOrAncestor (is, ancestor, scope, a, isRoot) {
-      return is(scope, a) ? Option.some(scope) : isFunction(isRoot) && isRoot(scope) ? Option.none() : ancestor(scope, a, isRoot);
-    }
-
-    var ancestor = function (scope, predicate, isRoot) {
-      var element = scope.dom();
-      var stop = isFunction(isRoot) ? isRoot : constant(false);
-      while (element.parentNode) {
-        element = element.parentNode;
-        var el = Element.fromDom(element);
-        if (predicate(el)) {
-          return Option.some(el);
-        } else if (stop(el)) {
-          break;
-        }
-      }
-      return Option.none();
-    };
-    var closest = function (scope, predicate, isRoot) {
-      var is = function (s, test) {
-        return test(s);
-      };
-      return ClosestOrAncestor(is, ancestor, scope, predicate, isRoot);
-    };
-    var descendant = function (scope, predicate) {
-      var descend = function (node) {
-        for (var i = 0; i < node.childNodes.length; i++) {
-          var child_1 = Element.fromDom(node.childNodes[i]);
-          if (predicate(child_1)) {
-            return Option.some(child_1);
-          }
-          var res = descend(node.childNodes[i]);
-          if (res.isSome()) {
-            return res;
-          }
-        }
-        return Option.none();
-      };
-      return descend(scope.dom());
-    };
-
-    var closest$1 = function (target, transform, isRoot) {
-      var delegate = closest(target, function (elem) {
-        return transform(elem).isSome();
-      }, isRoot);
-      return delegate.bind(transform);
-    };
-
     var derive = function (configs) {
       return wrapAll$1(configs);
     };
@@ -2229,8 +2031,11 @@
       return {
         key: name,
         value: nu$4({
-          run: function (component) {
-            action.apply(undefined, [component].concat(extra));
+          run: function (component, simulatedEvent) {
+            action.apply(undefined, [
+              component,
+              simulatedEvent
+            ].concat(extra));
           }
         })
       };
@@ -2349,7 +2154,7 @@
       });
     };
     var loadEvent = function (bConfig, bState, f) {
-      return runOnInit(function (component, simulatedEvent) {
+      return runOnInit(function (component, _simulatedEvent) {
         f(component, bConfig, bState);
       });
     };
@@ -2391,7 +2196,7 @@
     };
     var doCreate = function (configSchema, schemaSchema, name, active, apis, extra, state) {
       var getConfig = function (info) {
-        return hasKey$1(info, name) ? info[name]() : Option.none();
+        return hasNonNullableKey(info, name) ? info[name]() : Option.none();
       };
       var wrappedApis = map(apis, function (apiF, apiName) {
         return wrapApi(name, apiF, apiName);
@@ -2421,7 +2226,7 @@
         },
         exhibit: function (info, base) {
           return getConfig(info).bind(function (behaviourInfo) {
-            return readOptFrom$1(active, 'exhibit').map(function (exhibitor) {
+            return get(active, 'exhibit').map(function (exhibitor) {
               return exhibitor(base, behaviourInfo.config, behaviourInfo.state);
             });
           }).getOr(nu$5({}));
@@ -2431,9 +2236,9 @@
         },
         handlers: function (info) {
           return getConfig(info).map(function (behaviourInfo) {
-            var getEvents = readOr$1('events', function (a, b) {
+            var getEvents = get(active, 'events').getOr(function () {
               return {};
-            })(active);
+            });
             return getEvents(behaviourInfo.config, behaviourInfo.state);
           }).getOr({});
         }
@@ -2501,9 +2306,12 @@
         rawSet(dom, k, v);
       });
     };
-    var get = function (element, key) {
+    var get$1 = function (element, key) {
       var v = element.dom().getAttribute(key);
       return v === null ? undefined : v;
+    };
+    var getOpt = function (element, key) {
+      return Option.from(get$1(element, key));
     };
     var has$1 = function (element, key) {
       var dom = element.dom();
@@ -2514,7 +2322,7 @@
     };
 
     var read$1 = function (element, attr) {
-      var value = get(element, attr);
+      var value = get$1(element, attr);
       return value === undefined || value === '' ? [] : value.split(' ');
     };
     var add = function (element, attr, id) {
@@ -2524,7 +2332,7 @@
       return true;
     };
     var remove$2 = function (element, attr, id) {
-      var nu = filter(read$1(element, attr), function (v) {
+      var nu = filter$1(read$1(element, attr), function (v) {
         return v !== id;
       });
       if (nu.length > 0) {
@@ -2538,7 +2346,7 @@
     var supports = function (element) {
       return element.dom().classList !== undefined;
     };
-    var get$1 = function (element) {
+    var get$2 = function (element) {
       return read$1(element, 'class');
     };
     var add$1 = function (element, clazz) {
@@ -2556,7 +2364,7 @@
       }
     };
     var cleanClass = function (element) {
-      var classList = supports(element) ? element.dom().classList : get$1(element);
+      var classList = supports(element) ? element.dom().classList : get$2(element);
       if (classList.length === 0) {
         remove$1(element, 'class');
       }
@@ -2578,24 +2386,25 @@
       remove$4(element, removeCls);
       add$2(element, addCls);
     };
-    var toAlpha = function (component, swapConfig, swapState) {
+    var toAlpha = function (component, swapConfig, _swapState) {
       swap(component.element(), swapConfig.alpha, swapConfig.omega);
     };
-    var toOmega = function (component, swapConfig, swapState) {
+    var toOmega = function (component, swapConfig, _swapState) {
       swap(component.element(), swapConfig.omega, swapConfig.alpha);
     };
-    var clear = function (component, swapConfig, swapState) {
+    var clear = function (component, swapConfig, _swapState) {
       remove$4(component.element(), swapConfig.alpha);
       remove$4(component.element(), swapConfig.omega);
     };
-    var isAlpha = function (component, swapConfig, swapState) {
+    var isAlpha = function (component, swapConfig, _swapState) {
       return has$2(component.element(), swapConfig.alpha);
     };
-    var isOmega = function (component, swapConfig, swapState) {
+    var isOmega = function (component, swapConfig, _swapState) {
       return has$2(component.element(), swapConfig.omega);
     };
 
     var SwapApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         toAlpha: toAlpha,
         toOmega: toOmega,
         isAlpha: isAlpha,
@@ -2614,11 +2423,66 @@
       apis: SwapApis
     });
 
+    var Cell = function (initial) {
+      var value = initial;
+      var get = function () {
+        return value;
+      };
+      var set = function (v) {
+        value = v;
+      };
+      return {
+        get: get,
+        set: set
+      };
+    };
+
+    function ClosestOrAncestor (is, ancestor, scope, a, isRoot) {
+      return is(scope, a) ? Option.some(scope) : isFunction(isRoot) && isRoot(scope) ? Option.none() : ancestor(scope, a, isRoot);
+    }
+
+    var ancestor$1 = function (scope, predicate, isRoot) {
+      var element = scope.dom();
+      var stop = isFunction(isRoot) ? isRoot : constant(false);
+      while (element.parentNode) {
+        element = element.parentNode;
+        var el = Element.fromDom(element);
+        if (predicate(el)) {
+          return Option.some(el);
+        } else if (stop(el)) {
+          break;
+        }
+      }
+      return Option.none();
+    };
+    var closest$1 = function (scope, predicate, isRoot) {
+      var is = function (s, test) {
+        return test(s);
+      };
+      return ClosestOrAncestor(is, ancestor$1, scope, predicate, isRoot);
+    };
+    var descendant = function (scope, predicate) {
+      var descend = function (node) {
+        for (var i = 0; i < node.childNodes.length; i++) {
+          var child_1 = Element.fromDom(node.childNodes[i]);
+          if (predicate(child_1)) {
+            return Option.some(child_1);
+          }
+          var res = descend(node.childNodes[i]);
+          if (res.isSome()) {
+            return res;
+          }
+        }
+        return Option.none();
+      };
+      return descend(scope.dom());
+    };
+
     var focus$1 = function (element) {
-      element.dom().focus();
+      return element.dom().focus();
     };
     var blur = function (element) {
-      element.dom().blur();
+      return element.dom().blur();
     };
     var hasFocus = function (element) {
       var doc = owner(element).dom();
@@ -2649,23 +2513,17 @@
       link.dispatchEvent(nuEvt);
       domGlobals.document.body.removeChild(link);
     };
-    var TinyCodeDupe = { openLink: openLink };
 
     var isSkinDisabled = function (editor) {
       return editor.settings.skin === false;
     };
-    var readOnlyOnInit = function (editor) {
+    var readOnlyOnInit = function (_editor) {
       return false;
     };
 
     var formatChanged = 'formatChanged';
     var orientationChanged = 'orientationChanged';
     var dropupDismissed = 'dropupDismissed';
-    var TinyChannels = {
-      formatChanged: constant(formatChanged),
-      orientationChanged: constant(orientationChanged),
-      dropupDismissed: constant(dropupDismissed)
-    };
 
     var fromHtml$1 = function (html, scope) {
       var doc = scope || domGlobals.document;
@@ -2674,7 +2532,7 @@
       return children(Element.fromDom(div));
     };
 
-    var get$2 = function (element) {
+    var get$3 = function (element) {
       return element.dom().innerHTML;
     };
     var set$1 = function (element, content) {
@@ -2690,7 +2548,7 @@
       var container = Element.fromTag('div');
       var clone = Element.fromDom(element.dom().cloneNode(true));
       append(container, clone);
-      return get$2(container);
+      return get$3(container);
     };
 
     var clone = function (original, isDeep) {
@@ -2710,7 +2568,7 @@
     };
 
     var chooseChannels = function (channels, message) {
-      return message.universal() ? channels : filter(channels, function (ch) {
+      return message.universal() ? channels : filter$1(channels, function (ch) {
         return contains(message.channels(), ch);
       });
     };
@@ -2718,54 +2576,21 @@
       return derive([run(receive(), function (component, message) {
           var channelMap = receiveConfig.channels;
           var channels = keys(channelMap);
-          var targetChannels = chooseChannels(channels, message);
+          var receivingData = message;
+          var targetChannels = chooseChannels(channels, receivingData);
           each$1(targetChannels, function (ch) {
             var channelInfo = channelMap[ch];
             var channelSchema = channelInfo.schema;
-            var data = asRawOrDie('channel[' + ch + '] data\nReceiver: ' + element(component.element()), channelSchema, message.data());
+            var data = asRawOrDie('channel[' + ch + '] data\nReceiver: ' + element(component.element()), channelSchema, receivingData.data());
             channelInfo.onReceive(component, data);
           });
         })]);
     };
 
     var ActiveReceiving = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         events: events
     });
-
-    var cat = function (arr) {
-      var r = [];
-      var push = function (x) {
-        r.push(x);
-      };
-      for (var i = 0; i < arr.length; i++) {
-        arr[i].each(push);
-      }
-      return r;
-    };
-    var sequence = function (arr) {
-      var r = [];
-      for (var i = 0; i < arr.length; i++) {
-        var x = arr[i];
-        if (x.isSome()) {
-          r.push(x.getOrDie());
-        } else {
-          return Option.none();
-        }
-      }
-      return Option.some(r);
-    };
-    var findMap = function (arr, f) {
-      for (var i = 0; i < arr.length; i++) {
-        var r = f(arr[i], i);
-        if (r.isSome()) {
-          return r;
-        }
-      }
-      return Option.none();
-    };
-    var someIf = function (b, a) {
-      return b ? Option.some(a) : Option.none();
-    };
 
     var unknown$3 = 'unknown';
     var EventConfiguration;
@@ -2779,34 +2604,34 @@
       var sequence = [];
       var startTime = new Date().getTime();
       return {
-        logEventCut: function (name, target, purpose) {
+        logEventCut: function (_name, target, purpose) {
           sequence.push({
             outcome: 'cut',
             target: target,
             purpose: purpose
           });
         },
-        logEventStopped: function (name, target, purpose) {
+        logEventStopped: function (_name, target, purpose) {
           sequence.push({
             outcome: 'stopped',
             target: target,
             purpose: purpose
           });
         },
-        logNoParent: function (name, target, purpose) {
+        logNoParent: function (_name, target, purpose) {
           sequence.push({
             outcome: 'no-parent',
             target: target,
             purpose: purpose
           });
         },
-        logEventNoHandlers: function (name, target) {
+        logEventNoHandlers: function (_name, target) {
           sequence.push({
             outcome: 'no-handlers-left',
             target: target
           });
         },
-        logEventResponse: function (name, target, purpose) {
+        logEventResponse: function (_name, target, purpose) {
           sequence.push({
             outcome: 'response',
             purpose: purpose,
@@ -2843,7 +2668,7 @@
       };
     };
     var processEvent = function (eventName, initialTarget, f) {
-      var status = readOptFrom$1(eventConfig.get(), eventName).orThunk(function () {
+      var status = get(eventConfig.get(), eventName).orThunk(function () {
         var patterns = keys(eventConfig.get());
         return findMap(patterns, function (p) {
           return eventName.indexOf(p) > -1 ? Option.some(eventConfig.get()[p]) : Option.none();
@@ -2997,6 +2822,7 @@
     };
 
     var ToggleApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         onLoad: onLoad,
         toggle: toggle,
         isOn: isOn,
@@ -3005,7 +2831,7 @@
         set: set$2
     });
 
-    var exhibit = function (base, toggleConfig, toggleState) {
+    var exhibit = function () {
       return nu$5({});
     };
     var events$1 = function (toggleConfig, toggleState) {
@@ -3018,6 +2844,7 @@
     };
 
     var ActiveToggle = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         exhibit: exhibit,
         events: events$1
     });
@@ -3089,7 +2916,7 @@
 
     var format = function (command, update) {
       return Receiving.config({
-        channels: wrap$1(TinyChannels.formatChanged(), {
+        channels: wrap$1(formatChanged, {
           onReceive: function (button, data) {
             if (data.command === command) {
               update(button, data.state);
@@ -3099,7 +2926,7 @@
       });
     };
     var orientation = function (onReceive) {
-      return Receiving.config({ channels: wrap$1(TinyChannels.orientationChanged(), { onReceive: onReceive }) });
+      return Receiving.config({ channels: wrap$1(orientationChanged, { onReceive: onReceive }) });
     };
     var receive$1 = function (channel, onReceive) {
       return {
@@ -3107,42 +2934,34 @@
         value: { onReceive: onReceive }
       };
     };
-    var Receivers = {
-      format: format,
-      orientation: orientation,
-      receive: receive$1
-    };
 
     var prefix = 'tinymce-mobile';
     var resolve = function (p) {
       return prefix + '-' + p;
     };
-    var Styles = {
-      resolve: resolve,
-      prefix: constant(prefix)
-    };
 
-    var events$2 = function (optAction) {
-      var executeHandler = function (action) {
-        return run(execute(), function (component, simulatedEvent) {
-          action(component);
-          simulatedEvent.stop();
-        });
-      };
+    var pointerEvents = function () {
       var onClick = function (component, simulatedEvent) {
         simulatedEvent.stop();
         emitExecute(component);
       };
-      var onMousedown = function (component, simulatedEvent) {
-        simulatedEvent.cut();
-      };
-      var pointerEvents = detect$3().deviceType.isTouch() ? [run(tap(), onClick)] : [
+      return [
         run(click(), onClick),
-        run(mousedown(), onMousedown)
+        run(tap(), onClick),
+        cutter(touchstart()),
+        cutter(mousedown())
       ];
+    };
+    var events$2 = function (optAction) {
+      var executeHandler = function (action) {
+        return runOnExecute(function (component, simulatedEvent) {
+          action(component);
+          simulatedEvent.stop();
+        });
+      };
       return derive(flatten([
         optAction.map(executeHandler).toArray(),
-        pointerEvents
+        pointerEvents()
       ]));
     };
 
@@ -3162,6 +2981,7 @@
     };
 
     var FocusApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         focus: focus$2,
         blur: blur$1,
         isFocused: isFocused
@@ -3181,6 +3001,7 @@
     };
 
     var ActiveFocus = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         exhibit: exhibit$1,
         events: events$3
     });
@@ -3226,12 +3047,11 @@
         internalSet(dom, k, v);
       });
     };
-    var get$3 = function (element, property) {
+    var get$4 = function (element, property) {
       var dom = element.dom();
       var styles = domGlobals.window.getComputedStyle(dom);
       var r = styles.getPropertyValue(property);
-      var v = r === '' && !inBody(element) ? getUnsafeProperty(dom, property) : r;
-      return v === null ? undefined : v;
+      return r === '' && !inBody(element) ? getUnsafeProperty(dom, property) : r;
     };
     var getUnsafeProperty = function (dom, property) {
       return isSupported(dom) ? dom.style.getPropertyValue(property) : '';
@@ -3246,7 +3066,7 @@
     var remove$5 = function (element, property) {
       var dom = element.dom();
       internalRemove(dom, property);
-      if (has$1(element, 'style') && trim(get(element, 'style')) === '') {
+      if (getOpt(element, 'style').map(trim).is('')) {
         remove$1(element, 'style');
       }
     };
@@ -3267,7 +3087,7 @@
       var get = function (element) {
         var r = getOffset(element);
         if (r <= 0 || r === null) {
-          var css = get$3(element, name);
+          var css = get$4(element, name);
           return parseFloat(css) || 0;
         }
         return r;
@@ -3275,7 +3095,7 @@
       var getOuter = get;
       var aggregate = function (element, properties) {
         return foldl(properties, function (acc, property) {
-          var val = get$3(element, property);
+          var val = get$4(element, property);
           var value = val === undefined ? 0 : parseInt(val, 10);
           return isNaN(value) ? acc : acc + value;
         }, 0);
@@ -3298,15 +3118,15 @@
       var dom = element.dom();
       return inBody(element) ? dom.getBoundingClientRect().height : dom.offsetHeight;
     });
-    var get$4 = function (element) {
+    var get$5 = function (element) {
       return api.get(element);
     };
 
     var ancestors = function (scope, predicate, isRoot) {
-      return filter(parents(scope, isRoot), predicate);
+      return filter$1(parents(scope, isRoot), predicate);
     };
     var siblings$1 = function (scope, predicate) {
-      return filter(siblings(scope), predicate);
+      return filter$1(siblings(scope), predicate);
     };
 
     var all$2 = function (selector) {
@@ -3329,8 +3149,8 @@
     var first = function (selector) {
       return one(selector);
     };
-    var ancestor$1 = function (scope, selector, isRoot) {
-      return ancestor(scope, function (e) {
+    var ancestor$2 = function (scope, selector, isRoot) {
+      return ancestor$1(scope, function (e) {
         return is(e, selector);
       }, isRoot);
     };
@@ -3338,7 +3158,10 @@
       return one(selector, scope);
     };
     var closest$2 = function (scope, selector, isRoot) {
-      return ClosestOrAncestor(is, ancestor$1, scope, selector, isRoot);
+      var is$1 = function (element, selector) {
+        return is(element, selector);
+      };
+      return ClosestOrAncestor(is$1, ancestor$2, scope, selector, isRoot);
     };
 
     var BACKSPACE = function () {
@@ -3426,20 +3249,38 @@
       });
     };
 
+    var cat = function (arr) {
+      var r = [];
+      var push = function (x) {
+        r.push(x);
+      };
+      for (var i = 0; i < arr.length; i++) {
+        arr[i].each(push);
+      }
+      return r;
+    };
+    var sequence = function (arr) {
+      var r = [];
+      for (var i = 0; i < arr.length; i++) {
+        var x = arr[i];
+        if (x.isSome()) {
+          r.push(x.getOrDie());
+        } else {
+          return Option.none();
+        }
+      }
+      return Option.some(r);
+    };
+    var someIf = function (b, a) {
+      return b ? Option.some(a) : Option.none();
+    };
+
     var cycleBy = function (value, delta, min, max) {
       var r = value + delta;
-      if (r > max) {
-        return min;
-      } else {
-        return r < min ? max : r;
-      }
+      return r > max ? min : r < min ? max : r;
     };
-    var cap = function (value, min, max) {
-      if (value <= min) {
-        return min;
-      } else {
-        return value >= max ? max : value;
-      }
+    var clamp = function (value, min, max) {
+      return Math.min(Math.max(value, min), max);
     };
 
     var dehighlightAllExcept = function (component, hConfig, hState, skip) {
@@ -3501,7 +3342,7 @@
     var isHighlighted = function (component, hConfig, hState, queryTarget) {
       return has$2(queryTarget.element(), hConfig.highlightClass);
     };
-    var getHighlighted = function (component, hConfig, hState) {
+    var getHighlighted = function (component, hConfig, _hState) {
       return descendant$1(component.element(), '.' + hConfig.highlightClass).bind(function (e) {
         return component.getSystem().getByDom(e).toOption();
       });
@@ -3512,12 +3353,12 @@
         return Result.error('No element found with index ' + index);
       }, component.getSystem().getByDom);
     };
-    var getFirst = function (component, hConfig, hState) {
+    var getFirst = function (component, hConfig, _hState) {
       return descendant$1(component.element(), '.' + hConfig.itemClass).bind(function (e) {
         return component.getSystem().getByDom(e).toOption();
       });
     };
-    var getLast = function (component, hConfig, hState) {
+    var getLast = function (component, hConfig, _hState) {
       var items = descendants(component.element(), '.' + hConfig.itemClass);
       var last = items.length > 0 ? Option.some(items[items.length - 1]) : Option.none();
       return last.bind(function (c) {
@@ -3540,7 +3381,7 @@
     var getNext = function (component, hConfig, hState) {
       return getDelta(component, hConfig, hState, +1);
     };
-    var getCandidates = function (component, hConfig, hState) {
+    var getCandidates = function (component, hConfig, _hState) {
       var items = descendants(component.element(), '.' + hConfig.itemClass);
       return cat(map$1(items, function (i) {
         return component.getSystem().getByDom(i).toOption();
@@ -3548,6 +3389,7 @@
     };
 
     var HighlightApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         dehighlightAll: dehighlightAll,
         dehighlight: dehighlight$1,
         highlight: highlight$1,
@@ -3670,7 +3512,7 @@
             });
           }
         };
-        return derive(onFocusHandler.toArray().concat([
+        var keyboardEvents = [
           run(keydown(), function (component, simulatedEvent) {
             processKey(component, simulatedEvent, getKeydownRules, keyingConfig, keyingState).fold(function () {
               tryGoInsideComponent(component, simulatedEvent);
@@ -3683,7 +3525,8 @@
               simulatedEvent.stop();
             });
           })
-        ]));
+        ];
+        return derive(onFocusHandler.toArray().concat(keyboardEvents));
       };
       var me = {
         schema: schema,
@@ -3706,11 +3549,11 @@
         var target = tabbingConfig.visibilitySelector.bind(function (sel) {
           return closest$2(element, sel);
         }).getOr(element);
-        return get$4(target) > 0;
+        return get$5(target) > 0;
       };
       var findInitial = function (component, tabbingConfig) {
         var tabstops = descendants(component.element(), tabbingConfig.selector);
-        var visibles = filter(tabstops, function (elem) {
+        var visibles = filter$1(tabstops, function (elem) {
           return isVisible(tabbingConfig, elem);
         });
         return Option.from(visibles[tabbingConfig.firstTabstop]);
@@ -3723,7 +3566,7 @@
       var isTabstop = function (tabbingConfig, element) {
         return isVisible(tabbingConfig, element) && tabbingConfig.useTabstopAt(element);
       };
-      var focusIn = function (component, tabbingConfig) {
+      var focusIn = function (component, tabbingConfig, _tabbingState) {
         findInitial(component, tabbingConfig).each(function (target) {
           tabbingConfig.focusManager.set(component, target);
         });
@@ -3738,7 +3581,7 @@
           return Option.some(true);
         });
       };
-      var go = function (component, simulatedEvent, tabbingConfig, cycle) {
+      var go = function (component, _simulatedEvent, tabbingConfig, cycle) {
         var tabstops = descendants(component.element(), tabbingConfig.selector);
         return findCurrent(component, tabbingConfig).bind(function (tabstop) {
           var optStopIndex = findIndex(tabstops, curry(eq, tabstop));
@@ -3747,20 +3590,20 @@
           });
         });
       };
-      var goBackwards = function (component, simulatedEvent, tabbingConfig, tabbingState) {
+      var goBackwards = function (component, simulatedEvent, tabbingConfig) {
         var navigate = tabbingConfig.cyclic ? cyclePrev : tryPrev;
         return go(component, simulatedEvent, tabbingConfig, navigate);
       };
-      var goForwards = function (component, simulatedEvent, tabbingConfig, tabbingState) {
+      var goForwards = function (component, simulatedEvent, tabbingConfig) {
         var navigate = tabbingConfig.cyclic ? cycleNext : tryNext;
         return go(component, simulatedEvent, tabbingConfig, navigate);
       };
-      var execute = function (component, simulatedEvent, tabbingConfig, tabbingState) {
+      var execute = function (component, simulatedEvent, tabbingConfig) {
         return tabbingConfig.onEnter.bind(function (f) {
           return f(component, simulatedEvent);
         });
       };
-      var exit = function (component, simulatedEvent, tabbingConfig, tabbingState) {
+      var exit = function (component, simulatedEvent, tabbingConfig) {
         return tabbingConfig.onEscape.bind(function (f) {
           return f(component, simulatedEvent);
         });
@@ -3788,17 +3631,18 @@
     var CyclicType = create$2(state$1('cyclic', constant(true)));
 
     var inside = function (target) {
-      return name(target) === 'input' && get(target, 'type') !== 'radio' || name(target) === 'textarea';
+      return name(target) === 'input' && get$1(target, 'type') !== 'radio' || name(target) === 'textarea';
     };
 
-    var doDefaultExecute = function (component, simulatedEvent, focused) {
+    var doDefaultExecute = function (component, _simulatedEvent, focused) {
       dispatch(component, focused, execute());
       return Option.some(true);
     };
     var defaultExecute = function (component, simulatedEvent, focused) {
-      return inside(focused) && inSet(SPACE())(simulatedEvent.event()) ? Option.none() : doDefaultExecute(component, simulatedEvent, focused);
+      var isComplex = inside(focused) && inSet(SPACE())(simulatedEvent.event());
+      return isComplex ? Option.none() : doDefaultExecute(component, simulatedEvent, focused);
     };
-    var stopEventForFirefox = function (component, simulatedEvent) {
+    var stopEventForFirefox = function (_component, _simulatedEvent) {
       return Option.some(true);
     };
 
@@ -3812,7 +3656,7 @@
     var execute$1 = function (component, simulatedEvent, executeConfig) {
       return executeConfig.execute(component, simulatedEvent, component.element());
     };
-    var getKeydownRules = function (component, simulatedEvent, executeConfig, executeState) {
+    var getKeydownRules = function (component, _simulatedEvent, executeConfig, _executeState) {
       var spaceExec = executeConfig.useSpace && !inside(component.element()) ? SPACE() : [];
       var enterExec = executeConfig.useEnter ? ENTER() : [];
       var downExec = executeConfig.useDown ? DOWN() : [];
@@ -3822,37 +3666,37 @@
           inSet(ENTER())
         ]), execute$1)] : []);
     };
-    var getKeyupRules = function (component, simulatedEvent, executeConfig, executeState) {
+    var getKeyupRules = function (component, _simulatedEvent, executeConfig, _executeState) {
       return executeConfig.useSpace && !inside(component.element()) ? [rule(inSet(SPACE()), stopEventForFirefox)] : [];
     };
     var ExecutionType = typical(schema$1, NoState.init, getKeydownRules, getKeyupRules, function () {
       return Option.none();
     });
 
-    var flatgrid = function (spec) {
+    var flatgrid = function () {
       var dimensions = Cell(Option.none());
       var setGridSize = function (numRows, numColumns) {
         dimensions.set(Option.some({
-          numRows: constant(numRows),
-          numColumns: constant(numColumns)
+          numRows: numRows,
+          numColumns: numColumns
         }));
       };
       var getNumRows = function () {
         return dimensions.get().map(function (d) {
-          return d.numRows();
+          return d.numRows;
         });
       };
       var getNumColumns = function () {
         return dimensions.get().map(function (d) {
-          return d.numColumns();
+          return d.numColumns;
         });
       };
       return nu$6({
         readState: function () {
           return dimensions.get().map(function (d) {
             return {
-              numRows: d.numRows(),
-              numColumns: d.numColumns()
+              numRows: String(d.numRows),
+              numColumns: String(d.numColumns)
             };
           }).getOr({
             numRows: '?',
@@ -3869,6 +3713,7 @@
     };
 
     var KeyingState = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         flatgrid: flatgrid,
         init: init
     });
@@ -3879,7 +3724,7 @@
       };
     };
     var getDirection = function (element) {
-      return get$3(element, 'direction') === 'rtl' ? 'rtl' : 'ltr';
+      return get$4(element, 'direction') === 'rtl' ? 'rtl' : 'ltr';
     };
 
     var useH = function (movement) {
@@ -3918,27 +3763,24 @@
       return dom.offsetWidth <= 0 && dom.offsetHeight <= 0;
     };
     var isVisible = function (element) {
-      var dom = element.dom();
-      return !isHidden(dom);
+      return !isHidden(element.dom());
     };
 
-    var indexInfo = MixedBag([
-      'index',
-      'candidates'
-    ], []);
     var locate = function (candidates, predicate) {
       return findIndex(candidates, predicate).map(function (index) {
-        return indexInfo({
-          index: index,
-          candidates: candidates
-        });
+        return {
+          index: constant(index),
+          candidates: constant(candidates)
+        };
       });
     };
 
     var locateVisible = function (container, current, selector) {
-      var predicate = curry(eq, current);
+      var predicate = function (x) {
+        return eq(x, current);
+      };
       var candidates = descendants(container, selector);
-      var visible = filter(candidates, isVisible);
+      var visible = filter$1(candidates, isVisible);
       return locate(visible, predicate);
     };
     var findIndex$1 = function (elements, target) {
@@ -3971,7 +3813,7 @@
         var newRow = cycleBy(oldRow, delta, 0, numRows - 1);
         var onLastRow = newRow === numRows - 1;
         var colsInRow = onLastRow ? values.length - newRow * numCols : numCols;
-        var newCol = cap(oldColumn, 0, colsInRow - 1);
+        var newCol = clamp(oldColumn, 0, colsInRow - 1);
         return Option.some({
           row: constant(newRow),
           column: constant(newCol)
@@ -3998,7 +3840,7 @@
       defaulted$1('captureTab', false),
       initSize()
     ];
-    var focusIn = function (component, gridConfig, gridState) {
+    var focusIn = function (component, gridConfig, _gridState) {
       descendant$1(component.element(), gridConfig.selector).each(function (first) {
         gridConfig.focusManager.set(component, first);
       });
@@ -4008,7 +3850,7 @@
         return closest$2(elem, gridConfig.selector);
       });
     };
-    var execute$2 = function (component, simulatedEvent, gridConfig, gridState) {
+    var execute$2 = function (component, simulatedEvent, gridConfig, _gridState) {
       return findCurrent(component, gridConfig).bind(function (focused) {
         return gridConfig.execute(component, simulatedEvent, focused);
       });
@@ -4020,10 +3862,10 @@
         });
       };
     };
-    var handleTab = function (component, simulatedEvent, gridConfig, gridState) {
+    var handleTab = function (_component, _simulatedEvent, gridConfig) {
       return gridConfig.captureTab ? Option.some(true) : Option.none();
     };
-    var doEscape = function (component, simulatedEvent, gridConfig, gridState) {
+    var doEscape = function (component, simulatedEvent, gridConfig) {
       return gridConfig.onEscape(component, simulatedEvent);
     };
     var moveLeft = doMove(cycleLeft);
@@ -4053,7 +3895,7 @@
 
     var horizontal = function (container, selector, current, delta) {
       var isDisabledButton = function (candidate) {
-        return name(candidate) === 'button' && get(candidate, 'disabled') === 'disabled';
+        return name(candidate) === 'button' && get$1(candidate, 'disabled') === 'disabled';
       };
       var tryCycle = function (initial, index, candidates) {
         var newIndex = cycleBy(index, delta, 0, candidates.length - 1);
@@ -4088,7 +3930,7 @@
         return flowConfig.execute(component, simulatedEvent, focused);
       });
     };
-    var focusIn$1 = function (component, flowConfig) {
+    var focusIn$1 = function (component, flowConfig, _state) {
       flowConfig.getInitial(component).orThunk(function () {
         return descendant$1(component.element(), flowConfig.selector);
       }).each(function (first) {
@@ -4102,13 +3944,13 @@
       return horizontal(element, info.selector, focused, +1);
     };
     var doMove$1 = function (movement) {
-      return function (component, simulatedEvent, flowConfig) {
-        return movement(component, simulatedEvent, flowConfig).bind(function () {
+      return function (component, simulatedEvent, flowConfig, flowState) {
+        return movement(component, simulatedEvent, flowConfig, flowState).bind(function () {
           return flowConfig.executeOnMove ? execute$3(component, simulatedEvent, flowConfig) : Option.some(true);
         });
       };
     };
-    var doEscape$1 = function (component, simulatedEvent, flowConfig, _flowState) {
+    var doEscape$1 = function (component, simulatedEvent, flowConfig) {
       return flowConfig.onEscape(component, simulatedEvent);
     };
     var getKeydownRules$2 = function (_component, _se, flowConfig, _flowState) {
@@ -4127,19 +3969,14 @@
       return Option.some(focusIn$1);
     });
 
-    var outcome = MixedBag([
-      'rowIndex',
-      'columnIndex',
-      'cell'
-    ], []);
     var toCell = function (matrix, rowIndex, columnIndex) {
       return Option.from(matrix[rowIndex]).bind(function (row) {
         return Option.from(row[columnIndex]).map(function (cell) {
-          return outcome({
+          return {
             rowIndex: rowIndex,
             columnIndex: columnIndex,
             cell: cell
-          });
+          };
         });
       });
     };
@@ -4152,19 +3989,19 @@
     var cycleVertical$1 = function (matrix, colIndex, startRow, deltaRow) {
       var nextRowIndex = cycleBy(startRow, deltaRow, 0, matrix.length - 1);
       var colsInNextRow = matrix[nextRowIndex].length;
-      var nextColIndex = cap(colIndex, 0, colsInNextRow - 1);
+      var nextColIndex = clamp(colIndex, 0, colsInNextRow - 1);
       return toCell(matrix, nextRowIndex, nextColIndex);
     };
     var moveHorizontal = function (matrix, rowIndex, startCol, deltaCol) {
       var row = matrix[rowIndex];
       var colsInRow = row.length;
-      var newColIndex = cap(startCol + deltaCol, 0, colsInRow - 1);
+      var newColIndex = clamp(startCol + deltaCol, 0, colsInRow - 1);
       return toCell(matrix, rowIndex, newColIndex);
     };
     var moveVertical = function (matrix, colIndex, startRow, deltaRow) {
-      var nextRowIndex = cap(startRow + deltaRow, 0, matrix.length - 1);
+      var nextRowIndex = clamp(startRow + deltaRow, 0, matrix.length - 1);
       var colsInNextRow = matrix[nextRowIndex].length;
-      var nextColIndex = cap(colIndex, 0, colsInNextRow - 1);
+      var nextColIndex = clamp(colIndex, 0, colsInNextRow - 1);
       return toCell(matrix, nextRowIndex, nextColIndex);
     };
     var cycleRight$1 = function (matrix, startRow, startCol) {
@@ -4201,7 +4038,7 @@
       defaulted$1('previousSelector', Option.none),
       defaulted$1('execute', defaultExecute)
     ];
-    var focusIn$2 = function (component, matrixConfig) {
+    var focusIn$2 = function (component, matrixConfig, _state) {
       var focused = matrixConfig.previousSelector(component).orThunk(function () {
         var selectors = matrixConfig.selectors;
         return descendant$1(component.element(), selectors.cell);
@@ -4230,7 +4067,7 @@
             return findIndex$1(allRows, inRow).bind(function (rowIndex) {
               var matrix = toMatrix(allRows, matrixConfig);
               return move(matrix, rowIndex, colIndex).map(function (next) {
-                return next.cell();
+                return next.cell;
               });
             });
           });
@@ -4263,7 +4100,7 @@
         return menuConfig.execute(component, simulatedEvent, focused);
       });
     };
-    var focusIn$3 = function (component, menuConfig) {
+    var focusIn$3 = function (component, menuConfig, _state) {
       descendant$1(component.element(), menuConfig.selector).each(function (first) {
         menuConfig.focusManager.set(component, first);
       });
@@ -4274,11 +4111,11 @@
     var moveDown$1 = function (element, focused, info) {
       return horizontal(element, info.selector, focused, +1);
     };
-    var fireShiftTab = function (component, simulatedEvent, menuConfig) {
-      return menuConfig.moveOnTab ? move(moveUp$1)(component, simulatedEvent, menuConfig) : Option.none();
+    var fireShiftTab = function (component, simulatedEvent, menuConfig, menuState) {
+      return menuConfig.moveOnTab ? move(moveUp$1)(component, simulatedEvent, menuConfig, menuState) : Option.none();
     };
-    var fireTab = function (component, simulatedEvent, menuConfig) {
-      return menuConfig.moveOnTab ? move(moveDown$1)(component, simulatedEvent, menuConfig) : Option.none();
+    var fireTab = function (component, simulatedEvent, menuConfig, menuState) {
+      return menuConfig.moveOnTab ? move(moveDown$1)(component, simulatedEvent, menuConfig, menuState) : Option.none();
     };
     var getKeydownRules$4 = constant([
       rule(inSet(UP()), move(moveUp$1)),
@@ -4357,6 +4194,7 @@
     var special = SpecialType.schema();
 
     var KeyboardBranches = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         acyclic: acyclic,
         cyclic: cyclic,
         flow: flow,
@@ -4367,6 +4205,9 @@
         special: special
     });
 
+    var isFlatgridState = function (keyState) {
+      return hasNonNullableKey(keyState, 'setGridSize');
+    };
     var Keying = createModes$1({
       branchKey: 'mode',
       branches: KeyboardBranches,
@@ -4386,7 +4227,7 @@
           });
         },
         setGridSize: function (component, keyConfig, keyState, numRows, numColumns) {
-          if (!hasKey$1(keyState, 'setGridSize')) {
+          if (!isFlatgridState(keyState)) {
             domGlobals.console.error('Layout does not support setGridSize');
           } else {
             keyState.setGridSize(numRows, numColumns);
@@ -4401,7 +4242,7 @@
         return forbid(f.name(), 'Cannot configure ' + f.name() + ' for ' + name);
       }).concat([state$1('dump', identity)]));
     };
-    var get$5 = function (data) {
+    var get$6 = function (data) {
       return data.dump;
     };
     var augment = function (data, original) {
@@ -4410,7 +4251,7 @@
     var SketchBehaviours = {
       field: field$1,
       augment: augment,
-      get: get$5
+      get: get$6
     };
 
     var _placeholder = 'placeholder';
@@ -4428,20 +4269,23 @@
         ]
       }
     ]);
+    var isSubstituted = function (spec) {
+      return has(spec, 'uiType');
+    };
     var subPlaceholder = function (owner, detail, compSpec, placeholders) {
       if (owner.exists(function (o) {
           return o !== compSpec.owner;
         })) {
         return adt$2.single(true, constant(compSpec));
       }
-      return readOptFrom$1(placeholders, compSpec.name).fold(function () {
+      return get(placeholders, compSpec.name).fold(function () {
         throw new Error('Unknown placeholder component: ' + compSpec.name + '\nKnown: [' + keys(placeholders) + ']\nNamespace: ' + owner.getOr('none') + '\nSpec: ' + JSON.stringify(compSpec, null, 2));
       }, function (newSpec) {
         return newSpec.replace();
       });
     };
     var scan = function (owner, detail, compSpec, placeholders) {
-      if (compSpec.uiType === _placeholder) {
+      if (isSubstituted(compSpec) && compSpec.uiType === _placeholder) {
         return subPlaceholder(owner, detail, compSpec, placeholders);
       } else {
         return adt$2.single(false, constant(compSpec));
@@ -4450,16 +4294,20 @@
     var substitute = function (owner, detail, compSpec, placeholders) {
       var base = scan(owner, detail, compSpec, placeholders);
       return base.fold(function (req, valueThunk) {
-        var value = valueThunk(detail, compSpec.config, compSpec.validated);
-        var childSpecs = readOptFrom$1(value, 'components').getOr([]);
+        var value = isSubstituted(compSpec) ? valueThunk(detail, compSpec.config, compSpec.validated) : valueThunk(detail);
+        var childSpecs = get(value, 'components').getOr([]);
         var substituted = bind(childSpecs, function (c) {
           return substitute(owner, detail, c, placeholders);
         });
         return [__assign(__assign({}, value), { components: substituted })];
       }, function (req, valuesThunk) {
-        var values = valuesThunk(detail, compSpec.config, compSpec.validated);
-        var preprocessor = compSpec.validated.preprocess.getOr(identity);
-        return preprocessor(values);
+        if (isSubstituted(compSpec)) {
+          var values = valuesThunk(detail, compSpec.config, compSpec.validated);
+          var preprocessor = compSpec.validated.preprocess.getOr(identity);
+          return preprocessor(values);
+        } else {
+          return valuesThunk(detail);
+        }
       });
     };
     var substituteAll = function (owner, detail, components, placeholders) {
@@ -4473,7 +4321,7 @@
         return called;
       };
       var replace = function () {
-        if (called === true) {
+        if (called) {
           throw new Error('Trying to use the same placeholder more than once: ' + label);
         }
         called = true;
@@ -4543,6 +4391,13 @@
       fDefaults,
       fOverrides
     ]);
+    var externalSpec = objOf([
+      fFactory,
+      fSchema,
+      fName,
+      fDefaults,
+      fOverrides
+    ]);
     var optionalSpec = objOf([
       fFactory,
       fSchema,
@@ -4576,6 +4431,7 @@
       };
     };
     var required = convert(adt$3.required, requiredSpec);
+    var external = convert(adt$3.external, externalSpec);
     var optional = convert(adt$3.optional, optionalSpec);
     var group = convert(adt$3.group, groupSpec);
     var original = constant('entirety');
@@ -4670,7 +4526,7 @@
     };
     var getAllParts = function (component, detail) {
       var system = component.getSystem();
-      return map(detail.partUids, function (pUid, k) {
+      return map(detail.partUids, function (pUid, _k) {
         return constant(system.getByUid(pUid));
       });
     };
@@ -4694,7 +4550,7 @@
       return wrap$1(premadeTag, comp);
     };
     var getPremade = function (spec) {
-      return readOptFrom$1(spec, premadeTag);
+      return get(spec, premadeTag);
     };
     var makeApi = function (f) {
       return markAsSketchApi(function (component) {
@@ -4702,7 +4558,10 @@
         for (var _i = 1; _i < arguments.length; _i++) {
           rest[_i - 1] = arguments[_i];
         }
-        return f.apply(undefined, [component.getApis()].concat([component].concat(rest)));
+        return f.apply(void 0, __spreadArrays([
+          component.getApis(),
+          component
+        ], rest));
       }, f);
     };
 
@@ -4759,8 +4618,11 @@
       var components$1 = components(owner, detail, subs.internals());
       return factory(detail, components$1, specWithUid, subs.externals());
     };
+    var hasUid = function (spec) {
+      return has(spec, 'uid');
+    };
     var supplyUid = function (spec) {
-      return spec.hasOwnProperty('uid') ? spec : __assign(__assign({}, spec), { uid: generate$3('uid') });
+      return hasUid(spec) ? spec : __assign(__assign({}, spec), { uid: generate$3('uid') });
     };
 
     function isSketchSpec(spec) {
@@ -4792,7 +4654,6 @@
       });
       return __assign(__assign({
         name: constant(config.name),
-        partFields: constant([]),
         configFields: constant(config.configFields),
         sketch: sketch
       }, apis), extraApis);
@@ -4820,8 +4681,8 @@
       var events = events$2(detail.action);
       var tag = detail.dom.tag;
       var lookupAttr = function (attr) {
-        return readOptFrom$1(detail.dom, 'attributes').bind(function (attrs) {
-          return readOptFrom$1(attrs, attr);
+        return get(detail.dom, 'attributes').bind(function (attrs) {
+          return get(attrs, attr);
         });
       };
       var getModAttributes = function () {
@@ -4870,7 +4731,7 @@
       ]
     });
 
-    var exhibit$2 = function (base, unselectConfig) {
+    var exhibit$2 = function () {
       return nu$5({
         styles: {
           '-webkit-user-select': 'none',
@@ -4881,11 +4742,12 @@
         attributes: { unselectable: 'on' }
       });
     };
-    var events$4 = function (unselectConfig) {
+    var events$4 = function () {
       return derive([abort(selectstart(), constant(true))]);
     };
 
     var ActiveUnselecting = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         events: events$4,
         exhibit: exhibit$2
     });
@@ -4915,7 +4777,7 @@
       var children$1 = children(elem);
       var attrs = getAttrs(elem);
       var classes = getClasses(elem);
-      var contents = children$1.length === 0 ? {} : { innerHtml: get$2(elem) };
+      var contents = children$1.length === 0 ? {} : { innerHtml: get$3(elem) };
       return __assign({
         tag: name(elem),
         classes: classes,
@@ -4924,12 +4786,11 @@
     };
 
     var dom$1 = function (rawHtml) {
-      var html = supplant(rawHtml, { prefix: Styles.prefix() });
+      var html = supplant(rawHtml, { prefix: prefix });
       return fromHtml$2(html);
     };
     var spec = function (rawHtml) {
-      var sDom = dom$1(rawHtml);
-      return { dom: sDom };
+      return { dom: dom$1(rawHtml) };
     };
 
     var forToolbarCommand = function (editor, command) {
@@ -4940,11 +4801,11 @@
     var getToggleBehaviours = function (command) {
       return derive$1([
         Toggling.config({
-          toggleClass: Styles.resolve('toolbar-button-selected'),
+          toggleClass: resolve('toolbar-button-selected'),
           toggleOnExecute: false,
           aria: { mode: 'pressed' }
         }),
-        Receivers.format(command, function (button, status) {
+        format(command, function (button, status) {
           var toggle = status ? Toggling.on : Toggling.off;
           toggle(button);
         })
@@ -4976,16 +4837,7 @@
         buttonBehaviours: deepMerge(derive$1([Unselecting.config({})]), extraBehaviours)
       });
     };
-    var Buttons = {
-      forToolbar: forToolbar,
-      forToolbarCommand: forToolbarCommand,
-      forToolbarStateAction: forToolbarStateAction,
-      forToolbarStateCommand: forToolbarStateCommand,
-      getToolbarIconButton: getToolbarIconButton
-    };
 
-    var platform$1 = detect$3();
-    var isTouch = platform$1.deviceType.isTouch();
     var labelPart = optional({
       schema: [strict$1('dom')],
       name: 'label'
@@ -4998,16 +4850,21 @@
           return action.fold(function () {
             return {};
           }, function (a) {
-            var touchEvents = derive([runActionExtra(touchstart(), a, [detail])]);
-            var mouseEvents = derive([
-              runActionExtra(mousedown(), a, [detail]),
-              runActionExtra(mousemove(), function (l, det) {
-                if (det.mouseIsDown.get()) {
-                  a(l, det);
-                }
-              }, [detail])
-            ]);
-            return { events: isTouch ? touchEvents : mouseEvents };
+            return {
+              events: derive([
+                runActionExtra(touchstart(), function (comp, se, d) {
+                  return a(comp, d);
+                }, [detail]),
+                runActionExtra(mousedown(), function (comp, se, d) {
+                  return a(comp, d);
+                }, [detail]),
+                runActionExtra(mousemove(), function (comp, se, det) {
+                  if (det.mouseIsDown.get()) {
+                    a(comp, det);
+                  }
+                }, [detail])
+              ])
+            };
           });
         }
       });
@@ -5049,20 +4906,8 @@
             return model.setValueFrom(component, detail, value);
           });
         };
-        var touchEvents = derive([
-          run(touchstart(), setValueFrom),
-          run(touchmove(), setValueFrom)
-        ]);
-        var mouseEvents = derive([
-          run(mousedown(), setValueFrom),
-          run(mousemove(), function (spectrum, se) {
-            if (detail.mouseIsDown.get()) {
-              setValueFrom(spectrum, se);
-            }
-          })
-        ]);
         return {
-          behaviours: derive$1(isTouch ? [] : [
+          behaviours: derive$1([
             Keying.config({
               mode: 'special',
               onLeft: function (spectrum) {
@@ -5080,7 +4925,16 @@
             }),
             Focusing.config({})
           ]),
-          events: isTouch ? touchEvents : mouseEvents
+          events: derive([
+            run(touchstart(), setValueFrom),
+            run(touchmove(), setValueFrom),
+            run(mousedown(), setValueFrom),
+            run(mousemove(), function (spectrum, se) {
+              if (detail.mouseIsDown.get()) {
+                setValueFrom(spectrum, se);
+              }
+            })
+          ])
         };
       }
     });
@@ -5115,6 +4969,7 @@
     };
 
     var RepresentApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         onLoad: onLoad$1,
         onUnload: onUnload,
         setValue: setValue,
@@ -5124,10 +4979,10 @@
 
     var events$5 = function (repConfig, repState) {
       var es = repConfig.resetOnDom ? [
-        runOnAttached(function (comp, se) {
+        runOnAttached(function (comp, _se) {
           onLoad$1(comp, repConfig, repState);
         }),
-        runOnDetached(function (comp, se) {
+        runOnDetached(function (comp, _se) {
           onUnload(comp, repConfig, repState);
         })
       ] : [loadEvent(repConfig, repState, onLoad$1)];
@@ -5135,6 +4990,7 @@
     };
 
     var ActiveRepresenting = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         events: events$5
     });
 
@@ -5180,8 +5036,8 @@
         dataByText.set({});
       };
       var lookup = function (itemString) {
-        return readOptFrom$1(dataByValue.get(), itemString).orThunk(function () {
-          return readOptFrom$1(dataByText.get(), itemString);
+        return get(dataByValue.get(), itemString).orThunk(function () {
+          return get(dataByText.get(), itemString);
         });
       };
       var update = function (items) {
@@ -5191,8 +5047,8 @@
         var newDataByText = {};
         each$1(items, function (item) {
           newDataByValue[item.value] = item;
-          readOptFrom$1(item, 'meta').each(function (meta) {
-            readOptFrom$1(meta, 'text').each(function (text) {
+          get(item, 'meta').each(function (meta) {
+            get(meta, 'text').each(function (text) {
               newDataByText[text] = item;
             });
           });
@@ -5212,6 +5068,7 @@
     };
 
     var RepresentState = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         memory: memory,
         dataset: dataset,
         manual: manual,
@@ -5256,14 +5113,14 @@
       })
     ];
 
-    var getValue$2 = function (component, repConfig, repState) {
+    var getValue$2 = function (component, repConfig, _repState) {
       return repConfig.store.getValue(component);
     };
-    var setValue$2 = function (component, repConfig, repState, data) {
+    var setValue$2 = function (component, repConfig, _repState, data) {
       repConfig.store.setValue(component, data);
       repConfig.onSetValue(component, data);
     };
-    var onLoad$3 = function (component, repConfig, repState) {
+    var onLoad$3 = function (component, repConfig, _repState) {
       repConfig.store.initialValue.each(function (data) {
         repConfig.store.setValue(component, data);
       });
@@ -5337,9 +5194,9 @@
       return element.dom().offsetWidth;
     });
     var set$4 = function (element, h) {
-      api$1.set(element, h);
+      return api$1.set(element, h);
     };
-    var get$6 = function (element) {
+    var get$7 = function (element) {
       return api$1.get(element);
     };
 
@@ -5355,12 +5212,14 @@
     };
     var Position = r;
 
-    var isTouch$1 = detect$3().deviceType.isTouch();
     var _sliderChangeEvent = 'slider.change.value';
     var sliderChangeEvent = constant(_sliderChangeEvent);
+    var isTouchEvent = function (evt) {
+      return evt.type.indexOf('touch') !== -1;
+    };
     var getEventSource = function (simulatedEvent) {
       var evt = simulatedEvent.event().raw();
-      if (isTouch$1) {
+      if (isTouchEvent(evt)) {
         var touchEvent = evt;
         return touchEvent.touches !== undefined && touchEvent.touches.length === 1 ? Option.some(touchEvent.touches[0]).map(function (t) {
           return Position(t.clientX, t.clientY);
@@ -5710,7 +5569,7 @@
     var setPositionFromValue = function (slider, thumb, detail, edges) {
       var value = currentValue(detail);
       var pos = findPositionOfValue(slider, edges.getSpectrum(slider), value.x(), edges.getLeftEdge(slider), edges.getRightEdge(slider), detail);
-      var thumbRadius = get$6(thumb.element()) / 2;
+      var thumbRadius = get$7(thumb.element()) / 2;
       set$3(thumb.element(), 'left', pos - thumbRadius + 'px');
     };
     var onLeft = handleMovement(-1);
@@ -5729,6 +5588,7 @@
     };
 
     var HorizontalModel = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         setValueFrom: setValueFrom,
         setToMin: setToMin,
         setToMax: setToMax,
@@ -5832,7 +5692,7 @@
     var setPositionFromValue$1 = function (slider, thumb, detail, edges) {
       var value = currentValue(detail);
       var pos = findPositionOfValue$1(slider, edges.getSpectrum(slider), value.y(), edges.getTopEdge(slider), edges.getBottomEdge(slider), detail);
-      var thumbRadius = get$4(thumb.element()) / 2;
+      var thumbRadius = get$5(thumb.element()) / 2;
       set$3(thumb.element(), 'top', pos - thumbRadius + 'px');
     };
     var onLeft$1 = Option.none;
@@ -5851,6 +5711,7 @@
     };
 
     var VerticalModel = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         setValueFrom: setValueFrom$1,
         setToMin: setToMin$1,
         setToMax: setToMax$1,
@@ -5912,8 +5773,8 @@
       var value = currentValue(detail);
       var xPos = findPositionOfValue(slider, edges.getSpectrum(slider), value.x(), edges.getLeftEdge(slider), edges.getRightEdge(slider), detail);
       var yPos = findPositionOfValue$1(slider, edges.getSpectrum(slider), value.y(), edges.getTopEdge(slider), edges.getBottomEdge(slider), detail);
-      var thumbXRadius = get$6(thumb.element()) / 2;
-      var thumbYRadius = get$4(thumb.element()) / 2;
+      var thumbXRadius = get$7(thumb.element()) / 2;
+      var thumbYRadius = get$5(thumb.element()) / 2;
       set$3(thumb.element(), 'left', xPos - thumbXRadius + 'px');
       set$3(thumb.element(), 'top', yPos - thumbYRadius + 'px');
     };
@@ -5933,6 +5794,7 @@
     };
 
     var TwoDModel = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         setValueFrom: setValueFrom$2,
         setToMin: setToMin$2,
         setToMax: setToMax$2,
@@ -5945,7 +5807,6 @@
         edgeActions: edgeActions$2
     });
 
-    var isTouch$2 = detect$3().deviceType.isTouch();
     var SliderSchema = [
       defaulted$1('stepSize', 1),
       defaulted$1('onChange', noop),
@@ -5993,13 +5854,16 @@
       field$1('sliderBehaviours', [
         Keying,
         Representing
-      ])
-    ].concat(!isTouch$2 ? [state$1('mouseIsDown', function () {
+      ]),
+      state$1('mouseIsDown', function () {
         return Cell(false);
-      })] : []);
+      })
+    ];
 
-    var isTouch$3 = detect$3().deviceType.isTouch();
+    var mouseReleased = constant('mouse.released');
+
     var sketch = function (detail, components, _spec, _externals) {
+      var _a;
       var getThumb = function (component) {
         return getPartOrDie(component, detail, 'thumb');
       };
@@ -6042,83 +5906,67 @@
       var resetToMax = function (slider) {
         model.setToMax(slider, detail);
       };
-      var touchEvents = [
-        run(touchstart(), function (slider, _simulatedEvent) {
-          detail.onDragStart(slider, getThumb(slider));
-        }),
-        run(touchend(), function (slider, _simulatedEvent) {
-          detail.onDragEnd(slider, getThumb(slider));
-        })
-      ];
-      var mouseEvents = [
-        run(mousedown(), function (slider, simulatedEvent) {
-          simulatedEvent.stop();
-          detail.onDragStart(slider, getThumb(slider));
-          detail.mouseIsDown.set(true);
-        }),
-        run(mouseup(), function (slider, _simulatedEvent) {
-          detail.onDragEnd(slider, getThumb(slider));
-        })
-      ];
-      var uiEventsArr = isTouch$3 ? touchEvents : mouseEvents;
+      var choose = function (slider) {
+        var fireOnChoose = function () {
+          getPart(slider, detail, 'thumb').each(function (thumb) {
+            var value = modelDetail.value.get();
+            detail.onChoose(slider, thumb, value);
+          });
+        };
+        var wasDown = detail.mouseIsDown.get();
+        detail.mouseIsDown.set(false);
+        if (wasDown) {
+          fireOnChoose();
+        }
+      };
+      var onDragStart = function (slider, simulatedEvent) {
+        simulatedEvent.stop();
+        detail.mouseIsDown.set(true);
+        detail.onDragStart(slider, getThumb(slider));
+      };
+      var onDragEnd = function (slider, simulatedEvent) {
+        simulatedEvent.stop();
+        detail.onDragEnd(slider, getThumb(slider));
+        choose(slider);
+      };
       return {
         uid: detail.uid,
         dom: detail.dom,
         components: components,
-        behaviours: augment(detail.sliderBehaviours, flatten([
-          !isTouch$3 ? [Keying.config({
-              mode: 'special',
-              focusIn: function (slider) {
-                return getPart(slider, detail, 'spectrum').map(Keying.focusIn).map(constant(true));
+        behaviours: augment(detail.sliderBehaviours, [
+          Keying.config({
+            mode: 'special',
+            focusIn: function (slider) {
+              return getPart(slider, detail, 'spectrum').map(Keying.focusIn).map(constant(true));
+            }
+          }),
+          Representing.config({
+            store: {
+              mode: 'manual',
+              getValue: function (_) {
+                return modelDetail.value.get();
               }
-            })] : [],
-          [
-            Representing.config({
-              store: {
-                mode: 'manual',
-                getValue: function (_) {
-                  return modelDetail.value.get();
-                }
-              }
-            }),
-            Receiving.config({
-              channels: {
-                'mouse.released': {
-                  onReceive: function (slider, se) {
-                    var fireOnChoose = function () {
-                      getPart(slider, detail, 'thumb').each(function (thumb) {
-                        var value = modelDetail.value.get();
-                        detail.onChoose(slider, thumb, value);
-                      });
-                    };
-                    if (isTouch$3) {
-                      fireOnChoose();
-                    } else {
-                      var wasDown = detail.mouseIsDown.get();
-                      detail.mouseIsDown.set(false);
-                      if (wasDown) {
-                        fireOnChoose();
-                      }
-                    }
-                  }
-                }
-              }
-            })
-          ]
-        ])),
+            }
+          }),
+          Receiving.config({ channels: (_a = {}, _a[mouseReleased()] = { onReceive: choose }, _a) })
+        ]),
         events: derive([
           run(sliderChangeEvent(), function (slider, simulatedEvent) {
             changeValue(slider, simulatedEvent.event().value());
           }),
-          runOnAttached(function (slider, simulatedEvent) {
+          runOnAttached(function (slider, _simulatedEvent) {
             var getInitial = modelDetail.getInitialValue();
             modelDetail.value.set(getInitial);
             var thumb = getThumb(slider);
             refresh(slider, thumb);
             var spectrum = getSpectrum(slider);
             detail.onInit(slider, thumb, spectrum, modelDetail.value.get());
-          })
-        ].concat(uiEventsArr)),
+          }),
+          run(touchstart(), onDragStart),
+          run(touchend(), onDragEnd),
+          run(mousedown(), onDragStart),
+          run(mouseup(), onDragEnd)
+        ]),
         apis: {
           resetToMin: resetToMin,
           resetToMax: resetToMax,
@@ -6148,7 +5996,7 @@
     });
 
     var button = function (realm, clazz, makeItems, editor) {
-      return Buttons.forToolbar(clazz, function () {
+      return forToolbar(clazz, function () {
         var items = makeItems();
         realm.setContextToolbar([{
             label: clazz + ' group',
@@ -6184,12 +6032,12 @@
           Slider.parts().spectrum({
             dom: dom$1('<div class="${prefix}-slider-gradient-container"></div>'),
             components: [spec('<div class="${prefix}-slider-gradient"></div>')],
-            behaviours: derive$1([Toggling.config({ toggleClass: Styles.resolve('thumb-active') })])
+            behaviours: derive$1([Toggling.config({ toggleClass: resolve('thumb-active') })])
           }),
           Slider.parts()['right-edge'](spec('<div class="${prefix}-hue-slider-white"></div>')),
           Slider.parts().thumb({
             dom: dom$1('<div class="${prefix}-slider-thumb"></div>'),
-            behaviours: derive$1([Toggling.config({ toggleClass: Styles.resolve('thumb-active') })])
+            behaviours: derive$1([Toggling.config({ toggleClass: resolve('thumb-active') })])
           })
         ],
         onChange: onChange,
@@ -6213,7 +6061,7 @@
             };
           }
         },
-        sliderBehaviours: derive$1([Receivers.orientation(Slider.refresh)])
+        sliderBehaviours: derive$1([orientation(Slider.refresh)])
       });
     };
     var makeItems = function (spec) {
@@ -6234,10 +6082,6 @@
       return button(realm, 'color-levels', function () {
         return makeItems(spec);
       }, editor);
-    };
-    var ColorSlider = {
-      makeItems: makeItems,
-      sketch: sketch$1
     };
 
     var schema$7 = objOfOnly([
@@ -6261,9 +6105,9 @@
         dom: {
           tag: 'div',
           classes: [
-            Styles.resolve('slider-' + spec$1.category + '-size-container'),
-            Styles.resolve('slider'),
-            Styles.resolve('slider-size-container')
+            resolve('slider-' + spec$1.category + '-size-container'),
+            resolve('slider'),
+            resolve('slider-size-container')
           ]
         },
         onChange: onChange,
@@ -6287,7 +6131,7 @@
         },
         stepSize: 1,
         snapToGrid: true,
-        sliderBehaviours: derive$1([Receivers.orientation(Slider.refresh)]),
+        sliderBehaviours: derive$1([orientation(Slider.refresh)]),
         components: [
           Slider.parts().spectrum({
             dom: dom$1('<div class="${prefix}-slider-size-container"></div>'),
@@ -6295,14 +6139,13 @@
           }),
           Slider.parts().thumb({
             dom: dom$1('<div class="${prefix}-slider-thumb"></div>'),
-            behaviours: derive$1([Toggling.config({ toggleClass: Styles.resolve('thumb-active') })])
+            behaviours: derive$1([Toggling.config({ toggleClass: resolve('thumb-active') })])
           })
         ]
       });
     };
-    var SizeSlider = { sketch: sketch$2 };
 
-    var candidates = [
+    var candidatesArray = [
       '9px',
       '10px',
       '11px',
@@ -6318,23 +6161,23 @@
     var defaultSize = 'medium';
     var defaultIndex = 2;
     var indexToSize = function (index) {
-      return Option.from(candidates[index]);
+      return Option.from(candidatesArray[index]);
     };
     var sizeToIndex = function (size) {
-      return findIndex(candidates, function (v) {
+      return findIndex(candidatesArray, function (v) {
         return v === size;
       });
     };
     var getRawOrComputed = function (isRoot, rawStart) {
       var optStart = isElement(rawStart) ? Option.some(rawStart) : parent(rawStart).filter(isElement);
       return optStart.map(function (start) {
-        var inline = closest(start, function (elem) {
+        var inline = closest$1(start, function (elem) {
           return getRaw(elem, 'font-size').isSome();
         }, isRoot).bind(function (elem) {
           return getRaw(elem, 'font-size');
         });
         return inline.getOrThunk(function () {
-          return get$3(start, 'font-size');
+          return get$4(start, 'font-size');
         });
       }).getOr('');
     };
@@ -6346,7 +6189,7 @@
         return eq(root, e);
       };
       var elemSize = getRawOrComputed(isRoot, elem);
-      return find$2(candidates, function (size) {
+      return find$2(candidatesArray, function (size) {
         return elemSize === size;
       }).getOr(defaultSize);
     };
@@ -6356,7 +6199,7 @@
         editor.execCommand('fontSize', false, value);
       }
     };
-    var get$7 = function (editor) {
+    var get$8 = function (editor) {
       var size = getSize(editor);
       return sizeToIndex(size).getOr(defaultIndex);
     };
@@ -6365,15 +6208,11 @@
         applySize(editor, size);
       });
     };
-    var FontSizes = {
-      candidates: constant(candidates),
-      get: get$7,
-      apply: apply$1
-    };
+    var candidates = constant(candidatesArray);
 
-    var sizes = FontSizes.candidates();
+    var sizes = candidates();
     var makeSlider$1 = function (spec) {
-      return SizeSlider.sketch({
+      return sketch$2({
         onChange: spec.onChange,
         sizes: sizes,
         category: 'font',
@@ -6390,10 +6229,10 @@
     var sketch$3 = function (realm, editor) {
       var spec = {
         onChange: function (value) {
-          FontSizes.apply(editor, value);
+          apply$1(editor, value);
         },
         getInitialValue: function () {
-          return FontSizes.get(editor);
+          return get$8(editor);
         }
       };
       return button(realm, 'font-size', function () {
@@ -6402,7 +6241,7 @@
     };
 
     var record = function (spec) {
-      var uid = isSketchSpec(spec) && hasKey$1(spec, 'uid') ? spec.uid : generate$3('memento');
+      var uid = isSketchSpec(spec) && hasNonNullableKey(spec, 'uid') ? spec.uid : generate$3('memento');
       var get = function (anyInSystem) {
         return anyInSystem.getSystem().getByUid(uid).getOrDie();
       };
@@ -6655,7 +6494,7 @@
         ])
       });
       return Button.sketch({
-        dom: Buttons.getToolbarIconButton('image', editor),
+        dom: getToolbarIconButton('image', editor),
         components: [memPicker.asSpec()],
         action: function (button) {
           var picker = memPicker.get(button);
@@ -6664,11 +6503,11 @@
       });
     };
 
-    var get$8 = function (element) {
+    var get$9 = function (element) {
       return element.dom().textContent;
     };
     var set$5 = function (element, value) {
-      element.dom().textContent = value;
+      return element.dom().textContent = value;
     };
 
     var isNotEmpty = function (val) {
@@ -6688,10 +6527,10 @@
       };
     };
     var fromLink = function (link) {
-      var text = get$8(link);
-      var url = get(link, 'href');
-      var title = get(link, 'title');
-      var target = get(link, 'target');
+      var text = get$9(link);
+      var url = get$1(link, 'href');
+      var title = get$1(link, 'title');
+      var target = get$1(link, 'target');
       return {
         url: defaultToEmpty(url),
         text: text !== url ? defaultToEmpty(text) : '',
@@ -6708,8 +6547,8 @@
       });
     };
     var wasSimple = function (link) {
-      var prevHref = get(link, 'href');
-      var prevText = get$8(link);
+      var prevHref = get$1(link, 'href');
+      var prevText = get$9(link);
       return prevHref === prevText;
     };
     var getTextToApply = function (link, url, info) {
@@ -6719,7 +6558,7 @@
     };
     var unlinkIfRequired = function (editor, info) {
       var activeLink = info.link.bind(identity);
-      activeLink.each(function (link) {
+      activeLink.each(function (_link) {
         editor.execCommand('unlink');
       });
     };
@@ -6756,23 +6595,17 @@
       var start = Element.fromDom(editor.selection.getStart());
       return closest$2(start, 'a');
     };
-    var LinkBridge = {
-      getInfo: getInfo,
-      applyInfo: applyInfo,
-      query: query
-    };
 
-    var platform$2 = detect$3();
+    var platform$1 = detect$3();
     var preserve = function (f, editor) {
       var rng = editor.selection.getRng();
       f();
       editor.selection.setRng(rng);
     };
     var forAndroid = function (editor, f) {
-      var wrapper = platform$2.os.isAndroid() ? preserve : apply;
+      var wrapper = platform$1.os.isAndroid() ? preserve : apply;
       wrapper(f, editor);
     };
-    var RangePreserver = { forAndroid: forAndroid };
 
     var events$6 = function (name, eventHandlers) {
       var events = derive(eventHandlers);
@@ -6796,11 +6629,12 @@
       };
     };
 
-    var getCurrent = function (component, composeConfig, composeState) {
+    var getCurrent = function (component, composeConfig, _composeState) {
       return composeConfig.find(component);
     };
 
     var ComposeApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         getCurrent: getCurrent
     });
 
@@ -6821,7 +6655,7 @@
           attributes: __assign({ role: 'presentation' }, attributes)
         }, domWithoutAttributes),
         components: detail.components,
-        behaviours: get$5(detail.containerBehaviours),
+        behaviours: get$6(detail.containerBehaviours),
         events: detail.events,
         domModification: detail.domModification,
         eventOrder: detail.eventOrder
@@ -6852,7 +6686,7 @@
           }),
           Composing.config({ find: Option.some })
         ]),
-        events: derive([runOnAttached(function (component, simulatedEvent) {
+        events: derive([runOnAttached(function (component, _simulatedEvent) {
             Representing.setValue(component, detail.getInitialValue());
           })])
       };
@@ -6871,7 +6705,7 @@
       ]
     });
 
-    var get$9 = function (element) {
+    var get$a = function (element) {
       return element.dom().value;
     };
     var set$6 = function (element, value) {
@@ -6898,28 +6732,28 @@
     ]);
     var focusBehaviours = function (detail) {
       return derive$1([Focusing.config({
-          onFocus: detail.selectOnFocus === false ? noop : function (component) {
+          onFocus: !detail.selectOnFocus ? noop : function (component) {
             var input = component.element();
-            var value = get$9(input);
+            var value = get$a(input);
             input.dom().setSelectionRange(0, value.length);
           }
         })]);
     };
     var behaviours = function (detail) {
       return __assign(__assign({}, focusBehaviours(detail)), augment(detail.inputBehaviours, [Representing.config({
-          store: {
-            mode: 'manual',
-            initialValue: detail.data.getOr(undefined),
+          store: __assign(__assign({ mode: 'manual' }, detail.data.map(function (data) {
+            return { initialValue: data };
+          }).getOr({})), {
             getValue: function (input) {
-              return get$9(input.element());
+              return get$a(input.element());
             },
             setValue: function (input, data) {
-              var current = get$9(input.element());
+              var current = get$a(input.element());
               if (current !== data) {
                 set$6(input.element(), data);
               }
             }
-          },
+          }),
           onSetValue: detail.onSetValue
         })]));
     };
@@ -6932,7 +6766,7 @@
       };
     };
 
-    var factory$3 = function (detail, spec) {
+    var factory$3 = function (detail, _spec) {
       return {
         uid: detail.uid,
         dom: dom$2(detail),
@@ -6957,6 +6791,7 @@
     };
 
     var ActiveTabstopping = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         exhibit: exhibit$3
     });
 
@@ -6974,7 +6809,7 @@
     var field$2 = function (name, placeholder) {
       var inputSpec = record(Input.sketch({
         inputAttributes: { placeholder: global$3.translate(placeholder) },
-        onSetValue: function (input$1, data) {
+        onSetValue: function (input$1, _data) {
           emit(input$1, input());
         },
         inputBehaviours: derive$1([
@@ -7000,7 +6835,7 @@
             buttonSpec.asSpec()
           ],
           containerBehaviours: derive$1([
-            Toggling.config({ toggleClass: Styles.resolve('input-container-empty') }),
+            Toggling.config({ toggleClass: resolve('input-container-empty') }),
             Composing.config({
               find: function (comp) {
                 return Option.some(inputSpec.get(comp));
@@ -7038,9 +6873,8 @@
       'select'
     ];
     var onLoad$5 = function (component, disableConfig, disableState) {
-      if (disableConfig.disabled) {
-        disable(component, disableConfig);
-      }
+      var f = disableConfig.disabled() ? disable : enable;
+      f(component, disableConfig, disableState);
     };
     var hasNative = function (component, config) {
       return config.useNative === true && contains(nativeDisabled, name(component.element()));
@@ -7055,7 +6889,7 @@
       remove$1(component.element(), 'disabled');
     };
     var ariaIsDisabled = function (component) {
-      return get(component.element(), 'aria-disabled') === 'true';
+      return get$1(component.element(), 'aria-disabled') === 'true';
     };
     var ariaDisable = function (component) {
       set(component.element(), 'aria-disabled', 'true');
@@ -7063,7 +6897,7 @@
     var ariaEnable = function (component) {
       set(component.element(), 'aria-disabled', 'false');
     };
-    var disable = function (component, disableConfig, disableState) {
+    var disable = function (component, disableConfig, _disableState) {
       disableConfig.disableClass.each(function (disableClass) {
         add$2(component.element(), disableClass);
       });
@@ -7071,7 +6905,7 @@
       f(component);
       disableConfig.onDisabled(component);
     };
-    var enable = function (component, disableConfig, disableState) {
+    var enable = function (component, disableConfig, _disableState) {
       disableConfig.disableClass.each(function (disableClass) {
         remove$4(component.element(), disableClass);
       });
@@ -7088,6 +6922,7 @@
     };
 
     var DisableApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         enable: enable,
         disable: disable,
         isDisabled: isDisabled,
@@ -7095,12 +6930,12 @@
         set: set$7
     });
 
-    var exhibit$4 = function (base, disableConfig, disableState) {
+    var exhibit$4 = function (base, disableConfig) {
       return nu$5({ classes: disableConfig.disabled ? disableConfig.disableClass.map(pure).getOr([]) : [] });
     };
     var events$7 = function (disableConfig, disableState) {
       return derive([
-        abort(execute(), function (component, simulatedEvent) {
+        abort(execute(), function (component, _simulatedEvent) {
           return isDisabled(component, disableConfig);
         }),
         loadEvent(disableConfig, disableState, onLoad$5)
@@ -7108,12 +6943,13 @@
     };
 
     var ActiveDisable = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         exhibit: exhibit$4,
         events: events$7
     });
 
     var DisableSchema = [
-      defaulted$1('disabled', false),
+      defaultedFunction('disabled', never),
       defaulted$1('useNative', true),
       option('disableClass'),
       onHandler('onDisabled'),
@@ -7161,7 +6997,7 @@
         return Result.error(e);
       }, Result.value);
     };
-    var make = function (detail, components, spec) {
+    var make = function (detail, components) {
       return {
         uid: detail.uid,
         dom: detail.dom,
@@ -7174,7 +7010,7 @@
                 return map(resPs, function (resPThunk, pName) {
                   return resPThunk().bind(function (v) {
                     var opt = Composing.getCurrent(v);
-                    return toResult$1(opt, 'missing current');
+                    return toResult$1(opt, new Error('Cannot find a current component to extract the value from for form part \'' + pName + '\': ' + element(v.element())));
                   }).map(Representing.getValue);
                 });
               },
@@ -7293,11 +7129,6 @@
         return firstDirection === SWIPING_RIGHT && lastDirection === SWIPING_RIGHT ? SWIPING_RIGHT : firstDirection === SWIPING_LEFT && lastDirection === SWIPING_LEFT ? SWIPING_LEFT : SWIPING_NONE;
       }
     };
-    var SwipingModel = {
-      init: init$2,
-      move: move$1,
-      complete: complete
-    };
 
     var sketch$6 = function (rawSpec) {
       var navigateEvent = 'navigateEvent';
@@ -7323,23 +7154,25 @@
             emitWith(button, navigateEvent, { direction: direction });
           },
           buttonBehaviours: derive$1([Disabling.config({
-              disableClass: Styles.resolve('toolbar-navigation-disabled'),
-              disabled: !enabled
+              disableClass: resolve('toolbar-navigation-disabled'),
+              disabled: function () {
+                return !enabled;
+              }
             })])
         });
       };
       var reposition = function (dialog, message) {
-        descendant$1(dialog.element(), '.' + Styles.resolve('serialised-dialog-chain')).each(function (parent) {
+        descendant$1(dialog.element(), '.' + resolve('serialised-dialog-chain')).each(function (parent) {
           set$3(parent, 'left', -spec$1.state.currentScreen.get() * message.width + 'px');
         });
       };
       var navigate = function (dialog, direction) {
-        var screens = descendants(dialog.element(), '.' + Styles.resolve('serialised-dialog-screen'));
-        descendant$1(dialog.element(), '.' + Styles.resolve('serialised-dialog-chain')).each(function (parent) {
+        var screens = descendants(dialog.element(), '.' + resolve('serialised-dialog-screen'));
+        descendant$1(dialog.element(), '.' + resolve('serialised-dialog-chain')).each(function (parent) {
           if (spec$1.state.currentScreen.get() + direction >= 0 && spec$1.state.currentScreen.get() + direction < screens.length) {
             getRaw(parent, 'left').each(function (left) {
               var currentLeft = parseInt(left, 10);
-              var w = get$6(screens[0]);
+              var w = get$7(screens[0]);
               set$3(parent, 'left', currentLeft - direction * w + 'px');
             });
             spec$1.state.currentScreen.set(spec$1.state.currentScreen.get() + direction);
@@ -7378,25 +7211,25 @@
               })
             })],
           formBehaviours: derive$1([
-            Receivers.orientation(function (dialog, message) {
+            orientation(function (dialog, message) {
               reposition(dialog, message);
             }),
             Keying.config({
               mode: 'special',
-              focusIn: function (dialog) {
+              focusIn: function (dialog, _specialInfo) {
                 focusInput(dialog);
               },
-              onTab: function (dialog) {
+              onTab: function (dialog, _specialInfo) {
                 navigate(dialog, +1);
                 return Option.some(true);
               },
-              onShiftTab: function (dialog) {
+              onShiftTab: function (dialog, _specialInfo) {
                 navigate(dialog, -1);
                 return Option.some(true);
               }
             }),
             config(formAdhocEvents, [
-              runOnAttached(function (dialog, simulatedEvent) {
+              runOnAttached(function (dialog, _simulatedEvent) {
                 resetState();
                 var dotitems = memDots.get(dialog);
                 Highlighting.highlightFirst(dotitems);
@@ -7423,8 +7256,8 @@
       var memDots = record({
         dom: dom$1('<div class="${prefix}-dot-container"></div>'),
         behaviours: derive$1([Highlighting.config({
-            highlightClass: Styles.resolve('dot-active'),
-            itemClass: Styles.resolve('dot-item')
+            highlightClass: resolve('dot-active'),
+            itemClass: resolve('dot-item')
           })]),
         components: bind(spec$1.fields, function (_f, i) {
           return i <= spec$1.maxFieldIndex ? [spec('<div class="${prefix}-dot-item ${prefix}-icon-full-dot ${prefix}-icon"></div>')] : [];
@@ -7445,21 +7278,21 @@
             }
           }),
           config(wrapperAdhocEvents, [
-            run(touchstart(), function (wrapper, simulatedEvent) {
+            run(touchstart(), function (_wrapper, simulatedEvent) {
               var event = simulatedEvent.event();
-              spec$1.state.dialogSwipeState.set(SwipingModel.init(event.raw().touches[0].clientX));
+              spec$1.state.dialogSwipeState.set(init$2(event.raw().touches[0].clientX));
             }),
-            run(touchmove(), function (wrapper, simulatedEvent) {
+            run(touchmove(), function (_wrapper, simulatedEvent) {
               var event = simulatedEvent.event();
               spec$1.state.dialogSwipeState.on(function (state) {
                 simulatedEvent.event().prevent();
-                spec$1.state.dialogSwipeState.set(SwipingModel.move(state, event.raw().touches[0].clientX));
+                spec$1.state.dialogSwipeState.set(move$1(state, event.raw().touches[0].clientX));
               });
             }),
-            run(touchend(), function (wrapper) {
+            run(touchend(), function (wrapper, _simulatedEvent) {
               spec$1.state.dialogSwipeState.on(function (state) {
                 var dialog = memForm.get(wrapper);
-                var direction = -1 * SwipingModel.complete(state);
+                var direction = -1 * complete(state);
                 navigate(dialog, direction);
               });
             })
@@ -7486,11 +7319,11 @@
                 'target'
               ].length - 1,
               getInitialValue: function () {
-                return Option.some(LinkBridge.getInfo(editor));
+                return Option.some(getInfo(editor));
               },
-              onExecute: function (dialog) {
+              onExecute: function (dialog, _simulatedEvent) {
                 var info = Representing.getValue(dialog);
-                LinkBridge.applyInfo(editor, info);
+                applyInfo(editor, info);
                 realm.restoreToolbar();
                 editor.focus();
               }
@@ -7498,13 +7331,13 @@
         }];
     });
     var sketch$7 = function (realm, editor) {
-      return Buttons.forToolbarStateAction(editor, 'link', 'link', function () {
+      return forToolbarStateAction(editor, 'link', 'link', function () {
         var groups = getGroups(realm, editor);
         realm.setContextToolbar(groups);
-        RangePreserver.forAndroid(editor, function () {
+        forAndroid(editor, function () {
           realm.focusToolbar();
         });
-        LinkBridge.query(editor).each(function (link) {
+        query(editor).each(function (link) {
           editor.selection.select(link.dom());
         });
       });
@@ -7643,6 +7476,7 @@
       })]);
 
     var DefaultEvents = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         events: events$8
     });
 
@@ -7651,7 +7485,7 @@
     var NoContextApi = function (getComp) {
       var fail = function (event) {
         return function () {
-          throw new Error('The component must be in a context to send: ' + event + '\n' + element(getComp().element()) + ' is not in context.');
+          throw new Error('The component must be in a context to send: ' + event + (getComp ? '\n' + element(getComp().element()) + ' is not in context.' : ''));
         };
       };
       return {
@@ -7689,8 +7523,7 @@
       return {
         list: all,
         data: map(validated, function (optBlobThunk) {
-          var optBlob = optBlobThunk;
-          var output = optBlob.map(function (blob) {
+          var output = optBlobThunk.map(function (blob) {
             return {
               config: blob.config,
               state: blob.state.init(blob.config)
@@ -7713,7 +7546,7 @@
       var r = {};
       each(data, function (detail, key) {
         each(detail, function (value, indexKey) {
-          var chain = readOr$1(indexKey, [])(r);
+          var chain = get(r, indexKey).getOr([]);
           r[indexKey] = chain.concat([tuple(key, value)]);
         });
       });
@@ -7725,13 +7558,12 @@
       each$1(behaviours, function (behaviour) {
         modsByBehaviour[behaviour.name()] = behaviour.exhibit(info, base);
       });
-      var nameAndMod = function (name, modification) {
+      var byAspect = byInnerKey(modsByBehaviour, function (name, modification) {
         return {
           name: name,
           modification: modification
         };
-      };
-      var byAspect = byInnerKey(modsByBehaviour, nameAndMod);
+      });
       var combineObjects = function (objects) {
         return foldr(objects, function (b, a) {
           return __assign(__assign({}, a.modification), b);
@@ -7750,9 +7582,8 @@
     };
 
     var sortKeys = function (label, keyName, array, order) {
-      var sliced = array.slice(0);
       try {
-        var sorted = sliced.sort(function (a, b) {
+        var sorted = sort(array, function (a, b) {
           var aKey = a[keyName]();
           var bKey = b[keyName]();
           var aIndex = order.indexOf(aKey);
@@ -7858,7 +7689,7 @@
         var combined = tuples.length === 1 ? Result.value(tuples[0].handler()) : fuse$1(tuples, eventOrder, eventName);
         return combined.map(function (handler) {
           var assembled = assemble(handler);
-          var purpose = tuples.length > 1 ? filter(eventOrder[eventName], function (o) {
+          var purpose = tuples.length > 1 ? filter$1(eventOrder[eventName], function (o) {
             return exists(tuples, function (t) {
               return t.name() === o;
             });
@@ -7918,9 +7749,18 @@
             'alloy.base.behaviour',
             'item-type-events'
           ],
+          'touchstart': [
+            'focusing',
+            'alloy.base.behaviour',
+            'item-type-events'
+          ],
           'mouseover': [
             'item-type-events',
             'tooltipping'
+          ],
+          'alloy.receive': [
+            'receiving',
+            'reflecting'
           ]
         }), anyValue$1()),
         option('domModification')
@@ -7975,8 +7815,8 @@
     };
 
     var getBehaviours$1 = function (spec) {
-      var behaviours = readOr$1('behaviours', {})(spec);
-      var keys$1 = filter(keys(behaviours), function (k) {
+      var behaviours = get(spec, 'behaviours').getOr({});
+      var keys$1 = filter$1(keys(behaviours), function (k) {
         return behaviours[k] !== undefined;
       });
       return map$1(keys$1, function (k) {
@@ -8068,7 +7908,7 @@
     };
 
     var buildSubcomponents = function (spec) {
-      var components = readOr$1('components', [])(spec);
+      var components = get(spec, 'components').getOr([]);
       return map$1(components, build$1);
     };
     var buildFromSpec = function (userSpec) {
@@ -8082,9 +7922,9 @@
     };
     var text = function (textContent) {
       var element = Element.fromText(textContent);
-      return external({ element: element });
+      return external$1({ element: element });
     };
-    var external = function (spec) {
+    var external$1 = function (spec) {
       var extSpec = asRawOrDie('external.component', objOfOnly([
         strict$1('element'),
         option('uid')
@@ -8168,12 +8008,10 @@
               initialValue: detail.data
             }
           }),
-          config('item-type-events', [
-            run(tapOrClick(), emitExecute),
-            cutter(mousedown()),
+          config('item-type-events', __spreadArrays(pointerEvents(), [
             run(mouseover(), onHover),
             run(focusItem(), Focusing.focus)
-          ])
+          ]))
         ]),
         components: detail.components,
         eventOrder: detail.eventOrder
@@ -8220,7 +8058,7 @@
             behaviours: derive$1([Representing.config({
                 store: {
                   mode: 'manual',
-                  getValue: function (component) {
+                  getValue: function (_component) {
                     return detail.data;
                   },
                   setValue: function () {
@@ -8256,12 +8094,12 @@
         domModification: detail.domModification,
         events: derive([
           runOnExecute(function (component, simulatedEvent) {
-            focusWidget(component).each(function (widget) {
+            focusWidget(component).each(function (_widget) {
               simulatedEvent.stop();
             });
           }),
           run(mouseover(), onHover),
-          run(focusItem(), function (component, simulatedEvent) {
+          run(focusItem(), function (component, _simulatedEvent) {
             if (detail.autofocus) {
               focusWidget(component);
             } else {
@@ -8412,7 +8250,7 @@
 
     var focus$4 = constant('alloy.menu-focus');
 
-    var make$2 = function (detail, components, spec, externals) {
+    var make$2 = function (detail, components, _spec, _externals) {
       return {
         uid: detail.uid,
         dom: detail.dom,
@@ -8504,7 +8342,7 @@
       });
       foundChild.each(detach);
     };
-    var contents = function (component, replaceConfig) {
+    var contents = function (component, _replaceConfig) {
       return component.components();
     };
     var replaceAt = function (component, replaceConfig, replaceState, replaceeIndex, replacer) {
@@ -8527,6 +8365,7 @@
     };
 
     var ReplaceApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         append: append$2,
         prepend: prepend$1,
         remove: remove$7,
@@ -8551,8 +8390,8 @@
       });
     };
     var trace = function (items, byItem, byMenu, finish) {
-      return readOptFrom$1(byMenu, finish).bind(function (triggerItem) {
-        return readOptFrom$1(items, triggerItem).bind(function (triggerMenu) {
+      return get(byMenu, finish).bind(function (triggerItem) {
+        return get(items, triggerItem).bind(function (triggerMenu) {
           var rest = trace(items, byItem, byMenu, triggerMenu);
           return Option.some([triggerMenu].concat(rest));
         });
@@ -8571,7 +8410,7 @@
         return [submenu].concat(trace(items, byItem, byMenu, submenu));
       });
       return map(items, function (menu) {
-        return readOptFrom$1(menuPaths, menu).getOr([menu]);
+        return get(menuPaths, menu).getOr([menu]);
       });
     };
 
@@ -8606,7 +8445,7 @@
         paths.set(sPaths);
       };
       var getTriggeringItem = function (menuValue) {
-        return find(expansions.get(), function (v, k) {
+        return find(expansions.get(), function (v, _k) {
           return v === menuValue;
         });
       };
@@ -8624,10 +8463,10 @@
         });
       };
       var getTriggeringPath = function (itemValue, getItemByValue) {
-        var extraPath = filter(lookupItem(itemValue).toArray(), function (menuValue) {
+        var extraPath = filter$1(lookupItem(itemValue).toArray(), function (menuValue) {
           return getPreparedMenu(menuValue).isSome();
         });
-        return readOptFrom$1(paths.get(), itemValue).bind(function (path) {
+        return get(paths.get(), itemValue).bind(function (path) {
           var revPath = reverse(extraPath.concat(path));
           var triggers = bind(revPath, function (menuValue, menuIndex) {
             return getTriggerData(menuValue, getItemByValue, revPath.slice(0, menuIndex + 1)).fold(function () {
@@ -8640,27 +8479,27 @@
         });
       };
       var expand = function (itemValue) {
-        return readOptFrom$1(expansions.get(), itemValue).map(function (menu) {
-          var current = readOptFrom$1(paths.get(), itemValue).getOr([]);
+        return get(expansions.get(), itemValue).map(function (menu) {
+          var current = get(paths.get(), itemValue).getOr([]);
           return [menu].concat(current);
         });
       };
       var collapse = function (itemValue) {
-        return readOptFrom$1(paths.get(), itemValue).bind(function (path) {
+        return get(paths.get(), itemValue).bind(function (path) {
           return path.length > 1 ? Option.some(path.slice(1)) : Option.none();
         });
       };
       var refresh = function (itemValue) {
-        return readOptFrom$1(paths.get(), itemValue);
+        return get(paths.get(), itemValue);
       };
       var getPreparedMenu = function (menuValue) {
         return lookupMenu(menuValue).bind(extractPreparedMenu);
       };
       var lookupMenu = function (menuValue) {
-        return readOptFrom$1(menus.get(), menuValue);
+        return get(menus.get(), menuValue);
       };
       var lookupItem = function (itemValue) {
-        return readOptFrom$1(expansions.get(), itemValue);
+        return get(expansions.get(), itemValue);
       };
       var otherMenus = function (path) {
         var menuValues = directory.get();
@@ -8696,7 +8535,7 @@
       extractPreparedMenu: extractPreparedMenu
     };
 
-    var make$3 = function (detail, rawUiSpec) {
+    var make$3 = function (detail, _rawUiSpec) {
       var submenuParentItems = Cell(Option.none());
       var buildMenus = function (container, primaryName, menus) {
         return map(menus, function (spec, name) {
@@ -8729,7 +8568,7 @@
       var getItemValue = function (item) {
         return Representing.getValue(item).value;
       };
-      var getItemByValue = function (container, menus, itemValue) {
+      var getItemByValue = function (_container, menus, itemValue) {
         return findMap(menus, function (menu) {
           if (!menu.getSystem().isConnected()) {
             return Option.none();
@@ -8740,8 +8579,8 @@
           });
         });
       };
-      var toDirectory = function (container) {
-        return map(detail.data.menus, function (data, menuName) {
+      var toDirectory = function (_container) {
+        return map(detail.data.menus, function (data, _menuName) {
           return bind(data.items, function (item) {
             return item.type === 'separator' ? [] : [item.data.value];
           });
@@ -8775,8 +8614,8 @@
         return submenuParentItems.get().getOrThunk(function () {
           var r = {};
           var items = descendants(container.element(), '.' + detail.markers.item);
-          var parentItems = filter(items, function (i) {
-            return get(i, 'aria-haspopup') === 'true';
+          var parentItems = filter$1(items, function (i) {
+            return get$1(i, 'aria-haspopup') === 'true';
           });
           each$1(parentItems, function (i) {
             container.getSystem().getByDom(i).each(function (itemComp) {
@@ -8922,7 +8761,7 @@
             });
           });
         }),
-        runOnAttached(function (container, simulatedEvent) {
+        runOnAttached(function (container, _simulatedEvent) {
           setup(container).each(function (primary) {
             Replacing.append(container, premade$1(primary));
             detail.onOpenMenu(container, primary);
@@ -8952,7 +8791,7 @@
       };
       var extractMenuFromContainer = function (container) {
         return Option.from(container.components()[0]).filter(function (comp) {
-          return get(comp.element(), 'role') === 'menu';
+          return get$1(comp.element(), 'role') === 'menu';
         });
       };
       var repositionMenus = function (container) {
@@ -8995,7 +8834,7 @@
             onRight: keyOnItem(onRight),
             onLeft: keyOnItem(onLeft),
             onEscape: keyOnItem(onEscape),
-            focusIn: function (container, keyInfo) {
+            focusIn: function (container, _keyInfo) {
               layeredState.getPrimary().each(function (primary) {
                 dispatch(container, primary.element(), focusItem());
               });
@@ -9046,7 +8885,7 @@
         onStrictKeyboardHandler('onEscape'),
         onStrictHandler('onOpenMenu'),
         onStrictHandler('onOpenSubmenu'),
-        onStrictHandler('onRepositionMenu'),
+        onHandler('onRepositionMenu'),
         onHandler('onCollapseMenu'),
         defaulted$1('highlightImmediately', true),
         strictObjOf('data', [
@@ -9089,8 +8928,8 @@
     });
 
     var findRoute = function (component, transConfig, transState, route) {
-      return readOptFrom$1(transConfig.routes, route.start).bind(function (sConfig) {
-        return readOptFrom$1(sConfig, route.destination);
+      return get(transConfig.routes, route.start).bind(function (sConfig) {
+        return get(sConfig, route.destination);
       });
     };
     var getTransition = function (comp, transConfig, transState) {
@@ -9118,27 +8957,31 @@
     };
     var getNewRoute = function (comp, transConfig, transState, destination) {
       return {
-        start: get(comp.element(), transConfig.stateAttr),
+        start: get$1(comp.element(), transConfig.stateAttr),
         destination: destination
       };
     };
-    var getCurrentRoute = function (comp, transConfig, transState) {
+    var getCurrentRoute = function (comp, transConfig, _transState) {
       var el = comp.element();
-      return has$1(el, transConfig.destinationAttr) ? Option.some({
-        start: get(comp.element(), transConfig.stateAttr),
-        destination: get(comp.element(), transConfig.destinationAttr)
-      }) : Option.none();
+      return getOpt(el, transConfig.destinationAttr).map(function (destination) {
+        return {
+          start: get$1(comp.element(), transConfig.stateAttr),
+          destination: destination
+        };
+      });
     };
     var jumpTo = function (comp, transConfig, transState, destination) {
       disableTransition(comp, transConfig, transState);
-      if (has$1(comp.element(), transConfig.stateAttr) && get(comp.element(), transConfig.stateAttr) !== destination) {
+      if (has$1(comp.element(), transConfig.stateAttr) && get$1(comp.element(), transConfig.stateAttr) !== destination) {
         transConfig.onFinish(comp, destination);
       }
       set(comp.element(), transConfig.stateAttr, destination);
     };
-    var fasttrack = function (comp, transConfig, transState, destination) {
+    var fasttrack = function (comp, transConfig, _transState, _destination) {
       if (has$1(comp.element(), transConfig.destinationAttr)) {
-        set(comp.element(), transConfig.stateAttr, get(comp.element(), transConfig.destinationAttr));
+        getOpt(comp.element(), transConfig.destinationAttr).each(function (destination) {
+          set(comp.element(), transConfig.stateAttr, destination);
+        });
         remove$1(comp.element(), transConfig.destinationAttr);
       }
     };
@@ -9154,12 +8997,12 @@
         set(comp.element(), transConfig.destinationAttr, destination);
       });
     };
-    var getState$1 = function (comp, transConfig, transState) {
-      var e = comp.element();
-      return has$1(e, transConfig.stateAttr) ? Option.some(get(e, transConfig.stateAttr)) : Option.none();
+    var getState$1 = function (comp, transConfig, _transState) {
+      return getOpt(comp.element(), transConfig.stateAttr);
     };
 
     var TransitionApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         findRoute: findRoute,
         disableTransition: disableTransition,
         getCurrentRoute: getCurrentRoute,
@@ -9183,13 +9026,14 @@
             });
           });
         }),
-        runOnAttached(function (comp, se) {
+        runOnAttached(function (comp, _se) {
           jumpTo(comp, transConfig, transState, transConfig.initialState);
         })
       ]);
     };
 
     var ActiveTransitioning = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         events: events$9
     });
 
@@ -9281,29 +9125,25 @@
       }
     });
 
-    var scrollable = Styles.resolve('scrollable');
+    var scrollableStyle = resolve('scrollable');
     var register = function (element) {
-      add$2(element, scrollable);
+      add$2(element, scrollableStyle);
     };
     var deregister = function (element) {
-      remove$4(element, scrollable);
+      remove$4(element, scrollableStyle);
     };
-    var Scrollable = {
-      register: register,
-      deregister: deregister,
-      scrollable: constant(scrollable)
-    };
+    var scrollable = scrollableStyle;
 
     var getValue$4 = function (item) {
-      return readOptFrom$1(item, 'format').getOr(item.title);
+      return get(item, 'format').getOr(item.title);
     };
     var convert$1 = function (formats, memMenuThunk) {
       var mainMenu = makeMenu('Styles', [].concat(map$1(formats.items, function (k) {
-        return makeItem(getValue$4(k), k.title, k.isSelected(), k.getPreview(), hasKey$1(formats.expansions, getValue$4(k)));
+        return makeItem(getValue$4(k), k.title, k.isSelected(), k.getPreview(), hasNonNullableKey(formats.expansions, getValue$4(k)));
       })), memMenuThunk, false);
       var submenus = map(formats.menus, function (menuItems, menuName) {
         var items = map$1(menuItems, function (item) {
-          return makeItem(getValue$4(item), item.title, item.isSelected !== undefined ? item.isSelected() : false, item.getPreview !== undefined ? item.getPreview() : '', hasKey$1(formats.expansions, getValue$4(item)));
+          return makeItem(getValue$4(item), item.title, item.isSelected !== undefined ? item.isSelected() : false, item.getPreview !== undefined ? item.getPreview() : '', hasNonNullableKey(formats.expansions, getValue$4(item)));
         });
         return makeMenu(menuName, items, memMenuThunk, true);
       });
@@ -9320,14 +9160,14 @@
         type: 'item',
         dom: {
           tag: 'div',
-          classes: isMenu ? [Styles.resolve('styles-item-is-menu')] : []
+          classes: isMenu ? [resolve('styles-item-is-menu')] : []
         },
         toggling: {
           toggleOnExecute: false,
-          toggleClass: Styles.resolve('format-matches'),
+          toggleClass: resolve('format-matches'),
           selected: selected
         },
-        itemBehaviours: derive$1(isMenu ? [] : [Receivers.format(value, function (comp, status) {
+        itemBehaviours: derive$1(isMenu ? [] : [format(value, function (comp, status) {
             var toggle = status ? Toggling.on : Toggling.off;
             toggle(comp);
           })]),
@@ -9348,13 +9188,13 @@
           Button.sketch({
             dom: {
               tag: 'div',
-              classes: [Styles.resolve('styles-collapser')]
+              classes: [resolve('styles-collapser')]
             },
             components: collapsable ? [
               {
                 dom: {
                   tag: 'span',
-                  classes: [Styles.resolve('styles-collapse-icon')]
+                  classes: [resolve('styles-collapse-icon')]
                 }
               },
               text(value)
@@ -9369,19 +9209,19 @@
           {
             dom: {
               tag: 'div',
-              classes: [Styles.resolve('styles-menu-items-container')]
+              classes: [resolve('styles-menu-items-container')]
             },
             components: [Menu.parts().items({})],
             behaviours: derive$1([config('adhoc-scrollable-menu', [
-                runOnAttached(function (component, simulatedEvent) {
+                runOnAttached(function (component, _simulatedEvent) {
                   set$3(component.element(), 'overflow-y', 'auto');
                   set$3(component.element(), '-webkit-overflow-scrolling', 'touch');
-                  Scrollable.register(component.element());
+                  register(component.element());
                 }),
                 runOnDetached(function (component) {
                   remove$5(component.element(), 'overflow-y');
                   remove$5(component.element(), '-webkit-overflow-scrolling');
-                  Scrollable.deregister(component.element());
+                  deregister(component.element());
                 })
               ])])
           }
@@ -9405,12 +9245,12 @@
       var memMenu = record(tieredMenu.sketch({
         dom: {
           tag: 'div',
-          classes: [Styles.resolve('styles-menu')]
+          classes: [resolve('styles-menu')]
         },
         components: [],
         fakeFocus: true,
         stayInDom: true,
-        onExecute: function (tmenu, item) {
+        onExecute: function (_tmenu, item) {
           var v = Representing.getValue(item);
           settings.handle(item, v.value);
           return Option.none();
@@ -9419,13 +9259,13 @@
           return Option.none();
         },
         onOpenMenu: function (container, menu) {
-          var w = get$6(container.element());
+          var w = get$7(container.element());
           set$4(menu.element(), w);
           Transitioning.jumpTo(menu, 'current');
         },
         onOpenSubmenu: function (container, item, submenu) {
-          var w = get$6(container.element());
-          var menu = ancestor$1(item.element(), '[role="menu"]').getOrDie('hacky');
+          var w = get$7(container.element());
+          var menu = ancestor$2(item.element(), '[role="menu"]').getOrDie('hacky');
           var menuComp = container.getSystem().getByDom(menu).getOrDie();
           set$4(submenu.element(), w);
           Transitioning.progressTo(menuComp, 'before');
@@ -9433,7 +9273,7 @@
           Transitioning.progressTo(submenu, 'current');
         },
         onCollapseMenu: function (container, item, menu) {
-          var submenu = ancestor$1(item.element(), '[role="menu"]').getOrDie('hacky');
+          var submenu = ancestor$2(item.element(), '[role="menu"]').getOrDie('hacky');
           var submenuComp = container.getSystem().getByDom(submenu).getOrDie();
           Transitioning.progressTo(submenuComp, 'after');
           Transitioning.progressTo(menu, 'current');
@@ -9442,16 +9282,15 @@
         highlightImmediately: true,
         data: dataset.tmenu,
         markers: {
-          backgroundMenu: Styles.resolve('styles-background-menu'),
-          menu: Styles.resolve('styles-menu'),
-          selectedMenu: Styles.resolve('styles-selected-menu'),
-          item: Styles.resolve('styles-item'),
-          selectedItem: Styles.resolve('styles-selected-item')
+          backgroundMenu: resolve('styles-background-menu'),
+          menu: resolve('styles-menu'),
+          selectedMenu: resolve('styles-selected-menu'),
+          item: resolve('styles-item'),
+          selectedItem: resolve('styles-selected-item')
         }
       }));
       return memMenu.asSpec();
     };
-    var StylesMenu = { sketch: sketch$8 };
 
     var getFromExpandingItem = function (item) {
       var newItem = deepMerge(exclude$1(item, ['items']), { menu: true });
@@ -9465,7 +9304,7 @@
       };
     };
     var getFromItem = function (item) {
-      return hasKey$1(item, 'items') ? getFromExpandingItem(item) : {
+      return hasNonNullableKey(item, 'items') ? getFromExpandingItem(item) : {
         item: item,
         menus: {},
         expansions: {}
@@ -9485,7 +9324,6 @@
         items: []
       });
     };
-    var StyleConversions = { expand: expand };
 
     var register$1 = function (editor, settings) {
       var isSelectedFor = function (format) {
@@ -9495,8 +9333,7 @@
       };
       var getPreview = function (format) {
         return function () {
-          var styles = editor.formatter.getCssText(format);
-          return styles;
+          return editor.formatter.getCssText(format);
         };
       };
       var enrichSupported = function (item) {
@@ -9521,13 +9358,13 @@
         editor.formatter.register(formatName, newItem);
         return newItem;
       };
-      var formats = readOptFrom$1(settings, 'style_formats').getOr(DefaultStyleFormats);
+      var formats = get(settings, 'style_formats').getOr(DefaultStyleFormats);
       var doEnrich = function (items) {
         return map$1(items, function (item) {
-          if (hasKey$1(item, 'items')) {
+          if (hasNonNullableKey(item, 'items')) {
             var newItems = doEnrich(item.items);
             return deepMerge(enrichMenu(item), { items: newItems });
-          } else if (hasKey$1(item, 'format')) {
+          } else if (hasNonNullableKey(item, 'format')) {
             return enrichSupported(item);
           } else {
             return enrichCustom(item);
@@ -9543,17 +9380,17 @@
             var newItems = doPrune(item.items);
             return newItems.length > 0 ? [item] : [];
           } else {
-            var keep = hasKey$1(item, 'format') ? editor.formatter.canApply(item.format) : true;
+            var keep = hasNonNullableKey(item, 'format') ? editor.formatter.canApply(item.format) : true;
             return keep ? [item] : [];
           }
         });
       };
       var prunedItems = doPrune(formats);
-      return StyleConversions.expand(prunedItems);
+      return expand(prunedItems);
     };
     var ui = function (editor, formats, onDone) {
       var pruned = prune(editor, formats);
-      return StylesMenu.sketch({
+      return sketch$8({
         formats: pruned,
         handle: function (item, value) {
           editor.undoManager.transact(function () {
@@ -9566,10 +9403,6 @@
           onDone();
         }
       });
-    };
-    var StyleFormats = {
-      register: register$1,
-      ui: ui
     };
 
     var defaults = [
@@ -9597,17 +9430,17 @@
     var setup = function (realm, editor) {
       var commandSketch = function (name) {
         return function () {
-          return Buttons.forToolbarCommand(editor, name);
+          return forToolbarCommand(editor, name);
         };
       };
       var stateCommandSketch = function (name) {
         return function () {
-          return Buttons.forToolbarStateCommand(editor, name);
+          return forToolbarStateCommand(editor, name);
         };
       };
       var actionSketch = function (name, query, action) {
         return function () {
-          return Buttons.forToolbarStateAction(editor, name, query, action);
+          return forToolbarStateAction(editor, name, query, action);
         };
       };
       var undo = commandSketch('undo');
@@ -9635,28 +9468,28 @@
         return sketch$3(realm, editor);
       };
       var forecolor = function () {
-        return ColorSlider.sketch(realm, editor);
+        return sketch$1(realm, editor);
       };
-      var styleFormats = StyleFormats.register(editor, editor.settings);
+      var styleFormats = register$1(editor, editor.settings);
       var styleFormatsMenu = function () {
-        return StyleFormats.ui(editor, styleFormats, function () {
+        return ui(editor, styleFormats, function () {
           editor.fire('scrollIntoView');
         });
       };
       var styleselect = function () {
-        return Buttons.forToolbar('style-formats', function (button) {
+        return forToolbar('style-formats', function (button) {
           editor.fire('toReading');
           realm.dropup().appear(styleFormatsMenu, Toggling.on, button);
         }, derive$1([
           Toggling.config({
-            toggleClass: Styles.resolve('toolbar-button-selected'),
+            toggleClass: resolve('toolbar-button-selected'),
             toggleOnExecute: false,
             aria: { mode: 'pressed' }
           }),
           Receiving.config({
             channels: wrapAll$1([
-              Receivers.receive(TinyChannels.orientationChanged(), Toggling.off),
-              Receivers.receive(TinyChannels.dropupDismissed(), Toggling.off)
+              receive$1(orientationChanged, Toggling.off),
+              receive$1(dropupDismissed, Toggling.off)
             ])
           })
         ]), editor);
@@ -9666,7 +9499,7 @@
           isSupported: function () {
             var buttons = editor.ui.registry.getAll().buttons;
             return prereq.forall(function (p) {
-              return hasKey$1(buttons, p);
+              return hasNonNullableKey(buttons, p);
             });
           },
           sketch: sketch
@@ -9693,15 +9526,10 @@
       var itemNames = identify(settings);
       var present = {};
       return bind(itemNames, function (iName) {
-        var r = !hasKey$1(present, iName) && hasKey$1(features, iName) && features[iName].isSupported() ? [features[iName].sketch()] : [];
+        var r = !hasNonNullableKey(present, iName) && hasNonNullableKey(features, iName) && features[iName].isSupported() ? [features[iName].sketch()] : [];
         present[iName] = true;
         return r;
       });
-    };
-    var Features = {
-      identify: identify,
-      setup: setup,
-      detect: detect$4
     };
 
     var mkEvent = function (target, x, y, stop, prevent, kill, raw) {
@@ -9718,20 +9546,19 @@
     var fromRawEvent = function (rawEvent) {
       var target = Element.fromDom(rawEvent.target);
       var stop = function () {
-        rawEvent.stopPropagation();
+        return rawEvent.stopPropagation();
       };
       var prevent = function () {
-        rawEvent.preventDefault();
+        return rawEvent.preventDefault();
       };
       var kill = compose(prevent, stop);
       return mkEvent(target, rawEvent.clientX, rawEvent.clientY, stop, prevent, kill, rawEvent);
     };
     var handle = function (filter, handler) {
       return function (rawEvent) {
-        if (!filter(rawEvent)) {
-          return;
+        if (filter(rawEvent)) {
+          handler(fromRawEvent(rawEvent));
         }
-        handler(fromRawEvent(rawEvent));
       };
     };
     var binder = function (element, event, filter, handler, useCapture) {
@@ -9749,25 +9576,25 @@
       element.dom().removeEventListener(event, handler, useCapture);
     };
 
-    var filter$1 = constant(true);
+    var filter$2 = constant(true);
     var bind$3 = function (element, event, handler) {
-      return bind$2(element, event, filter$1, handler);
+      return bind$2(element, event, filter$2, handler);
     };
     var capture$1 = function (element, event, handler) {
-      return capture(element, event, filter$1, handler);
+      return capture(element, event, filter$2, handler);
     };
 
     var global$4 = tinymce.util.Tools.resolve('tinymce.util.Delay');
 
     var INTERVAL = 50;
     var INSURANCE = 1000 / INTERVAL;
-    var get$a = function (outerWindow) {
+    var get$b = function (outerWindow) {
       var isPortrait = outerWindow.matchMedia('(orientation: portrait)').matches;
       return { isPortrait: constant(isPortrait) };
     };
     var getActualWidth = function (outerWindow) {
       var isIos = detect$3().os.isiOS();
-      var isPortrait = get$a(outerWindow).isPortrait();
+      var isPortrait = get$b(outerWindow).isPortrait();
       return isIos && !isPortrait ? outerWindow.screen.height : outerWindow.screen.width;
     };
     var onChange = function (outerWindow, listeners) {
@@ -9775,7 +9602,7 @@
       var poller = null;
       var change = function () {
         global$4.clearInterval(poller);
-        var orientation = get$a(outerWindow);
+        var orientation = get$b(outerWindow);
         listeners.onChange(orientation);
         onAdjustment(function () {
           listeners.onReady(orientation);
@@ -9804,11 +9631,6 @@
         onAdjustment: onAdjustment,
         destroy: destroy
       };
-    };
-    var Orientation = {
-      get: get$a,
-      onChange: onChange,
-      getActualWidth: getActualWidth
     };
 
     function DelayedFunction (fun, delay) {
@@ -9845,8 +9667,8 @@
       return Option.some(raw.touches[0]);
     };
     var isFarEnough = function (touch, data) {
-      var distX = Math.abs(touch.clientX - data.x());
-      var distY = Math.abs(touch.clientY - data.y());
+      var distX = Math.abs(touch.clientX - data.x);
+      var distY = Math.abs(touch.clientY - data.y);
       return distX > SIGNIFICANT_MOVE || distY > SIGNIFICANT_MOVE;
     };
     var monitor = function (settings) {
@@ -9860,9 +9682,9 @@
         getTouch(event).each(function (touch) {
           longpress$1.cancel();
           var data = {
-            x: constant(touch.clientX),
-            y: constant(touch.clientY),
-            target: event.target
+            x: touch.clientX,
+            y: touch.clientY,
+            target: event.target()
           };
           longpress$1.schedule(event);
           longpressFired.set(false);
@@ -9884,9 +9706,9 @@
       var handleTouchend = function (event) {
         longpress$1.cancel();
         var isSame = function (data) {
-          return eq(data.target(), event.target());
+          return eq(data.target, event.target());
         };
-        return startData.get().filter(isSame).map(function (data) {
+        return startData.get().filter(isSame).map(function (_data) {
           if (longpressFired.get()) {
             event.prevent();
             return false;
@@ -9910,7 +9732,7 @@
         }
       ]);
       var fireIfReady = function (event, type) {
-        return readOptFrom$1(handlers, type).bind(function (handler) {
+        return get(handlers, type).bind(function (handler) {
           return handler(event);
         });
       };
@@ -9942,11 +9764,10 @@
         onTouchmove: onTouchmove
       };
     };
-    var TappingEvent = { monitor: monitor$1 };
 
     var isAndroid6 = detect$3().os.version.major >= 6;
     var initEvents = function (editorApi, toolstrip, alloy) {
-      var tapping = TappingEvent.monitor(editorApi);
+      var tapping = monitor$1(editorApi);
       var outerDoc = owner(toolstrip);
       var isRanged = function (sel) {
         return !eq(sel.start(), sel.finish()) || sel.soffset() !== sel.foffset();
@@ -9969,7 +9790,7 @@
         }),
         tapping.onTouchmove(),
         tapping.onTouchend(),
-        bind$3(toolstrip, 'touchstart', function (evt) {
+        bind$3(toolstrip, 'touchstart', function (_evt) {
           editorApi.onTouchToolstrip();
         }),
         editorApi.onToReading(function () {
@@ -10001,13 +9822,11 @@
       };
       return { destroy: destroy };
     };
-    var AndroidEvents = { initEvents: initEvents };
 
     var safeParse = function (element, attribute) {
-      var parsed = parseInt(get(element, attribute), 10);
+      var parsed = parseInt(get$1(element, attribute), 10);
       return isNaN(parsed) ? 0 : parsed;
     };
-    var DataAttributes = { safeParse: safeParse };
 
     function NodeValue (is, name) {
       var get = function (element) {
@@ -10033,9 +9852,6 @@
     }
 
     var api$3 = NodeValue(isText, 'text');
-    var get$b = function (element) {
-      return api$3.get(element);
-    };
     var getOption = function (element) {
       return api$3.getOption(element);
     };
@@ -10047,22 +9863,15 @@
         return v.length;
       });
     };
-    var NBSP = '\xA0';
-    var isTextNodeWithCursorPosition = function (el) {
-      return getOption(el).filter(function (text) {
-        return text.trim().length !== 0 || text.indexOf(NBSP) > -1;
-      }).isSome();
-    };
-    var elementsWithCursorPosition = [
-      'img',
-      'br'
-    ];
-    var isCursorPosition = function (elem) {
-      var hasCursorPosition = isTextNodeWithCursorPosition(elem);
-      return hasCursorPosition || contains(elementsWithCursorPosition, name(elem));
-    };
 
-    var create$3 = Immutable('start', 'soffset', 'finish', 'foffset');
+    var create$3 = function (start, soffset, finish, foffset) {
+      return {
+        start: constant(start),
+        soffset: constant(soffset),
+        finish: constant(finish),
+        foffset: constant(foffset)
+      };
+    };
     var SimRange = { create: create$3 };
 
     var adt$4 = Adt.generate([
@@ -10117,10 +9926,10 @@
         domRange: function (rng) {
           return Element.fromDom(rng.startContainer);
         },
-        relative: function (startSitu, finishSitu) {
+        relative: function (startSitu, _finishSitu) {
           return Situ.getStart(startSitu);
         },
-        exact: function (start, soffset, finish, foffset) {
+        exact: function (start, _soffset, _finish, _foffset) {
           return start;
         }
       });
@@ -10275,164 +10084,8 @@
         }
       });
     };
-
-    var searchForPoint = function (rectForOffset, x, y, maxX, length) {
-      if (length === 0) {
-        return 0;
-      } else if (x === maxX) {
-        return length - 1;
-      }
-      var xDelta = maxX;
-      for (var i = 1; i < length; i++) {
-        var rect = rectForOffset(i);
-        var curDeltaX = Math.abs(x - rect.left);
-        if (y <= rect.bottom) {
-          if (y < rect.top || curDeltaX > xDelta) {
-            return i - 1;
-          } else {
-            xDelta = curDeltaX;
-          }
-        }
-      }
-      return 0;
-    };
-    var inRect = function (rect, x, y) {
-      return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
-    };
-
-    var locateOffset = function (doc, textnode, x, y, rect) {
-      var rangeForOffset = function (o) {
-        var r = doc.dom().createRange();
-        r.setStart(textnode.dom(), o);
-        r.collapse(true);
-        return r;
-      };
-      var rectForOffset = function (o) {
-        var r = rangeForOffset(o);
-        return r.getBoundingClientRect();
-      };
-      var length = get$b(textnode).length;
-      var offset = searchForPoint(rectForOffset, x, y, rect.right, length);
-      return rangeForOffset(offset);
-    };
-    var locate$1 = function (doc, node, x, y) {
-      var r = doc.dom().createRange();
-      r.selectNode(node.dom());
-      var rects = r.getClientRects();
-      var foundRect = findMap(rects, function (rect) {
-        return inRect(rect, x, y) ? Option.some(rect) : Option.none();
-      });
-      return foundRect.map(function (rect) {
-        return locateOffset(doc, node, x, y, rect);
-      });
-    };
-
-    var searchInChildren = function (doc, node, x, y) {
-      var r = doc.dom().createRange();
-      var nodes = children(node);
-      return findMap(nodes, function (n) {
-        r.selectNode(n.dom());
-        return inRect(r.getBoundingClientRect(), x, y) ? locateNode(doc, n, x, y) : Option.none();
-      });
-    };
-    var locateNode = function (doc, node, x, y) {
-      return isText(node) ? locate$1(doc, node, x, y) : searchInChildren(doc, node, x, y);
-    };
-    var locate$2 = function (doc, node, x, y) {
-      var r = doc.dom().createRange();
-      r.selectNode(node.dom());
-      var rect = r.getBoundingClientRect();
-      var boundedX = Math.max(rect.left, Math.min(rect.right, x));
-      var boundedY = Math.max(rect.top, Math.min(rect.bottom, y));
-      return locateNode(doc, node, boundedX, boundedY);
-    };
-
-    var first$1 = function (element) {
-      return descendant(element, isCursorPosition);
-    };
-    var last = function (element) {
-      return descendantRtl(element, isCursorPosition);
-    };
-    var descendantRtl = function (scope, predicate) {
-      var descend = function (element) {
-        var children$1 = children(element);
-        for (var i = children$1.length - 1; i >= 0; i--) {
-          var child = children$1[i];
-          if (predicate(child)) {
-            return Option.some(child);
-          }
-          var res = descend(child);
-          if (res.isSome()) {
-            return res;
-          }
-        }
-        return Option.none();
-      };
-      return descend(scope);
-    };
-
-    var COLLAPSE_TO_LEFT = true;
-    var COLLAPSE_TO_RIGHT = false;
-    var getCollapseDirection = function (rect, x) {
-      return x - rect.left < rect.right - x ? COLLAPSE_TO_LEFT : COLLAPSE_TO_RIGHT;
-    };
-    var createCollapsedNode = function (doc, target, collapseDirection) {
-      var r = doc.dom().createRange();
-      r.selectNode(target.dom());
-      r.collapse(collapseDirection);
-      return r;
-    };
-    var locateInElement = function (doc, node, x) {
-      var cursorRange = doc.dom().createRange();
-      cursorRange.selectNode(node.dom());
-      var rect = cursorRange.getBoundingClientRect();
-      var collapseDirection = getCollapseDirection(rect, x);
-      var f = collapseDirection === COLLAPSE_TO_LEFT ? first$1 : last;
-      return f(node).map(function (target) {
-        return createCollapsedNode(doc, target, collapseDirection);
-      });
-    };
-    var locateInEmpty = function (doc, node, x) {
-      var rect = node.dom().getBoundingClientRect();
-      var collapseDirection = getCollapseDirection(rect, x);
-      return Option.some(createCollapsedNode(doc, node, collapseDirection));
-    };
-    var search$1 = function (doc, node, x) {
-      var f = children(node).length === 0 ? locateInEmpty : locateInElement;
-      return f(doc, node, x);
-    };
-
-    var caretPositionFromPoint = function (doc, x, y) {
-      return Option.from(doc.dom().caretPositionFromPoint(x, y)).bind(function (pos) {
-        if (pos.offsetNode === null) {
-          return Option.none();
-        }
-        var r = doc.dom().createRange();
-        r.setStart(pos.offsetNode, pos.offset);
-        r.collapse();
-        return Option.some(r);
-      });
-    };
-    var caretRangeFromPoint = function (doc, x, y) {
-      return Option.from(doc.dom().caretRangeFromPoint(x, y));
-    };
-    var searchTextNodes = function (doc, node, x, y) {
-      var r = doc.dom().createRange();
-      r.selectNode(node.dom());
-      var rect = r.getBoundingClientRect();
-      var boundedX = Math.max(rect.left, Math.min(rect.right, x));
-      var boundedY = Math.max(rect.top, Math.min(rect.bottom, y));
-      return locate$2(doc, node, boundedX, boundedY);
-    };
-    var searchFromPoint = function (doc, x, y) {
-      return Element.fromPoint(doc, x, y).bind(function (elem) {
-        var fallback = function () {
-          return search$1(doc, elem, x);
-        };
-        return children(elem).length === 0 ? fallback() : searchTextNodes(doc, elem, x, y).orThunk(fallback);
-      });
-    };
-    var availableSearch = document.caretPositionFromPoint ? caretPositionFromPoint : document.caretRangeFromPoint ? caretRangeFromPoint : searchFromPoint;
+    var ltr = adt$6.ltr;
+    var rtl = adt$6.rtl;
 
     var beforeSpecial = function (element, offset) {
       var name$1 = name(element);
@@ -10575,7 +10228,6 @@
       var sel = cWin.getSelection();
       return sel !== undefined && sel.rangeCount > 0 ? getRectsFromRange(sel.getRangeAt(0)) : [];
     };
-    var Rectangles = { getRectangles: getRectangles };
 
     var autocompleteHack = function () {
       return function (f) {
@@ -10599,15 +10251,14 @@
         focus$1(iBody);
       });
     };
-    var ResumeEditing = { resume: resume };
 
     var EXTRA_SPACING = 50;
-    var data = 'data-' + Styles.resolve('last-outer-height');
+    var data = 'data-' + resolve('last-outer-height');
     var setLastHeight = function (cBody, value) {
       set(cBody, data, value);
     };
     var getLastHeight = function (cBody) {
-      return DataAttributes.safeParse(cBody, data);
+      return safeParse(cBody, data);
     };
     var getBoundsFrom = function (rect) {
       return {
@@ -10616,7 +10267,7 @@
       };
     };
     var getBounds$1 = function (cWin) {
-      var rects = Rectangles.getRectangles(cWin);
+      var rects = getRectangles(cWin);
       return rects.length > 0 ? Option.some(rects[0]).map(getBoundsFrom) : Option.none();
     };
     var findDelta = function (outerWindow, cBody) {
@@ -10631,7 +10282,7 @@
     var setup$1 = function (outerWindow, cWin) {
       var cBody = Element.fromDom(cWin.document.body);
       var toEditing = function () {
-        ResumeEditing.resume(cWin);
+        resume(cWin);
       };
       var onResize = bind$3(Element.fromDom(outerWindow), 'resize', function () {
         findDelta(outerWindow, cBody).each(function (delta) {
@@ -10653,7 +10304,6 @@
         destroy: destroy
       };
     };
-    var AndroidSetup = { setup: setup$1 };
 
     var getBodyFromFrame = function (frame) {
       return Option.some(Element.fromDom(frame.dom().contentWindow.document.body));
@@ -10760,14 +10410,7 @@
         });
       });
     };
-    var PlatformEditor = {
-      getBody: getOrDerive('getBody', getBodyFromFrame),
-      getDoc: getOrDerive('getDoc', getDocFromFrame),
-      getWin: getOrDerive('getWin', getWinFromFrame),
-      getSelection: getOrDerive('getSelection', getSelectionFromFrame),
-      getFrame: getFrame,
-      getActiveApi: getActiveApi
-    };
+    var getWin$1 = getOrDerive('getWin', getWinFromFrame);
 
     var attr = 'data-ephox-mobile-fullscreen-style';
     var siblingStyles = 'display:none!important;';
@@ -10776,17 +10419,16 @@
     var bgFallback = 'background-color:rgb(255,255,255)!important;';
     var isAndroid = detect$3().os.isAndroid();
     var matchColor = function (editorBody) {
-      var color = get$3(editorBody, 'background-color');
+      var color = get$4(editorBody, 'background-color');
       return color !== undefined && color !== '' ? 'background-color:' + color + '!important' : bgFallback;
     };
     var clobberStyles = function (container, editorBody) {
       var gatherSibilings = function (element) {
-        var siblings = siblings$2(element, '*');
-        return siblings;
+        return siblings$2(element, '*');
       };
       var clobber = function (clobberStyle) {
         return function (element) {
-          var styles = get(element, 'style');
+          var styles = get$1(element, 'style');
           var backup = styles === undefined ? 'no-styles' : styles.trim();
           if (backup === clobberStyle) {
             return;
@@ -10807,7 +10449,7 @@
     var restoreStyles = function () {
       var clobberedEls = all$2('[' + attr + ']');
       each$1(clobberedEls, function (element) {
-        var restore = get(element, attr);
+        var restore = get$1(element, attr);
         if (restore !== 'no-styles') {
           set(element, 'style', restore);
         } else {
@@ -10815,10 +10457,6 @@
         }
         remove$1(element, attr);
       });
-    };
-    var Thor = {
-      clobberStyles: clobberStyles,
-      restoreStyles: restoreStyles
     };
 
     var tag = function () {
@@ -10830,7 +10468,7 @@
         return meta;
       };
       var element = first('meta[name="viewport"]').getOrThunk(nu);
-      var backup = get(element, 'content');
+      var backup = get$1(element, 'content');
       var maximize = function () {
         set(element, 'content', 'width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0');
       };
@@ -10846,31 +10484,30 @@
         restore: restore
       };
     };
-    var MetaViewport = { tag: tag };
 
     var create$4 = function (platform, mask) {
-      var meta = MetaViewport.tag();
+      var meta = tag();
       var androidApi = api$2();
       var androidEvents = api$2();
       var enter = function () {
         mask.hide();
-        add$2(platform.container, Styles.resolve('fullscreen-maximized'));
-        add$2(platform.container, Styles.resolve('android-maximized'));
+        add$2(platform.container, resolve('fullscreen-maximized'));
+        add$2(platform.container, resolve('android-maximized'));
         meta.maximize();
-        add$2(platform.body, Styles.resolve('android-scroll-reload'));
-        androidApi.set(AndroidSetup.setup(platform.win, PlatformEditor.getWin(platform.editor).getOrDie('no')));
-        PlatformEditor.getActiveApi(platform.editor).each(function (editorApi) {
-          Thor.clobberStyles(platform.container, editorApi.body());
-          androidEvents.set(AndroidEvents.initEvents(editorApi, platform.toolstrip, platform.alloy));
+        add$2(platform.body, resolve('android-scroll-reload'));
+        androidApi.set(setup$1(platform.win, getWin$1(platform.editor).getOrDie('no')));
+        getActiveApi(platform.editor).each(function (editorApi) {
+          clobberStyles(platform.container, editorApi.body());
+          androidEvents.set(initEvents(editorApi, platform.toolstrip, platform.alloy));
         });
       };
       var exit = function () {
         meta.restore();
         mask.show();
-        remove$4(platform.container, Styles.resolve('fullscreen-maximized'));
-        remove$4(platform.container, Styles.resolve('android-maximized'));
-        Thor.restoreStyles();
-        remove$4(platform.body, Styles.resolve('android-scroll-reload'));
+        remove$4(platform.container, resolve('fullscreen-maximized'));
+        remove$4(platform.container, resolve('android-maximized'));
+        restoreStyles();
+        remove$4(platform.body, resolve('android-scroll-reload'));
         androidEvents.clear();
         androidApi.clear();
       };
@@ -10879,9 +10516,8 @@
         exit: exit
       };
     };
-    var AndroidMode = { create: create$4 };
 
-    var first$2 = function (fn, rate) {
+    var first$1 = function (fn, rate) {
       var timer = null;
       var cancel = function () {
         if (timer !== null) {
@@ -10906,7 +10542,7 @@
         throttle: throttle
       };
     };
-    var last$1 = function (fn, rate) {
+    var last = function (fn, rate) {
       var timer = null;
       var cancel = function () {
         if (timer !== null) {
@@ -10933,15 +10569,15 @@
       };
     };
 
-    var sketch$9 = function (onView, translate) {
+    var sketch$9 = function (onView, _translate) {
       var memIcon = record(Container.sketch({
         dom: dom$1('<div aria-hidden="true" class="${prefix}-mask-tap-icon"></div>'),
         containerBehaviours: derive$1([Toggling.config({
-            toggleClass: Styles.resolve('mask-tap-icon-selected'),
+            toggleClass: resolve('mask-tap-icon-selected'),
             toggleOnExecute: false
           })])
       }));
-      var onViewThrottle = first$2(onView, 200);
+      var onViewThrottle = first$1(onView, 200);
       return Container.sketch({
         dom: dom$1('<div class="${prefix}-disabled-mask"></div>'),
         components: [Container.sketch({
@@ -10949,15 +10585,14 @@
             components: [Button.sketch({
                 dom: dom$1('<div class="${prefix}-content-tap-section"></div>'),
                 components: [memIcon.asSpec()],
-                action: function (button) {
+                action: function (_button) {
                   onViewThrottle.throttle();
                 },
-                buttonBehaviours: derive$1([Toggling.config({ toggleClass: Styles.resolve('mask-tap-icon-selected') })])
+                buttonBehaviours: derive$1([Toggling.config({ toggleClass: resolve('mask-tap-icon-selected') })])
               })]
           })]
       });
     };
-    var TapToEditMask = { sketch: sketch$9 };
 
     var MobileSchema = objOf([
       strictObjOf('editor', [
@@ -11006,7 +10641,7 @@
         mobile.setReadOnly(mobile.readOnlyOnInit());
         mode.enter();
       };
-      var mask = build$1(TapToEditMask.sketch(onTap, mobile.translate));
+      var mask = build$1(sketch$9(onTap, mobile.translate));
       mobile.alloy.add(mask);
       var maskApi = {
         show: function () {
@@ -11017,7 +10652,7 @@
         }
       };
       append(mobile.container, mask.element());
-      var mode = AndroidMode.create(mobile, maskApi);
+      var mode = create$4(mobile, maskApi);
       return {
         setReadOnly: mobile.setReadOnly,
         refreshStructure: noop,
@@ -11026,14 +10661,13 @@
         destroy: noop
       };
     };
-    var AndroidWebapp = { produce: produce };
 
     var schema$e = constant([
       strict$1('dom'),
       defaulted$1('shell', true),
       field$1('toolbarBehaviours', [Replacing])
     ]);
-    var enhanceGroups = function (detail) {
+    var enhanceGroups = function () {
       return { behaviours: derive$1([Replacing.config({})]) };
     };
     var parts$2 = constant([optional({
@@ -11041,7 +10675,7 @@
         overrides: enhanceGroups
       })]);
 
-    var factory$4 = function (detail, components, spec, _externals) {
+    var factory$4 = function (detail, components, _spec, _externals) {
       var setGroups = function (toolbar, groups) {
         getGroupContainer(toolbar).fold(function () {
           domGlobals.console.error('Toolbar was defined to not be a shell, but no groups container was specified in components');
@@ -11091,7 +10725,7 @@
         unit: 'item'
       })]);
 
-    var factory$5 = function (detail, components, spec, _externals) {
+    var factory$5 = function (detail, components, _spec, _externals) {
       return {
         uid: detail.uid,
         dom: detail.dom,
@@ -11110,7 +10744,7 @@
       factory: factory$5
     });
 
-    var dataHorizontal = 'data-' + Styles.resolve('horizontal-scroll');
+    var dataHorizontal = 'data-' + resolve('horizontal-scroll');
     var canScrollVertically = function (container) {
       container.dom().scrollTop = 1;
       var result = container.dom().scrollTop !== 0;
@@ -11133,7 +10767,7 @@
       set(container, dataHorizontal, 'true');
     };
     var hasScroll = function (container) {
-      return get(container, dataHorizontal) === 'true' ? hasHorizontalScroll(container) : hasVerticalScroll(container);
+      return get$1(container, dataHorizontal) === 'true' ? hasHorizontalScroll(container) : hasVerticalScroll(container);
     };
     var exclusive = function (scope, selector) {
       return bind$3(scope, 'touchmove', function (event) {
@@ -11142,23 +10776,19 @@
         }, noop);
       });
     };
-    var Scrollables = {
-      exclusive: exclusive,
-      markAsHorizontal: markAsHorizontal
-    };
 
     function ScrollingToolbar () {
       var makeGroup = function (gSpec) {
         var scrollClass = gSpec.scrollable === true ? '${prefix}-toolbar-scrollable-group' : '';
         return {
           dom: dom$1('<div aria-label="' + gSpec.label + '" class="${prefix}-toolbar-group ' + scrollClass + '"></div>'),
-          tgroupBehaviours: derive$1([config('adhoc-scrollable-toolbar', gSpec.scrollable === true ? [runOnInit(function (component, simulatedEvent) {
+          tgroupBehaviours: derive$1([config('adhoc-scrollable-toolbar', gSpec.scrollable === true ? [runOnInit(function (component, _simulatedEvent) {
                 set$3(component.element(), 'overflow-x', 'auto');
-                Scrollables.markAsHorizontal(component.element());
-                Scrollable.register(component.element());
+                markAsHorizontal(component.element());
+                register(component.element());
               })] : [])]),
           components: [Container.sketch({ components: [ToolbarGroup.parts().items({})] })],
-          markers: { itemSelector: '.' + Styles.resolve('toolbar-group-item') },
+          markers: { itemSelector: '.' + resolve('toolbar-group-item') },
           items: gSpec.items
         };
       };
@@ -11167,7 +10797,7 @@
         components: [Toolbar.parts().groups({})],
         toolbarBehaviours: derive$1([
           Toggling.config({
-            toggleClass: Styles.resolve('context-toolbar'),
+            toggleClass: resolve('context-toolbar'),
             toggleOnExecute: false,
             aria: { mode: 'none' }
           }),
@@ -11176,10 +10806,10 @@
         shell: true
       }));
       var wrapper = build$1(Container.sketch({
-        dom: { classes: [Styles.resolve('toolstrip')] },
+        dom: { classes: [resolve('toolstrip')] },
         components: [premade$1(toolbar)],
         containerBehaviours: derive$1([Toggling.config({
-            toggleClass: Styles.resolve('android-selection-context-toolbar'),
+            toggleClass: resolve('android-selection-context-toolbar'),
             toggleOnExecute: false
           })])
       }));
@@ -11249,11 +10879,6 @@
       swap(root);
       var f = readOnly ? showEdit : hideEdit;
       f(socket, switchToEdit);
-    };
-    var CommonRealm = {
-      makeEditSwitch: makeEditSwitch,
-      makeSocket: makeSocket,
-      updateMode: updateMode
     };
 
     var getAnimationRoot = function (component, slideConfig) {
@@ -11356,7 +10981,7 @@
     };
     var immediateShrink = function (component, slideConfig, slideState) {
       if (slideState.isExpanded()) {
-        doImmediateShrink(component, slideConfig, slideState);
+        doImmediateShrink(component, slideConfig, slideState, Option.none());
       }
     };
     var hasGrown = function (component, slideConfig, slideState) {
@@ -11365,11 +10990,11 @@
     var hasShrunk = function (component, slideConfig, slideState) {
       return slideState.isCollapsed();
     };
-    var isGrowing = function (component, slideConfig, slideState) {
+    var isGrowing = function (component, slideConfig, _slideState) {
       var root = getAnimationRoot(component, slideConfig);
       return has$2(root, slideConfig.growingClass) === true;
     };
-    var isShrinking = function (component, slideConfig, slideState) {
+    var isShrinking = function (component, slideConfig, _slideState) {
       var root = getAnimationRoot(component, slideConfig);
       return has$2(root, slideConfig.shrinkingClass) === true;
     };
@@ -11382,6 +11007,7 @@
     };
 
     var SlidingApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         refresh: refresh,
         grow: grow,
         shrink: shrink,
@@ -11395,7 +11021,7 @@
         disableTransitions: disableTransitions
     });
 
-    var exhibit$5 = function (base, slideConfig) {
+    var exhibit$5 = function (base, slideConfig, _slideState) {
       var expanded = slideConfig.expanded;
       return expanded ? nu$5({
         classes: [slideConfig.openClass],
@@ -11420,6 +11046,7 @@
     };
 
     var ActiveSliding = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         exhibit: exhibit$5,
         events: events$a
     });
@@ -11439,13 +11066,13 @@
         width: [
           output('property', 'width'),
           output('getDimension', function (elem) {
-            return get$6(elem) + 'px';
+            return get$7(elem) + 'px';
           })
         ],
         height: [
           output('property', 'height'),
           output('getDimension', function (elem) {
-            return get$4(elem) + 'px';
+            return get$5(elem) + 'px';
           })
         ]
       }))
@@ -11470,6 +11097,7 @@
     };
 
     var SlidingState = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         init: init$4
     });
 
@@ -11485,28 +11113,28 @@
       var dropup = build$1(Container.sketch({
         dom: {
           tag: 'div',
-          classes: [Styles.resolve('dropup')]
+          classes: [resolve('dropup')]
         },
         components: [],
         containerBehaviours: derive$1([
           Replacing.config({}),
           Sliding.config({
-            closedClass: Styles.resolve('dropup-closed'),
-            openClass: Styles.resolve('dropup-open'),
-            shrinkingClass: Styles.resolve('dropup-shrinking'),
-            growingClass: Styles.resolve('dropup-growing'),
+            closedClass: resolve('dropup-closed'),
+            openClass: resolve('dropup-open'),
+            shrinkingClass: resolve('dropup-shrinking'),
+            growingClass: resolve('dropup-growing'),
             dimension: { property: 'height' },
             onShrunk: function (component) {
               refresh();
               scrollIntoView();
               Replacing.set(component, []);
             },
-            onGrown: function (component) {
+            onGrown: function (_component) {
               refresh();
               scrollIntoView();
             }
           }),
-          Receivers.orientation(function (component, data) {
+          orientation(function (_component, _data) {
             disappear(noop);
           })
         ])
@@ -11545,20 +11173,22 @@
         'textarea'
       ], name(event.target())) && !closest$3(event.target(), '[contenteditable="true"]');
     };
-    var isFirefox = detect$3().browser.isFirefox();
+    var isFirefox = function () {
+      return detect$3().browser.isFirefox();
+    };
     var settingsSchema = objOfOnly([
       strictFunction('triggerEvent'),
       defaulted$1('stopBackspace', true)
     ]);
     var bindFocus = function (container, handler) {
-      if (isFirefox) {
+      if (isFirefox()) {
         return capture$1(container, 'focus', handler);
       } else {
         return bind$3(container, 'focusin', handler);
       }
     };
     var bindBlur = function (container, handler) {
-      if (isFirefox) {
+      if (isFirefox()) {
         return capture$1(container, 'blur', handler);
       } else {
         return bind$3(container, 'focusout', handler);
@@ -11566,12 +11196,12 @@
     };
     var setup$2 = function (container, rawSettings) {
       var settings = asRawOrDie('Getting GUI events settings', settingsSchema, rawSettings);
-      var pointerEvents = detect$3().deviceType.isTouch() ? [
+      var pointerEvents = [
         'touchstart',
         'touchmove',
         'touchend',
-        'gesturestart'
-      ] : [
+        'touchcancel',
+        'gesturestart',
         'mousedown',
         'mouseup',
         'mouseover',
@@ -11661,7 +11291,7 @@
     };
 
     var derive$2 = function (rawEvent, rawTarget) {
-      var source = readOptFrom$1(rawEvent, 'target').map(function (getTarget) {
+      var source = get(rawEvent, 'target').map(function (getTarget) {
         return getTarget();
       }).getOr(rawTarget);
       return Cell(source);
@@ -11714,21 +11344,21 @@
         logger.logEventNoHandlers(eventType, target);
         return adt$7.complete();
       }, function (handlerInfo) {
-        var descHandler = handlerInfo.descHandler();
+        var descHandler = handlerInfo.descHandler;
         var eventHandler = getCurried(descHandler);
         eventHandler(simulatedEvent);
         if (simulatedEvent.isStopped()) {
-          logger.logEventStopped(eventType, handlerInfo.element(), descHandler.purpose());
+          logger.logEventStopped(eventType, handlerInfo.element, descHandler.purpose());
           return adt$7.stopped();
         } else if (simulatedEvent.isCut()) {
-          logger.logEventCut(eventType, handlerInfo.element(), descHandler.purpose());
+          logger.logEventCut(eventType, handlerInfo.element, descHandler.purpose());
           return adt$7.complete();
         } else {
-          return parent(handlerInfo.element()).fold(function () {
-            logger.logNoParent(eventType, handlerInfo.element(), descHandler.purpose());
+          return parent(handlerInfo.element).fold(function () {
+            logger.logNoParent(eventType, handlerInfo.element, descHandler.purpose());
             return adt$7.complete();
           }, function (parent) {
-            logger.logEventResponse(eventType, handlerInfo.element(), descHandler.purpose());
+            logger.logEventResponse(eventType, handlerInfo.element, descHandler.purpose());
             return adt$7.resume(parent);
           });
         }
@@ -11747,7 +11377,7 @@
       var source = derive$2(rawEvent, target);
       return doTriggerHandler(lookup, eventType, rawEvent, target, source, logger);
     };
-    var broadcast = function (listeners, rawEvent, logger) {
+    var broadcast = function (listeners, rawEvent, _logger) {
       var simulatedEvent = fromExternal(rawEvent);
       each$1(listeners, function (listener) {
         var descHandler = listener.descHandler();
@@ -11765,7 +11395,12 @@
       return doTriggerOnUntilStopped(lookup, eventType, rawEvent, rawTarget, source, logger);
     };
 
-    var eventHandler = Immutable('element', 'descHandler');
+    var eventHandler = function (element, descHandler) {
+      return {
+        element: element,
+        descHandler: descHandler
+      };
+    };
     var broadcastHandler = function (id, handler) {
       return {
         id: constant(id),
@@ -11785,28 +11420,28 @@
         return read$2(elem).fold(function () {
           return Option.none();
         }, function (id) {
-          var reader = readOpt$1(id);
-          return handlers.bind(reader).map(function (descHandler) {
+          return handlers.bind(function (h) {
+            return get(h, id);
+          }).map(function (descHandler) {
             return eventHandler(elem, descHandler);
           });
         });
       };
       var filterByType = function (type) {
-        return readOptFrom$1(registry, type).map(function (handlers) {
+        return get(registry, type).map(function (handlers) {
           return mapToArray(handlers, function (f, id) {
             return broadcastHandler(id, f);
           });
         }).getOr([]);
       };
       var find = function (isAboveRoot, type, target) {
-        var readType = readOpt$1(type);
-        var handlers = readType(registry);
-        return closest$1(target, function (elem) {
+        var handlers = get(registry, type);
+        return closest(target, function (elem) {
           return findHandler(handlers, elem);
         }, isAboveRoot);
       };
       var unregisterId = function (id) {
-        each(registry, function (handlersById, eventName) {
+        each(registry, function (handlersById, _eventName) {
           if (handlersById.hasOwnProperty(id)) {
             delete handlersById[id];
           }
@@ -11841,7 +11476,7 @@
       };
       var register = function (component) {
         var tagId = readOrTag(component);
-        if (hasKey$1(components, tagId)) {
+        if (hasNonNullableKey(components, tagId)) {
           failOnDuplicate(component, tagId);
         }
         var extraArgs = [component];
@@ -11861,7 +11496,7 @@
         return events.find(isAboveRoot, type, target);
       };
       var getById = function (id) {
-        return readOpt$1(id)(components);
+        return get(components, id);
       };
       return {
         find: find,
@@ -11895,7 +11530,7 @@
         debugInfo: constant('real'),
         triggerEvent: function (eventName, target, data) {
           monitorEvent(eventName, target, function (logger) {
-            triggerOnUntilStopped(lookup, eventName, data, target, logger);
+            return triggerOnUntilStopped(lookup, eventName, data, target, logger);
           });
         },
         triggerFocus: function (target, originator) {
@@ -11909,6 +11544,7 @@
                 prevent: noop,
                 target: constant(target)
               }, target, logger);
+              return false;
             });
           });
         },
@@ -12021,25 +11657,25 @@
       };
     };
 
-    var READ_ONLY_MODE_CLASS = constant(Styles.resolve('readonly-mode'));
-    var EDIT_MODE_CLASS = constant(Styles.resolve('edit-mode'));
+    var READ_ONLY_MODE_CLASS = resolve('readonly-mode');
+    var EDIT_MODE_CLASS = resolve('edit-mode');
     function OuterContainer (spec) {
       var root = build$1(Container.sketch({
-        dom: { classes: [Styles.resolve('outer-container')].concat(spec.classes) },
+        dom: { classes: [resolve('outer-container')].concat(spec.classes) },
         containerBehaviours: derive$1([Swapping.config({
-            alpha: READ_ONLY_MODE_CLASS(),
-            omega: EDIT_MODE_CLASS()
+            alpha: READ_ONLY_MODE_CLASS,
+            omega: EDIT_MODE_CLASS
           })])
       }));
       return takeover(root);
     }
 
     function AndroidRealm (scrollIntoView) {
-      var alloy = OuterContainer({ classes: [Styles.resolve('android-container')] });
+      var alloy = OuterContainer({ classes: [resolve('android-container')] });
       var toolbar = ScrollingToolbar();
       var webapp = api$2();
-      var switchToEdit = CommonRealm.makeEditSwitch(webapp);
-      var socket = CommonRealm.makeSocket();
+      var switchToEdit = makeEditSwitch(webapp);
+      var socket = makeSocket();
       var dropup = build$2(noop, scrollIntoView);
       alloy.add(toolbar.wrapper());
       alloy.add(socket);
@@ -12059,7 +11695,7 @@
         toolbar.restoreToolbar();
       };
       var init = function (spec) {
-        webapp.set(AndroidWebapp.produce(spec));
+        webapp.set(produce(spec));
       };
       var exit = function () {
         webapp.run(function (w) {
@@ -12067,8 +11703,8 @@
           Replacing.remove(socket, switchToEdit);
         });
       };
-      var updateMode = function (readOnly) {
-        CommonRealm.updateMode(socket, switchToEdit, readOnly, alloy.root());
+      var updateMode$1 = function (readOnly) {
+        updateMode(socket, switchToEdit, readOnly, alloy.root());
       };
       return {
         system: constant(alloy),
@@ -12079,7 +11715,7 @@
         setContextToolbar: setContextToolbar,
         focusToolbar: focusToolbar,
         restoreToolbar: restoreToolbar,
-        updateMode: updateMode,
+        updateMode: updateMode$1,
         socket: constant(socket),
         dropup: constant(dropup)
       };
@@ -12098,17 +11734,7 @@
       operation(input);
       remove(input);
     };
-    var CaptureBin = { input: input$1 };
 
-    var refreshInput = function (input) {
-      var start = input.dom().selectionStart;
-      var end = input.dom().selectionEnd;
-      var dir = input.dom().selectionDirection;
-      global$4.setTimeout(function () {
-        input.dom().setSelectionRange(start, end, dir);
-        focus$1(input);
-      }, 50);
-    };
     var refresh$1 = function (winScope) {
       var sel = winScope.getSelection();
       if (sel.rangeCount > 0) {
@@ -12120,10 +11746,6 @@
         sel.addRange(r);
       }
     };
-    var CursorRefresh = {
-      refreshInput: refreshInput,
-      refresh: refresh$1
-    };
 
     var resume$1 = function (cWin, frame) {
       active().each(function (active) {
@@ -12133,16 +11755,15 @@
       });
       cWin.focus();
       focus$1(Element.fromDom(cWin.document.body));
-      CursorRefresh.refresh(cWin);
+      refresh$1(cWin);
     };
-    var ResumeEditing$1 = { resume: resume$1 };
 
     var stubborn = function (outerBody, cWin, page, frame) {
       var toEditing = function () {
-        ResumeEditing$1.resume(cWin, frame);
+        resume$1(cWin, frame);
       };
       var toReading = function () {
-        CaptureBin.input(outerBody, blur);
+        input$1(outerBody, blur);
       };
       var captureInput = bind$3(page, 'keydown', function (evt) {
         if (!contains([
@@ -12164,32 +11785,8 @@
         destroy: destroy
       };
     };
-    var timid = function (outerBody, cWin, page, frame) {
-      var dismissKeyboard = function () {
-        blur(frame);
-      };
-      var onToolbarTouch = function () {
-        dismissKeyboard();
-      };
-      var toReading = function () {
-        dismissKeyboard();
-      };
-      var toEditing = function () {
-        ResumeEditing$1.resume(cWin, frame);
-      };
-      return {
-        toReading: toReading,
-        toEditing: toEditing,
-        onToolbarTouch: onToolbarTouch,
-        destroy: noop
-      };
-    };
-    var IosKeyboard = {
-      stubborn: stubborn,
-      timid: timid
-    };
 
-    var initEvents$1 = function (editorApi, iosApi, toolstrip, socket, dropup) {
+    var initEvents$1 = function (editorApi, iosApi, toolstrip, socket, _dropup) {
       var saveSelectionFirst = function () {
         iosApi.run(function (api) {
           api.highlightSelection();
@@ -12206,7 +11803,7 @@
           api.scrollIntoView(y, y + height);
         });
       };
-      var scrollToElement = function (target) {
+      var scrollToElement = function (_target) {
         scrollToY(iosApi, socket);
       };
       var scrollToCursor = function () {
@@ -12230,7 +11827,7 @@
         });
       };
       var reposition = function () {
-        var toolbarHeight = get$4(toolstrip);
+        var toolbarHeight = get$5(toolstrip);
         iosApi.run(function (api) {
           api.setViewportOffset(toolbarHeight);
         });
@@ -12252,8 +11849,8 @@
           api.onToolbarTouch(event);
         });
       };
-      var tapping = TappingEvent.monitor(editorApi);
-      var refreshThrottle = last$1(refreshView, 300);
+      var tapping = monitor$1(editorApi);
+      var refreshThrottle = last(refreshView, 300);
       var listeners = [
         editorApi.onKeyup(clearAndRefresh),
         editorApi.onNodeChanged(refreshIosSelection),
@@ -12302,23 +11899,22 @@
       };
       return { destroy: destroy };
     };
-    var IosEvents = { initEvents: initEvents$1 };
 
     function FakeSelection (win, frame) {
       var doc = win.document;
       var container = Element.fromTag('div');
-      add$2(container, Styles.resolve('unfocused-selections'));
+      add$2(container, resolve('unfocused-selections'));
       append(Element.fromDom(doc.documentElement), container);
       var onTouch = bind$3(container, 'touchstart', function (event) {
         event.prevent();
-        ResumeEditing$1.resume(win, frame);
+        resume$1(win, frame);
         clear();
       });
       var make = function (rectangle) {
         var span = Element.fromTag('span');
         add$3(span, [
-          Styles.resolve('layer-editor'),
-          Styles.resolve('unfocused-selection')
+          resolve('layer-editor'),
+          resolve('unfocused-selection')
         ]);
         setAll$1(span, {
           left: rectangle.left() + 'px',
@@ -12330,7 +11926,7 @@
       };
       var update = function () {
         clear();
-        var rectangles = Rectangles.getRectangles(win);
+        var rectangles = getRectangles(win);
         var spans = map$1(rectangles, make);
         append$1(container, spans);
       };
@@ -13008,10 +12604,6 @@
       };
       return { animate: animate };
     };
-    var SmoothAnimation = {
-      create: create$5,
-      adjust: adjust
-    };
 
     var findDevice = function (deviceWidth, deviceHeight) {
       var devices = [
@@ -13076,7 +12668,7 @@
       return findDevice(outerWindow.screen.width, outerWindow.screen.height);
     };
     var accountableKeyboardHeight = function (outerWindow) {
-      var portrait = Orientation.get(outerWindow).isPortrait();
+      var portrait = get$b(outerWindow).isPortrait();
       var limits = softKeyboardLimits(outerWindow);
       var keyboard = portrait ? limits.portrait : limits.landscape;
       var visualScreenHeight = portrait ? outerWindow.screen.height : outerWindow.screen.width;
@@ -13084,18 +12676,14 @@
     };
     var getGreenzone = function (socket, dropup) {
       var outerWindow = owner(socket).dom().defaultView;
-      var viewportHeight = get$4(socket) + get$4(dropup);
+      var viewportHeight = get$5(socket) + get$5(dropup);
       var acc = accountableKeyboardHeight(outerWindow);
       return viewportHeight - acc;
     };
     var updatePadding = function (contentBody, socket, dropup) {
       var greenzoneHeight = getGreenzone(socket, dropup);
-      var deltaHeight = get$4(socket) + get$4(dropup) - greenzoneHeight;
+      var deltaHeight = get$5(socket) + get$5(dropup) - greenzoneHeight;
       set$3(contentBody, 'padding-bottom', deltaHeight + 'px');
-    };
-    var DeviceZones = {
-      getGreenzone: getGreenzone,
-      updatePadding: updatePadding
     };
 
     var fixture = Adt.generate([
@@ -13113,18 +12701,18 @@
         ]
       }
     ]);
-    var yFixedData = 'data-' + Styles.resolve('position-y-fixed');
-    var yFixedProperty = 'data-' + Styles.resolve('y-property');
-    var yScrollingData = 'data-' + Styles.resolve('scrolling');
-    var windowSizeData = 'data-' + Styles.resolve('last-window-height');
+    var yFixedData = 'data-' + resolve('position-y-fixed');
+    var yFixedProperty = 'data-' + resolve('y-property');
+    var yScrollingData = 'data-' + resolve('scrolling');
+    var windowSizeData = 'data-' + resolve('last-window-height');
     var getYFixedData = function (element) {
-      return DataAttributes.safeParse(element, yFixedData);
+      return safeParse(element, yFixedData);
     };
     var getYFixedProperty = function (element) {
-      return get(element, yFixedProperty);
+      return get$1(element, yFixedProperty);
     };
     var getLastWindowSize = function (element) {
-      return DataAttributes.safeParse(element, windowSizeData);
+      return safeParse(element, windowSizeData);
     };
     var classifyFixed = function (element, offsetY) {
       var prop = getYFixedProperty(element);
@@ -13135,7 +12723,7 @@
     };
     var classify = function (element) {
       var offsetY = getYFixedData(element);
-      var classifier = get(element, yScrollingData) === 'true' ? classifyScrolling : classifyFixed;
+      var classifier = get$1(element, yScrollingData) === 'true' ? classifyScrolling : classifyFixed;
       return classifier(element, offsetY);
     };
     var findFixtures = function (container) {
@@ -13143,7 +12731,7 @@
       return map$1(candidates, classify);
     };
     var takeoverToolbar = function (toolbar) {
-      var oldToolbarStyle = get(toolbar, 'style');
+      var oldToolbarStyle = get$1(toolbar, 'style');
       setAll$1(toolbar, {
         position: 'absolute',
         top: '0px'
@@ -13158,8 +12746,8 @@
       return { restore: restore };
     };
     var takeoverViewport = function (toolbarHeight, height, viewport) {
-      var oldViewportStyle = get(viewport, 'style');
-      Scrollable.register(viewport);
+      var oldViewportStyle = get$1(viewport, 'style');
+      register(viewport);
       setAll$1(viewport, {
         position: 'absolute',
         height: height + 'px',
@@ -13170,7 +12758,7 @@
       set(viewport, yScrollingData, 'true');
       set(viewport, yFixedProperty, 'top');
       var restore = function () {
-        Scrollable.deregister(viewport);
+        deregister(viewport);
         set(viewport, 'style', oldViewportStyle || '');
         remove$1(viewport, yFixedData);
         remove$1(viewport, yScrollingData);
@@ -13178,8 +12766,8 @@
       };
       return { restore: restore };
     };
-    var takeoverDropup = function (dropup, toolbarHeight, viewportHeight) {
-      var oldDropupStyle = get(dropup, 'style');
+    var takeoverDropup = function (dropup) {
+      var oldDropupStyle = get$1(dropup, 'style');
       setAll$1(dropup, {
         position: 'absolute',
         bottom: '0px'
@@ -13202,8 +12790,8 @@
     var takeover$1 = function (viewport, contentBody, toolbar, dropup) {
       var outerWindow = owner(viewport).dom().defaultView;
       var toolbarSetup = takeoverToolbar(toolbar);
-      var toolbarHeight = get$4(toolbar);
-      var dropupHeight = get$4(dropup);
+      var toolbarHeight = get$5(toolbar);
+      var dropupHeight = get$5(dropup);
       var viewportHeight = deriveViewportHeight(viewport, toolbarHeight, dropupHeight);
       var viewportSetup = takeoverViewport(toolbarHeight, viewportHeight, viewport);
       var dropupSetup = takeoverDropup(dropup);
@@ -13221,12 +12809,12 @@
       };
       var refresh = function () {
         if (isActive) {
-          var newToolbarHeight = get$4(toolbar);
-          var dropupHeight_1 = get$4(dropup);
+          var newToolbarHeight = get$5(toolbar);
+          var dropupHeight_1 = get$5(dropup);
           var newHeight = deriveViewportHeight(viewport, newToolbarHeight, dropupHeight_1);
           set(viewport, yFixedData, newToolbarHeight + 'px');
           set$3(viewport, 'height', newHeight + 'px');
-          DeviceZones.updatePadding(contentBody, viewport, dropup);
+          updatePadding(contentBody, viewport, dropup);
         }
       };
       var setViewportOffset = function (newYOffset) {
@@ -13234,7 +12822,7 @@
         set(viewport, yFixedData, offsetPx);
         refresh();
       };
-      DeviceZones.updatePadding(contentBody, viewport, dropup);
+      updatePadding(contentBody, viewport, dropup);
       return {
         setViewportOffset: setViewportOffset,
         isExpanding: isExpanding,
@@ -13243,17 +12831,12 @@
         restore: restore
       };
     };
-    var IosViewport = {
-      findFixtures: findFixtures,
-      takeover: takeover$1,
-      getYFixedData: getYFixedData
-    };
 
-    var animator = SmoothAnimation.create();
+    var animator = create$5();
     var ANIMATION_STEP = 15;
     var NUM_TOP_ANIMATION_FRAMES = 10;
     var ANIMATION_RATE = 10;
-    var lastScroll = 'data-' + Styles.resolve('last-scroll-top');
+    var lastScroll = 'data-' + resolve('last-scroll-top');
     var getTop = function (element) {
       var raw = getRaw(element, 'top').getOr('0');
       return parseInt(raw, 10);
@@ -13281,7 +12864,7 @@
         var getCurrent = curry(getScrollTop, element);
         set(element, lastScroll, getCurrent());
         var update = function (newScroll, abort) {
-          var previous = DataAttributes.safeParse(element, lastScroll);
+          var previous = safeParse(element, lastScroll);
           if (previous !== element.dom().scrollTop) {
             abort(element.dom().scrollTop);
           } else {
@@ -13315,7 +12898,7 @@
       });
     };
     var updateTop = function (element, amount) {
-      var newTop = amount + IosViewport.getYFixedData(element) + 'px';
+      var newTop = amount + getYFixedData(element) + 'px';
       set$3(element, 'top', newTop);
     };
     var moveWindowScroll = function (toolbar, viewport, destY) {
@@ -13326,12 +12909,6 @@
         outerWindow.scrollTo(0, destY);
         callback(destY);
       });
-    };
-    var IosScrolling = {
-      moveScrollAndTop: moveScrollAndTop,
-      moveOnlyScroll: moveOnlyScroll,
-      moveOnlyTop: moveOnlyTop,
-      moveWindowScroll: moveWindowScroll
     };
 
     function BackgroundActivity (doAction) {
@@ -13354,15 +12931,14 @@
     }
 
     var scrollIntoView = function (cWin, socket, dropup, top, bottom) {
-      var greenzone = DeviceZones.getGreenzone(socket, dropup);
-      var refreshCursor = curry(CursorRefresh.refresh, cWin);
+      var greenzone = getGreenzone(socket, dropup);
+      var refreshCursor = curry(refresh$1, cWin);
       if (top > greenzone || bottom > greenzone) {
-        IosScrolling.moveOnlyScroll(socket, socket.dom().scrollTop - greenzone + bottom).get(refreshCursor);
+        moveOnlyScroll(socket, socket.dom().scrollTop - greenzone + bottom).get(refreshCursor);
       } else if (top < 0) {
-        IosScrolling.moveOnlyScroll(socket, socket.dom().scrollTop + top).get(refreshCursor);
+        moveOnlyScroll(socket, socket.dom().scrollTop + top).get(refreshCursor);
       }
     };
-    var Greenzone = { scrollIntoView: scrollIntoView };
 
     var par = function (asyncValues, nu) {
       return nu(function (callback) {
@@ -13401,7 +12977,7 @@
       var oldProp = getRaw(element, 'top').getOr(offsetY);
       var delta = destTop - parseInt(oldProp, 10);
       var destScroll = element.dom().scrollTop + delta;
-      return IosScrolling.moveScrollAndTop(element, destScroll, destTop);
+      return moveScrollAndTop(element, destScroll, destTop);
     };
     var updateFixture = function (fixture, winY) {
       return fixture.fold(function (element, property, offsetY) {
@@ -13411,21 +12987,20 @@
       });
     };
     var updatePositions = function (container, winY) {
-      var fixtures = IosViewport.findFixtures(container);
+      var fixtures = findFixtures(container);
       var updates = map$1(fixtures, function (fixture) {
         return updateFixture(fixture, winY);
       });
       return par$1(updates);
     };
-    var IosUpdates = { updatePositions: updatePositions };
 
     var VIEW_MARGIN = 5;
     var register$2 = function (toolstrip, socket, container, outerWindow, structure, cWin) {
       var scroller = BackgroundActivity(function (y) {
-        return IosScrolling.moveWindowScroll(toolstrip, socket, y);
+        return moveWindowScroll(toolstrip, socket, y);
       });
       var scrollBounds = function () {
-        var rects = Rectangles.getRectangles(cWin);
+        var rects = getRectangles(cWin);
         return Option.from(rects[0]).bind(function (rect) {
           var viewTop = rect.top() - socket.dom().scrollTop;
           var outside = viewTop > outerWindow.innerHeight + VIEW_MARGIN || viewTop < -VIEW_MARGIN;
@@ -13435,9 +13010,9 @@
           }) : Option.none();
         });
       };
-      var scrollThrottle = last$1(function () {
+      var scrollThrottle = last(function () {
         scroller.idle(function () {
-          IosUpdates.updatePositions(container, outerWindow.pageYOffset).get(function () {
+          updatePositions(container, outerWindow.pageYOffset).get(function () {
             var extraScroll = scrollBounds();
             extraScroll.each(function (extra) {
               socket.dom().scrollTop = socket.dom().scrollTop + extra.top();
@@ -13453,21 +13028,21 @@
         }
         scrollThrottle.throttle();
       });
-      IosUpdates.updatePositions(container, outerWindow.pageYOffset).get(identity);
+      updatePositions(container, outerWindow.pageYOffset).get(identity);
       return { unbind: onScroll.unbind };
     };
     var setup$3 = function (bag) {
-      var cWin = bag.cWin();
-      var ceBody = bag.ceBody();
-      var socket = bag.socket();
-      var toolstrip = bag.toolstrip();
-      var toolbar = bag.toolbar();
-      var contentElement = bag.contentElement();
-      var keyboardType = bag.keyboardType();
-      var outerWindow = bag.outerWindow();
-      var dropup = bag.dropup();
-      var structure = IosViewport.takeover(socket, ceBody, toolstrip, dropup);
-      var keyboardModel = keyboardType(bag.outerBody(), cWin, body(), contentElement, toolstrip, toolbar);
+      var cWin = bag.cWin;
+      var ceBody = bag.ceBody;
+      var socket = bag.socket;
+      var toolstrip = bag.toolstrip;
+      var contentElement = bag.contentElement;
+      var keyboardType = bag.keyboardType;
+      var outerWindow = bag.outerWindow;
+      var dropup = bag.dropup;
+      var outerBody = bag.outerBody;
+      var structure = takeover$1(socket, ceBody, toolstrip, dropup);
+      var keyboardModel = keyboardType(outerBody, cWin, body(), contentElement);
       var toEditing = function () {
         keyboardModel.toEditing();
         clearSelection();
@@ -13475,10 +13050,10 @@
       var toReading = function () {
         keyboardModel.toReading();
       };
-      var onToolbarTouch = function (event) {
-        keyboardModel.onToolbarTouch(event);
+      var onToolbarTouch = function (_event) {
+        keyboardModel.onToolbarTouch();
       };
-      var onOrientation = Orientation.onChange(outerWindow, {
+      var onOrientation = onChange(outerWindow, {
         onChange: noop,
         onReady: structure.refresh
       });
@@ -13490,7 +13065,7 @@
           structure.refresh();
         }
       });
-      var onScroll = register$2(toolstrip, socket, bag.outerBody(), outerWindow, structure, cWin);
+      var onScroll = register$2(toolstrip, socket, outerBody, outerWindow, structure, cWin);
       var unfocusedSelection = FakeSelection(cWin, contentElement);
       var refreshSelection = function () {
         if (unfocusedSelection.isActive()) {
@@ -13503,15 +13078,15 @@
       var clearSelection = function () {
         unfocusedSelection.clear();
       };
-      var scrollIntoView = function (top, bottom) {
-        Greenzone.scrollIntoView(cWin, socket, dropup, top, bottom);
+      var scrollIntoView$1 = function (top, bottom) {
+        scrollIntoView(cWin, socket, dropup, top, bottom);
       };
       var syncHeight = function () {
         set$3(contentElement, 'height', contentElement.dom().contentWindow.document.body.scrollHeight + 'px');
       };
       var setViewportOffset = function (newYOffset) {
         structure.setViewportOffset(newYOffset);
-        IosScrolling.moveOnlyTop(socket, newYOffset).get(identity);
+        moveOnlyTop(socket, newYOffset).get(identity);
       };
       var destroy = function () {
         structure.restore();
@@ -13520,7 +13095,7 @@
         onResize.unbind();
         keyboardModel.destroy();
         unfocusedSelection.destroy();
-        CaptureBin.input(body(), blur);
+        input$1(body(), blur);
       };
       return {
         toEditing: toEditing,
@@ -13529,7 +13104,7 @@
         refreshSelection: refreshSelection,
         clearSelection: clearSelection,
         highlightSelection: highlightSelection,
-        scrollIntoView: scrollIntoView,
+        scrollIntoView: scrollIntoView$1,
         updateToolbarPadding: noop,
         setViewportOffset: setViewportOffset,
         syncHeight: syncHeight,
@@ -13537,10 +13112,9 @@
         destroy: destroy
       };
     };
-    var IosSetup = { setup: setup$3 };
 
     var create$6 = function (platform, mask) {
-      var meta = MetaViewport.tag();
+      var meta = tag();
       var priorState = value$2();
       var scrollEvents = value$2();
       var iosApi = api$2();
@@ -13548,56 +13122,34 @@
       var enter = function () {
         mask.hide();
         var doc = Element.fromDom(domGlobals.document);
-        PlatformEditor.getActiveApi(platform.editor).each(function (editorApi) {
+        getActiveApi(platform.editor).each(function (editorApi) {
           priorState.set({
             socketHeight: getRaw(platform.socket, 'height'),
             iframeHeight: getRaw(editorApi.frame(), 'height'),
             outerScroll: domGlobals.document.body.scrollTop
           });
-          scrollEvents.set({ exclusives: Scrollables.exclusive(doc, '.' + Scrollable.scrollable()) });
-          add$2(platform.container, Styles.resolve('fullscreen-maximized'));
-          Thor.clobberStyles(platform.container, editorApi.body());
+          scrollEvents.set({ exclusives: exclusive(doc, '.' + scrollable) });
+          add$2(platform.container, resolve('fullscreen-maximized'));
+          clobberStyles(platform.container, editorApi.body());
           meta.maximize();
           set$3(platform.socket, 'overflow', 'scroll');
           set$3(platform.socket, '-webkit-overflow-scrolling', 'touch');
           focus$1(editorApi.body());
-          var setupBag = MixedBag([
-            'cWin',
-            'ceBody',
-            'socket',
-            'toolstrip',
-            'toolbar',
-            'dropup',
-            'contentElement',
-            'cursor',
-            'keyboardType',
-            'isScrolling',
-            'outerWindow',
-            'outerBody'
-          ], []);
-          iosApi.set(IosSetup.setup(setupBag({
+          iosApi.set(setup$3({
             cWin: editorApi.win(),
             ceBody: editorApi.body(),
             socket: platform.socket,
             toolstrip: platform.toolstrip,
-            toolbar: platform.toolbar,
             dropup: platform.dropup.element(),
             contentElement: editorApi.frame(),
-            cursor: noop,
             outerBody: platform.body,
             outerWindow: platform.win,
-            keyboardType: IosKeyboard.stubborn,
-            isScrolling: function () {
-              var scrollValue = scrollEvents;
-              return scrollValue.get().exists(function (s) {
-                return s.socket.isScrolling();
-              });
-            }
-          })));
+            keyboardType: stubborn
+          }));
           iosApi.run(function (api) {
             api.syncHeight();
           });
-          iosEvents.set(IosEvents.initEvents(editorApi, iosApi, platform.toolstrip, platform.socket, platform.dropup));
+          iosEvents.set(initEvents$1(editorApi, iosApi, platform.toolstrip, platform.socket, platform.dropup));
         });
       };
       var exit = function () {
@@ -13619,13 +13171,13 @@
           s.exclusives.unbind();
         });
         scrollEvents.clear();
-        remove$4(platform.container, Styles.resolve('fullscreen-maximized'));
-        Thor.restoreStyles();
-        Scrollable.deregister(platform.toolbar);
+        remove$4(platform.container, resolve('fullscreen-maximized'));
+        restoreStyles();
+        deregister(platform.toolbar);
         remove$5(platform.socket, 'overflow');
         remove$5(platform.socket, '-webkit-overflow-scrolling');
         blur(platform.editor.getFrame());
-        PlatformEditor.getActiveApi(platform.editor).each(function (editorApi) {
+        getActiveApi(platform.editor).each(function (editorApi) {
           editorApi.clearSelection();
         });
       };
@@ -13640,7 +13192,6 @@
         exit: exit
       };
     };
-    var IosMode = { create: create$6 };
 
     var produce$1 = function (raw) {
       var mobile = asRawOrDie('Getting IosWebapp schema', MobileSchema, raw);
@@ -13650,7 +13201,7 @@
         mobile.setReadOnly(mobile.readOnlyOnInit());
         mode.enter();
       };
-      var mask = build$1(TapToEditMask.sketch(onView, mobile.translate));
+      var mask = build$1(sketch$9(onView, mobile.translate));
       mobile.alloy.add(mask);
       var maskApi = {
         show: function () {
@@ -13660,7 +13211,7 @@
           mobile.alloy.remove(mask);
         }
       };
-      var mode = IosMode.create(mobile, maskApi);
+      var mode = create$6(mobile, maskApi);
       return {
         setReadOnly: mobile.setReadOnly,
         refreshStructure: mode.refreshStructure,
@@ -13669,14 +13220,13 @@
         destroy: noop
       };
     };
-    var IosWebapp = { produce: produce$1 };
 
     function IosRealm (scrollIntoView) {
-      var alloy = OuterContainer({ classes: [Styles.resolve('ios-container')] });
+      var alloy = OuterContainer({ classes: [resolve('ios-container')] });
       var toolbar = ScrollingToolbar();
       var webapp = api$2();
-      var switchToEdit = CommonRealm.makeEditSwitch(webapp);
-      var socket = CommonRealm.makeSocket();
+      var switchToEdit = makeEditSwitch(webapp);
+      var socket = makeSocket();
       var dropup = build$2(function () {
         webapp.run(function (w) {
           w.refreshStructure();
@@ -13700,7 +13250,7 @@
         toolbar.restoreToolbar();
       };
       var init = function (spec) {
-        webapp.set(IosWebapp.produce(spec));
+        webapp.set(produce$1(spec));
       };
       var exit = function () {
         webapp.run(function (w) {
@@ -13708,8 +13258,8 @@
           w.exit();
         });
       };
-      var updateMode = function (readOnly) {
-        CommonRealm.updateMode(socket, switchToEdit, readOnly, alloy.root());
+      var updateMode$1 = function (readOnly) {
+        updateMode(socket, switchToEdit, readOnly, alloy.root());
       };
       return {
         system: constant(alloy),
@@ -13720,7 +13270,7 @@
         setContextToolbar: setContextToolbar,
         focusToolbar: focusToolbar,
         restoreToolbar: restoreToolbar,
-        updateMode: updateMode,
+        updateMode: updateMode$1,
         socket: constant(socket),
         dropup: constant(dropup)
       };
@@ -13729,7 +13279,7 @@
     var global$5 = tinymce.util.Tools.resolve('tinymce.EditorManager');
 
     var derive$3 = function (editor) {
-      var base = readOptFrom$1(editor.settings, 'skin_url').fold(function () {
+      var base = get(editor.settings, 'skin_url').fold(function () {
         return global$5.baseURL + '/skins/ui/oxide';
       }, function (url) {
         return url;
@@ -13739,17 +13289,9 @@
         ui: base + '/skin.mobile.min.css'
       };
     };
-    var CssUrls = { derive: derive$3 };
 
-    var fontSizes = [
-      'x-small',
-      'small',
-      'medium',
-      'large',
-      'x-large'
-    ];
     var fireChange = function (realm, command, state) {
-      realm.system().broadcastOn([TinyChannels.formatChanged()], {
+      realm.system().broadcastOn([formatChanged], {
         command: command,
         state: state
       });
@@ -13765,22 +13307,18 @@
         'ul',
         'ol'
       ], function (command) {
-        editor.selection.selectorChanged(command, function (state, data) {
+        editor.selection.selectorChanged(command, function (state, _data) {
           fireChange(realm, command, state);
         });
       });
     };
-    var FormatChangers = {
-      init: init$5,
-      fontSizes: constant(fontSizes)
-    };
 
     var fireSkinLoaded = function (editor) {
-      var done = function () {
-        editor._skinLoaded = true;
-        editor.fire('SkinLoaded');
-      };
       return function () {
+        var done = function () {
+          editor._skinLoaded = true;
+          editor.fire('SkinLoaded');
+        };
         if (editor.initialized) {
           done();
         } else {
@@ -13788,19 +13326,18 @@
         }
       };
     };
-    var SkinLoaded = { fireSkinLoaded: fireSkinLoaded };
 
-    var READING = constant('toReading');
-    var EDITING = constant('toEditing');
+    var READING = 'toReading';
+    var EDITING = 'toEditing';
     var renderMobileTheme = function (editor) {
       var renderUI = function () {
         var targetNode = editor.getElement();
-        var cssUrls = CssUrls.derive(editor);
+        var cssUrls = derive$3(editor);
         if (isSkinDisabled(editor) === false) {
           editor.contentCSS.push(cssUrls.content);
-          global$1.DOM.styleSheetLoader.load(cssUrls.ui, SkinLoaded.fireSkinLoaded(editor));
+          global$1.DOM.styleSheetLoader.load(cssUrls.ui, fireSkinLoaded(editor));
         } else {
-          SkinLoaded.fireSkinLoaded(editor)();
+          fireSkinLoaded(editor)();
         }
         var doScrollIntoView = function () {
           editor.fire('ScrollIntoView');
@@ -13814,10 +13351,10 @@
           });
         };
         var outerWindow = targetNode.ownerDocument.defaultView;
-        var orientation = Orientation.onChange(outerWindow, {
+        var orientation = onChange(outerWindow, {
           onChange: function () {
             var alloy = realm.system();
-            alloy.broadcastOn([TinyChannels.orientationChanged()], { width: Orientation.getActualWidth(outerWindow) });
+            alloy.broadcastOn([orientationChanged], { width: getActualWidth(outerWindow) });
           },
           onReady: noop
         });
@@ -13828,7 +13365,7 @@
           var toolbars = configureToolbar(dynamicGroup, readOnlyGroups, mainGroups);
           realm.setToolbarGroups(ro === true ? toolbars.readOnly : toolbars.main);
           editor.setMode(ro === true ? 'readonly' : 'design');
-          editor.fire(ro === true ? READING() : EDITING());
+          editor.fire(ro === true ? READING : EDITING);
           realm.updateMode(ro);
         };
         var configureToolbar = function (dynamicGroup, readOnlyGroups, mainGroups) {
@@ -13857,10 +13394,10 @@
                 return { unbind: noop };
               },
               onToReading: function (handler) {
-                return bindHandler(READING(), handler);
+                return bindHandler(READING, handler);
               },
               onToEditing: function (handler) {
-                return bindHandler(EDITING(), handler);
+                return bindHandler(EDITING, handler);
               },
               onScrollToCursor: function (handler) {
                 editor.on('ScrollIntoView', function (tinyEvent) {
@@ -13876,7 +13413,7 @@
                 hideDropup();
               },
               onTouchContent: function () {
-                var toolbar = Element.fromDom(editor.editorContainer.querySelector('.' + Styles.resolve('toolbar')));
+                var toolbar = Element.fromDom(editor.editorContainer.querySelector('.' + resolve('toolbar')));
                 findFocusIn(toolbar).each(emitExecute);
                 realm.restoreToolbar();
                 hideDropup();
@@ -13890,7 +13427,7 @@
                   var component = realm.system().getByDom(Element.fromDom(editor.editorContainer));
                   component.each(function (container) {
                     if (Swapping.isAlpha(container)) {
-                      TinyCodeDupe.openLink(target.dom());
+                      openLink(target.dom());
                     }
                   });
                 }
@@ -13898,8 +13435,8 @@
             },
             container: Element.fromDom(editor.editorContainer),
             socket: Element.fromDom(editor.contentAreaContainer),
-            toolstrip: Element.fromDom(editor.editorContainer.querySelector('.' + Styles.resolve('toolstrip'))),
-            toolbar: Element.fromDom(editor.editorContainer.querySelector('.' + Styles.resolve('toolbar'))),
+            toolstrip: Element.fromDom(editor.editorContainer.querySelector('.' + resolve('toolstrip'))),
+            toolbar: Element.fromDom(editor.editorContainer.querySelector('.' + resolve('toolbar'))),
             dropup: realm.dropup(),
             alloy: realm.system(),
             translate: noop,
@@ -13912,13 +13449,13 @@
           });
           var hideDropup = function () {
             realm.dropup().disappear(function () {
-              realm.system().broadcastOn([TinyChannels.dropupDismissed()], {});
+              realm.system().broadcastOn([dropupDismissed], {});
             });
           };
           var backToMaskGroup = {
             label: 'The first group',
             scrollable: false,
-            items: [Buttons.forToolbar('back', function () {
+            items: [forToolbar('back', function () {
                 editor.selection.collapse();
                 realm.exit();
               }, {}, editor)]
@@ -13926,7 +13463,7 @@
           var backToReadOnlyGroup = {
             label: 'Back to read only',
             scrollable: false,
-            items: [Buttons.forToolbar('readonly-back', function () {
+            items: [forToolbar('readonly-back', function () {
                 setReadOnly(dynamicGroup, readOnlyGroups, mainGroups, true);
               }, {}, editor)]
           };
@@ -13935,8 +13472,8 @@
             scrollable: true,
             items: []
           };
-          var features = Features.setup(realm, editor);
-          var items = Features.detect(editor.settings, features);
+          var features = setup(realm, editor);
+          var items = detect$4(editor.settings, features);
           var actionGroup = {
             label: 'the action group',
             scrollable: true,
@@ -13959,7 +13496,7 @@
             backToMask: [backToMaskGroup],
             backToReadOnly: [backToReadOnlyGroup]
           });
-          FormatChangers.init(realm, editor);
+          init$5(realm, editor);
         });
         editor.on('remove', function () {
           realm.exit();

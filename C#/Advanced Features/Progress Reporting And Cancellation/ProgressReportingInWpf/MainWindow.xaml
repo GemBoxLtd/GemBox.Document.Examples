@@ -1,0 +1,10 @@
+﻿<Window x:Class="MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Progress reporting in WPF" Height="150" Width="300">
+    <Grid>
+        <ProgressBar HorizontalAlignment="Left" Height="32" Margin="27,73,0,0" VerticalAlignment="Top" Width="200" Name="progressBar"/>
+        <Button x:Name="button" Content="Load" HorizontalAlignment="Left" Margin="27,19,0,0" VerticalAlignment="Top" Width="236" Height="36" Click="loadButton_Click"/>
+        <Label x:Name="percentageLabel" Content="" HorizontalAlignment="Left" Margin="239,77,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.867,0.59"/>
+    </Grid>
+</Window>

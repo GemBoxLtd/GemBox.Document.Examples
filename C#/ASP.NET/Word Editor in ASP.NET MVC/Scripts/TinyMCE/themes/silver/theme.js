@@ -4,7 +4,7 @@
  * For LGPL see License.txt in the project root for license information.
  * For commercial licenses see https://www.tiny.cloud/
  *
- * Version: 5.1.0 (2019-10-17)
+ * Version: 5.3.0 (2020-05-21)
  */
 (function (domGlobals) {
     'use strict';
@@ -48,12 +48,8 @@
       };
     }
     var not = function (f) {
-      return function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-          args[_i] = arguments[_i];
-        }
-        return !f.apply(null, args);
+      return function (t) {
+        return !f(t);
       };
     };
     var die = function (msg) {
@@ -113,7 +109,7 @@
         return n;
       };
       var me = {
-        fold: function (n, s) {
+        fold: function (n, _s) {
           return n();
         },
         is: never,
@@ -141,9 +137,6 @@
         },
         toString: constant('none()')
       };
-      if (Object.freeze) {
-        Object.freeze(me);
-      }
       return me;
     }();
     var some = function (a) {
@@ -212,16 +205,16 @@
       var is = function (v) {
         return o === v;
       };
-      var or = function (opt) {
+      var or = function (_opt) {
         return value(o);
       };
-      var orThunk = function (f) {
+      var orThunk = function (_f) {
         return value(o);
       };
       var map = function (f) {
         return value(f(o));
       };
-      var mapError = function (f) {
+      var mapError = function (_f) {
         return value(o);
       };
       var each = function (f) {
@@ -274,13 +267,13 @@
       var orThunk = function (f) {
         return f();
       };
-      var map = function (f) {
+      var map = function (_f) {
         return error(message);
       };
       var mapError = function (f) {
         return error(f(message));
       };
-      var bind = function (f) {
+      var bind = function (_f) {
         return error(message);
       };
       var fold = function (onError, _) {
@@ -317,33 +310,43 @@
     };
 
     var typeOf = function (x) {
+      var t = typeof x;
       if (x === null) {
         return 'null';
-      }
-      var t = typeof x;
-      if (t === 'object' && (Array.prototype.isPrototypeOf(x) || x.constructor && x.constructor.name === 'Array')) {
+      } else if (t === 'object' && (Array.prototype.isPrototypeOf(x) || x.constructor && x.constructor.name === 'Array')) {
         return 'array';
-      }
-      if (t === 'object' && (String.prototype.isPrototypeOf(x) || x.constructor && x.constructor.name === 'String')) {
+      } else if (t === 'object' && (String.prototype.isPrototypeOf(x) || x.constructor && x.constructor.name === 'String')) {
         return 'string';
+      } else {
+        return t;
       }
-      return t;
     };
     var isType = function (type) {
       return function (value) {
         return typeOf(value) === type;
       };
     };
+    var isSimpleType = function (type) {
+      return function (value) {
+        return typeof value === type;
+      };
+    };
+    var eq = function (t) {
+      return function (a) {
+        return t === a;
+      };
+    };
     var isString = isType('string');
     var isObject = isType('object');
     var isArray = isType('array');
-    var isBoolean = isType('boolean');
-    var isFunction = isType('function');
-    var isNumber = isType('number');
+    var isBoolean = isSimpleType('boolean');
+    var isUndefined = eq(undefined);
+    var isFunction = isSimpleType('function');
+    var isNumber = isSimpleType('number');
     var isArrayOf = function (value, pred) {
       if (isArray(value)) {
         for (var i = 0, len = value.length; i < len; ++i) {
-          if (pred(value[i]) !== true) {
+          if (!pred(value[i])) {
             return false;
           }
         }
@@ -445,14 +448,19 @@
       });
       return acc;
     };
-    var find = function (xs, pred) {
+    var findUntil = function (xs, pred, until) {
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
         if (pred(x, i)) {
           return Option.some(x);
+        } else if (until(x, i)) {
+          break;
         }
       }
       return Option.none();
+    };
+    var find = function (xs, pred) {
+      return findUntil(xs, pred, never);
     };
     var findIndex = function (xs, pred) {
       for (var i = 0, len = xs.length; i < len; i++) {
@@ -474,8 +482,7 @@
       return r;
     };
     var bind = function (xs, f) {
-      var output = map(xs, f);
-      return flatten(output);
+      return flatten(map(xs, f));
     };
     var forall = function (xs, pred) {
       for (var i = 0, len = xs.length; i < len; ++i) {
@@ -496,6 +503,14 @@
         return !contains(a2, x);
       });
     };
+    var mapToObject = function (xs, f) {
+      var r = {};
+      for (var i = 0, len = xs.length; i < len; i++) {
+        var x = xs[i];
+        r[String(x)] = f(x, i);
+      }
+      return r;
+    };
     var pure = function (x) {
       return [x];
     };
@@ -512,6 +527,15 @@
     };
     var from$1 = isFunction(Array.from) ? Array.from : function (x) {
       return nativeSlice.call(x);
+    };
+    var findMap = function (arr, f) {
+      for (var i = 0; i < arr.length; i++) {
+        var r = f(arr[i], i);
+        if (r.isSome()) {
+          return r;
+        }
+      }
+      return Option.none();
     };
 
     var keys = Object.keys;
@@ -539,6 +563,23 @@
         r[tuple.k] = tuple.v;
       });
       return r;
+    };
+    var objAcc = function (r) {
+      return function (x, i) {
+        r[i] = x;
+      };
+    };
+    var internalFilter = function (obj, pred, onTrue, onFalse) {
+      var r = {};
+      each$1(obj, function (x, i) {
+        (pred(x, i) ? onTrue : onFalse)(x, i);
+      });
+      return r;
+    };
+    var filter$1 = function (obj, pred) {
+      var t = {};
+      internalFilter(obj, pred, objAcc(t), noop);
+      return t;
     };
     var mapToArray = function (obj, f) {
       var r = [];
@@ -568,6 +609,9 @@
     };
     var has = function (obj, key) {
       return hasOwnProperty.call(obj, key);
+    };
+    var hasNonNullableKey = function (obj, key) {
+      return has(obj, key) && obj[key] !== undefined && obj[key] !== null;
     };
 
     var generate = function (cases) {
@@ -687,138 +731,6 @@
       };
     };
 
-    var adt = Adt.generate([
-      { strict: [] },
-      { defaultedThunk: ['fallbackThunk'] },
-      { asOption: [] },
-      { asDefaultedOptionThunk: ['fallbackThunk'] },
-      { mergeWithThunk: ['baseThunk'] }
-    ]);
-    var defaulted = function (fallback) {
-      return adt.defaultedThunk(constant(fallback));
-    };
-    var mergeWith = function (base) {
-      return adt.mergeWithThunk(constant(base));
-    };
-    var strict = adt.strict;
-    var asOption = adt.asOption;
-    var defaultedThunk = adt.defaultedThunk;
-    var mergeWithThunk = adt.mergeWithThunk;
-
-    var exclude = function (obj, fields) {
-      var r = {};
-      each$1(obj, function (v, k) {
-        if (!contains(fields, k)) {
-          r[k] = v;
-        }
-      });
-      return r;
-    };
-
-    var readOpt = function (key) {
-      return function (obj) {
-        return has(obj, key) ? Option.from(obj[key]) : Option.none();
-      };
-    };
-    var readOr = function (key, fallback) {
-      return function (obj) {
-        return has(obj, key) ? obj[key] : fallback;
-      };
-    };
-    var readOptFrom = function (obj, key) {
-      return readOpt(key)(obj);
-    };
-    var hasKey = function (obj, key) {
-      return has(obj, key) && obj[key] !== undefined && obj[key] !== null;
-    };
-
-    var wrap = function (key, value) {
-      var r = {};
-      r[key] = value;
-      return r;
-    };
-    var wrapAll = function (keyvalues) {
-      var r = {};
-      each(keyvalues, function (kv) {
-        r[kv.key] = kv.value;
-      });
-      return r;
-    };
-
-    var comparison = Adt.generate([
-      {
-        bothErrors: [
-          'error1',
-          'error2'
-        ]
-      },
-      {
-        firstError: [
-          'error1',
-          'value2'
-        ]
-      },
-      {
-        secondError: [
-          'value1',
-          'error2'
-        ]
-      },
-      {
-        bothValues: [
-          'value1',
-          'value2'
-        ]
-      }
-    ]);
-    var partition$1 = function (results) {
-      var errors = [];
-      var values = [];
-      each(results, function (result) {
-        result.fold(function (err) {
-          errors.push(err);
-        }, function (value) {
-          values.push(value);
-        });
-      });
-      return {
-        errors: errors,
-        values: values
-      };
-    };
-
-    var exclude$1 = function (obj, fields) {
-      return exclude(obj, fields);
-    };
-    var readOpt$1 = function (key) {
-      return readOpt(key);
-    };
-    var readOr$1 = function (key, fallback) {
-      return readOr(key, fallback);
-    };
-    var readOptFrom$1 = function (obj, key) {
-      return readOptFrom(obj, key);
-    };
-    var wrap$1 = function (key, value) {
-      return wrap(key, value);
-    };
-    var wrapAll$1 = function (keyvalues) {
-      return wrapAll(keyvalues);
-    };
-    var mergeValues = function (values, base) {
-      return values.length === 0 ? Result.value(base) : Result.value(deepMerge(base, merge.apply(undefined, values)));
-    };
-    var mergeErrors = function (errors) {
-      return Result.error(flatten(errors));
-    };
-    var consolidate = function (objs, base) {
-      var partitions = partition$1(objs);
-      return partitions.errors.length > 0 ? mergeErrors(partitions.errors) : mergeValues(partitions.values, base);
-    };
-    var hasKey$1 = function (obj, key) {
-      return hasKey(obj, key);
-    };
-
     var SimpleResultType;
     (function (SimpleResultType) {
       SimpleResultType[SimpleResultType['Error'] = 0] = 'Error';
@@ -827,7 +739,7 @@
     var fold = function (res, onError, onValue) {
       return res.stype === SimpleResultType.Error ? onError(res.serror) : onValue(res.svalue);
     };
-    var partition$2 = function (results) {
+    var partition$1 = function (results) {
       var values = [];
       var errors = [];
       each(results, function (obj) {
@@ -898,13 +810,116 @@
       fromResult: fromResult,
       toResult: toResult,
       svalue: svalue,
-      partition: partition$2,
+      partition: partition$1,
       serror: serror,
       bind: bind$1,
       bindError: bindError,
       map: map$2,
       mapError: mapError,
       fold: fold
+    };
+
+    var adt = Adt.generate([
+      { strict: [] },
+      { defaultedThunk: ['fallbackThunk'] },
+      { asOption: [] },
+      { asDefaultedOptionThunk: ['fallbackThunk'] },
+      { mergeWithThunk: ['baseThunk'] }
+    ]);
+    var defaulted = function (fallback) {
+      return adt.defaultedThunk(constant(fallback));
+    };
+    var mergeWith = function (base) {
+      return adt.mergeWithThunk(constant(base));
+    };
+    var strict = adt.strict;
+    var asOption = adt.asOption;
+    var defaultedThunk = adt.defaultedThunk;
+    var asDefaultedOptionThunk = adt.asDefaultedOptionThunk;
+    var mergeWithThunk = adt.mergeWithThunk;
+
+    var exclude = function (obj, fields) {
+      var r = {};
+      each$1(obj, function (v, k) {
+        if (!contains(fields, k)) {
+          r[k] = v;
+        }
+      });
+      return r;
+    };
+
+    var wrap = function (key, value) {
+      var _a;
+      return _a = {}, _a[key] = value, _a;
+    };
+    var wrapAll = function (keyvalues) {
+      var r = {};
+      each(keyvalues, function (kv) {
+        r[kv.key] = kv.value;
+      });
+      return r;
+    };
+
+    var comparison = Adt.generate([
+      {
+        bothErrors: [
+          'error1',
+          'error2'
+        ]
+      },
+      {
+        firstError: [
+          'error1',
+          'value2'
+        ]
+      },
+      {
+        secondError: [
+          'value1',
+          'error2'
+        ]
+      },
+      {
+        bothValues: [
+          'value1',
+          'value2'
+        ]
+      }
+    ]);
+    var partition$2 = function (results) {
+      var errors = [];
+      var values = [];
+      each(results, function (result) {
+        result.fold(function (err) {
+          errors.push(err);
+        }, function (value) {
+          values.push(value);
+        });
+      });
+      return {
+        errors: errors,
+        values: values
+      };
+    };
+
+    var exclude$1 = function (obj, fields) {
+      return exclude(obj, fields);
+    };
+    var wrap$1 = function (key, value) {
+      return wrap(key, value);
+    };
+    var wrapAll$1 = function (keyvalues) {
+      return wrapAll(keyvalues);
+    };
+    var mergeValues = function (values, base) {
+      return values.length === 0 ? Result.value(base) : Result.value(deepMerge(base, merge.apply(undefined, values)));
+    };
+    var mergeErrors = function (errors) {
+      return Result.error(flatten(errors));
+    };
+    var consolidate = function (objs, base) {
+      var partitions = partition$2(objs);
+      return partitions.errors.length > 0 ? mergeErrors(partitions.errors) : mergeValues(partitions.values, base);
     };
 
     var mergeValues$1 = function (values, base) {
@@ -925,41 +940,6 @@
       consolidateObj: consolidateObj,
       consolidateArr: consolidateArr
     };
-
-    var typeAdt = Adt.generate([
-      {
-        setOf: [
-          'validator',
-          'valueType'
-        ]
-      },
-      { arrOf: ['valueType'] },
-      { objOf: ['fields'] },
-      { itemOf: ['validator'] },
-      {
-        choiceOf: [
-          'key',
-          'branches'
-        ]
-      },
-      { thunk: ['description'] },
-      {
-        func: [
-          'args',
-          'outputSchema'
-        ]
-      }
-    ]);
-    var fieldAdt = Adt.generate([
-      {
-        field: [
-          'name',
-          'presence',
-          'type'
-        ]
-      },
-      { state: ['name'] }
-    ]);
 
     var formatObj = function (input) {
       return isObject(input) && keys(input).length > 100 ? ' removed due to size' : JSON.stringify(input, null, 2);
@@ -1025,21 +1005,21 @@
       }
     ]);
     var strictAccess = function (path, obj, key) {
-      return readOptFrom(obj, key).fold(function () {
+      return get(obj, key).fold(function () {
         return missingStrict(path, key, obj);
       }, SimpleResult.svalue);
     };
     var fallbackAccess = function (obj, key, fallbackThunk) {
-      var v = readOptFrom(obj, key).fold(function () {
+      var v = get(obj, key).fold(function () {
         return fallbackThunk(obj);
       }, identity);
       return SimpleResult.svalue(v);
     };
     var optionAccess = function (obj, key) {
-      return SimpleResult.svalue(readOptFrom(obj, key));
+      return SimpleResult.svalue(get(obj, key));
     };
     var optionDefaultedAccess = function (obj, key, fallback) {
-      var opt = readOptFrom(obj, key).map(function (val) {
+      var opt = get(obj, key).map(function (val) {
         return val === true ? fallback(obj) : val;
       });
       return SimpleResult.svalue(opt);
@@ -1098,13 +1078,9 @@
       var toString = function () {
         return getDelegate().toString();
       };
-      var toDsl = function () {
-        return getDelegate().toDsl();
-      };
       return {
         extract: extract,
-        toString: toString,
-        toDsl: toDsl
+        toString: toString
       };
     };
     var value$1 = function (validator) {
@@ -1116,20 +1092,15 @@
       var toString = function () {
         return 'val';
       };
-      var toDsl = function () {
-        return typeAdt.itemOf(validator);
-      };
       return {
         extract: extract,
-        toString: toString,
-        toDsl: toDsl
+        toString: toString
       };
     };
     var getSetKeys = function (obj) {
-      var keys$1 = keys(obj);
-      return filter(keys$1, function (k) {
-        return hasKey$1(obj, k);
-      });
+      return keys(filter$1(obj, function (value) {
+        return value !== undefined && value !== null;
+      }));
     };
     var objOfOnly = function (fields) {
       var delegate = objOf(fields);
@@ -1141,14 +1112,13 @@
       var extract = function (path, strength, o) {
         var keys = isBoolean(o) ? [] : getSetKeys(o);
         var extra = filter(keys, function (k) {
-          return !hasKey$1(fieldNames, k);
+          return !hasNonNullableKey(fieldNames, k);
         });
         return extra.length === 0 ? delegate.extract(path, strength, o) : unsupportedFields(path, extra);
       };
       return {
         extract: extract,
-        toString: delegate.toString,
-        toDsl: delegate.toDsl
+        toString: delegate.toString
       };
     };
     var objOf = function (fields) {
@@ -1159,25 +1129,15 @@
         var fieldStrings = map(fields, function (field) {
           return field.fold(function (key, okey, presence, prop) {
             return key + ' -> ' + prop.toString();
-          }, function (okey, instantiator) {
+          }, function (okey, _instantiator) {
             return 'state(' + okey + ')';
           });
         });
         return 'obj{\n' + fieldStrings.join('\n') + '}';
       };
-      var toDsl = function () {
-        return typeAdt.objOf(map(fields, function (f) {
-          return f.fold(function (key, okey, presence, prop) {
-            return fieldAdt.field(key, presence, prop);
-          }, function (okey, instantiator) {
-            return fieldAdt.state(okey);
-          });
-        }));
-      };
       return {
         extract: extract,
-        toString: toString,
-        toDsl: toDsl
+        toString: toString
       };
     };
     var arrOf = function (prop) {
@@ -1190,13 +1150,32 @@
       var toString = function () {
         return 'array(' + prop.toString() + ')';
       };
-      var toDsl = function () {
-        return typeAdt.arrOf(prop);
+      return {
+        extract: extract,
+        toString: toString
+      };
+    };
+    var oneOf = function (props) {
+      var extract = function (path, strength, val) {
+        var errors = [];
+        for (var _i = 0, props_1 = props; _i < props_1.length; _i++) {
+          var prop = props_1[_i];
+          var res = prop.extract(path, strength, val);
+          if (res.stype === SimpleResultType.Value) {
+            return res;
+          }
+          errors.push(res);
+        }
+        return ResultCombine.consolidateArr(errors);
+      };
+      var toString = function () {
+        return 'oneOf(' + map(props, function (prop) {
+          return prop.toString();
+        }).join(', ') + ')';
       };
       return {
         extract: extract,
-        toString: toString,
-        toDsl: toDsl
+        toString: toString
       };
     };
     var setOf = function (validator, prop) {
@@ -1216,13 +1195,9 @@
       var toString = function () {
         return 'setOf(' + prop.toString() + ')';
       };
-      var toDsl = function () {
-        return typeAdt.setOf(validator, prop);
-      };
       return {
         extract: extract,
-        toString: toString,
-        toDsl: toDsl
+        toString: toString
       };
     };
     var anyValue = constant(value$1(SimpleResult.svalue));
@@ -1231,7 +1206,7 @@
     var field = adt$1.field;
 
     var chooseFrom = function (path, strength, input, branches, ch) {
-      var fields = readOptFrom$1(branches, ch);
+      var fields = get(branches, ch);
       return fields.fold(function () {
         return missingBranch(path, branches, ch);
       }, function (vp) {
@@ -1240,7 +1215,7 @@
     };
     var choose = function (key, branches) {
       var extract = function (path, strength, input) {
-        var choice = readOptFrom$1(input, key);
+        var choice = get(input, key);
         return choice.fold(function () {
           return missingKey(path, key);
         }, function (chosen) {
@@ -1250,13 +1225,9 @@
       var toString = function () {
         return 'chooseOn(' + key + '). Possible values: ' + keys(branches);
       };
-      var toDsl = function () {
-        return typeAdt.choiceOf(key, branches);
-      };
       return {
         extract: extract,
-        toString: toString,
-        toDsl: toDsl
+        toString: toString
       };
     };
 
@@ -1299,7 +1270,7 @@
       return getOrDie(asRaw(label, prop, obj));
     };
     var formatError = function (errInfo) {
-      return 'Errors: \n' + formatErrors(errInfo.errors) + '\n\nInput object: ' + formatObj(errInfo.input);
+      return 'Errors: \n' + formatErrors(errInfo.errors).join('\n') + '\n\nInput object: ' + formatObj(errInfo.input);
     };
     var chooseProcessor = function (key, branches) {
       return choose(key, branches);
@@ -1388,7 +1359,7 @@
       return strictOf(key, functionProcessor);
     };
     var forbid = function (key, message) {
-      return field(key, key, asOption(), value$1(function (v) {
+      return field(key, key, asOption(), value$1(function (_v) {
         return SimpleResult.serror('The field: ' + key + ' is forbidden. ' + message);
       }));
     };
@@ -1467,13 +1438,9 @@
       var set = function (v) {
         value = v;
       };
-      var clone = function () {
-        return Cell(get());
-      };
       return {
         get: get,
-        set: set,
-        clone: clone
+        set: set
       };
     };
 
@@ -1518,15 +1485,8 @@
     var compareDocumentPosition = function (a, b, match) {
       return (a.compareDocumentPosition(b) & match) !== 0;
     };
-    var documentPositionPreceding = function (a, b) {
-      return compareDocumentPosition(a, b, domGlobals.Node.DOCUMENT_POSITION_PRECEDING);
-    };
     var documentPositionContainedBy = function (a, b) {
       return compareDocumentPosition(a, b, domGlobals.Node.DOCUMENT_POSITION_CONTAINED_BY);
-    };
-    var Node = {
-      documentPositionPreceding: documentPositionPreceding,
-      documentPositionContainedBy: documentPositionContainedBy
     };
 
     var firstMatch = function (regexes, s) {
@@ -1579,11 +1539,6 @@
     var opera = 'Opera';
     var firefox = 'Firefox';
     var safari = 'Safari';
-    var isBrowser = function (name, current) {
-      return function () {
-        return current === name;
-      };
-    };
     var unknown$1 = function () {
       return nu$2({
         current: undefined,
@@ -1593,15 +1548,20 @@
     var nu$2 = function (info) {
       var current = info.current;
       var version = info.version;
+      var isBrowser = function (name) {
+        return function () {
+          return current === name;
+        };
+      };
       return {
         current: current,
         version: version,
-        isEdge: isBrowser(edge, current),
-        isChrome: isBrowser(chrome, current),
-        isIE: isBrowser(ie, current),
-        isOpera: isBrowser(opera, current),
-        isFirefox: isBrowser(firefox, current),
-        isSafari: isBrowser(safari, current)
+        isEdge: isBrowser(edge),
+        isChrome: isBrowser(chrome),
+        isIE: isBrowser(ie),
+        isOpera: isBrowser(opera),
+        isFirefox: isBrowser(firefox),
+        isSafari: isBrowser(safari)
       };
     };
     var Browser = {
@@ -1622,11 +1582,7 @@
     var osx = 'OSX';
     var solaris = 'Solaris';
     var freebsd = 'FreeBSD';
-    var isOS = function (name, current) {
-      return function () {
-        return current === name;
-      };
-    };
+    var chromeos = 'ChromeOS';
     var unknown$2 = function () {
       return nu$3({
         current: undefined,
@@ -1636,16 +1592,22 @@
     var nu$3 = function (info) {
       var current = info.current;
       var version = info.version;
+      var isOS = function (name) {
+        return function () {
+          return current === name;
+        };
+      };
       return {
         current: current,
         version: version,
-        isWindows: isOS(windows, current),
-        isiOS: isOS(ios, current),
-        isAndroid: isOS(android, current),
-        isOSX: isOS(osx, current),
-        isLinux: isOS(linux, current),
-        isSolaris: isOS(solaris, current),
-        isFreeBSD: isOS(freebsd, current)
+        isWindows: isOS(windows),
+        isiOS: isOS(ios),
+        isAndroid: isOS(android),
+        isOSX: isOS(osx),
+        isLinux: isOS(linux),
+        isSolaris: isOS(solaris),
+        isFreeBSD: isOS(freebsd),
+        isChromeOS: isOS(chromeos)
       };
     };
     var OperatingSystem = {
@@ -1657,7 +1619,8 @@
       linux: constant(linux),
       osx: constant(osx),
       solaris: constant(solaris),
-      freebsd: constant(freebsd)
+      freebsd: constant(freebsd),
+      chromeos: constant(chromeos)
     };
 
     var DeviceType = function (os, browser, userAgent, mediaMatch) {
@@ -1712,14 +1675,7 @@
     };
 
     var checkRange = function (str, substr, start) {
-      if (substr === '') {
-        return true;
-      }
-      if (str.length < substr.length) {
-        return false;
-      }
-      var x = str.substr(start, start + substr.length);
-      return x === substr;
+      return substr === '' || str.length >= substr.length && str.substr(start, start + substr.length) === substr;
     };
     var contains$1 = function (str, substr) {
       return str.indexOf(substr) !== -1;
@@ -1727,9 +1683,12 @@
     var endsWith = function (str, suffix) {
       return checkRange(str, suffix, str.length - suffix.length);
     };
-    var trim = function (str) {
-      return str.replace(/^\s+|\s+$/g, '');
+    var blank = function (r) {
+      return function (s) {
+        return s.replace(r, '');
+      };
     };
+    var trim = blank(/^\s+|\s+$/g);
 
     var normalVersionRegex = /.*?version\/\ ?([0-9]+)\.([0-9]+).*/;
     var checkContains = function (target) {
@@ -1813,8 +1772,8 @@
       },
       {
         name: 'OSX',
-        search: checkContains('os x'),
-        versionRegexes: [/.*?os\ x\ ?([0-9]+)_([0-9]+).*/]
+        search: checkContains('mac os x'),
+        versionRegexes: [/.*?mac\ os\ x\ ?([0-9]+)_([0-9]+).*/]
       },
       {
         name: 'Linux',
@@ -1830,6 +1789,11 @@
         name: 'FreeBSD',
         search: checkContains('freebsd'),
         versionRegexes: []
+      },
+      {
+        name: 'ChromeOS',
+        search: checkContains('cros'),
+        versionRegexes: [/.*?chrome\/([0-9]+)\.([0-9]+).*/]
       }
     ];
     var PlatformInfo = {
@@ -1854,23 +1818,16 @@
     var mediaMatch = function (query) {
       return domGlobals.window.matchMedia(query).matches;
     };
-    var platform = Cell(PlatformDetection.detect(domGlobals.navigator.userAgent, mediaMatch));
+    var platform = cached(function () {
+      return PlatformDetection.detect(domGlobals.navigator.userAgent, mediaMatch);
+    });
     var detect$3 = function () {
-      return platform.get();
+      return platform();
     };
 
-    var ATTRIBUTE = domGlobals.Node.ATTRIBUTE_NODE;
-    var CDATA_SECTION = domGlobals.Node.CDATA_SECTION_NODE;
-    var COMMENT = domGlobals.Node.COMMENT_NODE;
-    var DOCUMENT = domGlobals.Node.DOCUMENT_NODE;
-    var DOCUMENT_TYPE = domGlobals.Node.DOCUMENT_TYPE_NODE;
-    var DOCUMENT_FRAGMENT = domGlobals.Node.DOCUMENT_FRAGMENT_NODE;
-    var ELEMENT = domGlobals.Node.ELEMENT_NODE;
-    var TEXT = domGlobals.Node.TEXT_NODE;
-    var PROCESSING_INSTRUCTION = domGlobals.Node.PROCESSING_INSTRUCTION_NODE;
-    var ENTITY_REFERENCE = domGlobals.Node.ENTITY_REFERENCE_NODE;
-    var ENTITY = domGlobals.Node.ENTITY_NODE;
-    var NOTATION = domGlobals.Node.NOTATION_NODE;
+    var DOCUMENT = 9;
+    var ELEMENT = 1;
+    var TEXT = 3;
 
     var ELEMENT$1 = ELEMENT;
     var DOCUMENT$1 = DOCUMENT;
@@ -1905,7 +1862,7 @@
       return bypassSelector(base) ? Option.none() : Option.from(base.querySelector(selector)).map(Element.fromDom);
     };
 
-    var eq = function (e1, e2) {
+    var eq$1 = function (e1, e2) {
       return e1.dom() === e2.dom();
     };
     var regularContains = function (e1, e2) {
@@ -1914,17 +1871,44 @@
       return d1 === d2 ? false : d1.contains(d2);
     };
     var ieContains = function (e1, e2) {
-      return Node.documentPositionContainedBy(e1.dom(), e2.dom());
+      return documentPositionContainedBy(e1.dom(), e2.dom());
     };
-    var browser = detect$3().browser;
-    var contains$2 = browser.isIE() ? ieContains : regularContains;
+    var contains$2 = function (e1, e2) {
+      return detect$3().browser.isIE() ? ieContains(e1, e2) : regularContains(e1, e2);
+    };
+
+    var ensureIsRoot = function (isRoot) {
+      return isFunction(isRoot) ? isRoot : constant(false);
+    };
+    var ancestor = function (scope, transform, isRoot) {
+      var element = scope.dom();
+      var stop = ensureIsRoot(isRoot);
+      while (element.parentNode) {
+        element = element.parentNode;
+        var el = Element.fromDom(element);
+        var transformed = transform(el);
+        if (transformed.isSome()) {
+          return transformed;
+        } else if (stop(el)) {
+          break;
+        }
+      }
+      return Option.none();
+    };
+    var closest = function (scope, transform, isRoot) {
+      var current = transform(scope);
+      var stop = ensureIsRoot(isRoot);
+      return current.orThunk(function () {
+        return stop(scope) ? Option.none() : ancestor(scope, transform, stop);
+      });
+    };
 
     var isSource = function (component, simulatedEvent) {
-      return eq(component.element(), simulatedEvent.event().target());
+      return eq$1(component.element(), simulatedEvent.event().target());
     };
 
     var nu$4 = function (parts) {
-      if (!hasKey$1(parts, 'can') && !hasKey$1(parts, 'abort') && !hasKey$1(parts, 'run')) {
+      if (!hasNonNullableKey(parts, 'can') && !hasNonNullableKey(parts, 'abort') && !hasNonNullableKey(parts, 'run')) {
         throw new Error('EventHandler defined by: ' + JSON.stringify(parts, null, 2) + ' does not have can, abort, or run!');
       }
       return asRawOrDie('Extracting event.handler', objOfOnly([
@@ -1988,6 +1972,7 @@
     var touchstart = constant('touchstart');
     var touchmove = constant('touchmove');
     var touchend = constant('touchend');
+    var touchcancel = constant('touchcancel');
     var mousedown = constant('mousedown');
     var mousemove = constant('mousemove');
     var mouseout = constant('mouseout');
@@ -2011,7 +1996,6 @@
     var execute = constant('alloy.execute');
     var focusItem = constant('alloy.focus.item');
     var tap = alloy.tap;
-    var tapOrClick = detect$3().deviceType.isTouch() ? alloy.tap : click;
     var longpress = constant('alloy.longpress');
     var sandboxClose = constant('alloy.sandbox.close');
     var typeaheadCancel = constant('alloy.typeahead.cancel');
@@ -2051,86 +2035,6 @@
       component.getSystem().triggerEvent(event, target, simulatedEvent.event());
     };
 
-    function ClosestOrAncestor (is, ancestor, scope, a, isRoot) {
-      return is(scope, a) ? Option.some(scope) : isFunction(isRoot) && isRoot(scope) ? Option.none() : ancestor(scope, a, isRoot);
-    }
-
-    var Global = typeof domGlobals.window !== 'undefined' ? domGlobals.window : Function('return this;')();
-
-    var name = function (element) {
-      var r = element.dom().nodeName;
-      return r.toLowerCase();
-    };
-    var type = function (element) {
-      return element.dom().nodeType;
-    };
-    var isType$1 = function (t) {
-      return function (element) {
-        return type(element) === t;
-      };
-    };
-    var isElement = isType$1(ELEMENT);
-    var isText = isType$1(TEXT);
-
-    var inBody = function (element) {
-      var dom = isText(element) ? element.dom().parentNode : element.dom();
-      return dom !== undefined && dom !== null && dom.ownerDocument.body.contains(dom);
-    };
-    var body = cached(function () {
-      return getBody(Element.fromDom(domGlobals.document));
-    });
-    var getBody = function (doc) {
-      var b = doc.dom().body;
-      if (b === null || b === undefined) {
-        throw new Error('Body is not available yet');
-      }
-      return Element.fromDom(b);
-    };
-
-    var ancestor = function (scope, predicate, isRoot) {
-      var element = scope.dom();
-      var stop = isFunction(isRoot) ? isRoot : constant(false);
-      while (element.parentNode) {
-        element = element.parentNode;
-        var el = Element.fromDom(element);
-        if (predicate(el)) {
-          return Option.some(el);
-        } else if (stop(el)) {
-          break;
-        }
-      }
-      return Option.none();
-    };
-    var closest = function (scope, predicate, isRoot) {
-      var is = function (s, test) {
-        return test(s);
-      };
-      return ClosestOrAncestor(is, ancestor, scope, predicate, isRoot);
-    };
-    var descendant = function (scope, predicate) {
-      var descend = function (node) {
-        for (var i = 0; i < node.childNodes.length; i++) {
-          var child_1 = Element.fromDom(node.childNodes[i]);
-          if (predicate(child_1)) {
-            return Option.some(child_1);
-          }
-          var res = descend(node.childNodes[i]);
-          if (res.isSome()) {
-            return res;
-          }
-        }
-        return Option.none();
-      };
-      return descend(scope.dom());
-    };
-
-    var closest$1 = function (target, transform, isRoot) {
-      var delegate = closest(target, function (elem) {
-        return transform(elem).isSome();
-      }, isRoot);
-      return delegate.bind(transform);
-    };
-
     var derive = function (configs) {
       return wrapAll$1(configs);
     };
@@ -2166,8 +2070,11 @@
       return {
         key: name,
         value: nu$4({
-          run: function (component) {
-            action.apply(undefined, [component].concat(extra));
+          run: function (component, simulatedEvent) {
+            action.apply(undefined, [
+              component,
+              simulatedEvent
+            ].concat(extra));
           }
         })
       };
@@ -2206,10 +2113,10 @@
       return run(name, function (component, simulatedEvent) {
         var ev = simulatedEvent.event();
         var target = component.getSystem().getByDom(ev.target()).fold(function () {
-          var closest = closest$1(ev.target(), function (el) {
+          var closest$1 = closest(ev.target(), function (el) {
             return component.getSystem().getByDom(el).toOption();
           }, constant(false));
-          return closest.getOr(component);
+          return closest$1.getOr(component);
         }, function (c) {
           return c;
         });
@@ -2233,89 +2140,6 @@
     var runOnDetached = runOnSourceName(detachedFromDom());
     var runOnInit = runOnSourceName(systemInit());
     var runOnExecute = runOnName(execute());
-
-    var Immutable = function () {
-      var fields = [];
-      for (var _i = 0; _i < arguments.length; _i++) {
-        fields[_i] = arguments[_i];
-      }
-      return function () {
-        var values = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-          values[_i] = arguments[_i];
-        }
-        if (fields.length !== values.length) {
-          throw new Error('Wrong number of arguments to struct. Expected "[' + fields.length + ']", got ' + values.length + ' arguments');
-        }
-        var struct = {};
-        each(fields, function (name, i) {
-          struct[name] = constant(values[i]);
-        });
-        return struct;
-      };
-    };
-
-    var sort$1 = function (arr) {
-      return arr.slice(0).sort();
-    };
-    var reqMessage = function (required, keys) {
-      throw new Error('All required keys (' + sort$1(required).join(', ') + ') were not specified. Specified keys were: ' + sort$1(keys).join(', ') + '.');
-    };
-    var unsuppMessage = function (unsupported) {
-      throw new Error('Unsupported keys for object: ' + sort$1(unsupported).join(', '));
-    };
-    var validateStrArr = function (label, array) {
-      if (!isArray(array)) {
-        throw new Error('The ' + label + ' fields must be an array. Was: ' + array + '.');
-      }
-      each(array, function (a) {
-        if (!isString(a)) {
-          throw new Error('The value ' + a + ' in the ' + label + ' fields was not a string.');
-        }
-      });
-    };
-    var checkDupes = function (everything) {
-      var sorted = sort$1(everything);
-      var dupe = find(sorted, function (s, i) {
-        return i < sorted.length - 1 && s === sorted[i + 1];
-      });
-      dupe.each(function (d) {
-        throw new Error('The field: ' + d + ' occurs more than once in the combined fields: [' + sorted.join(', ') + '].');
-      });
-    };
-
-    var MixedBag = function (required, optional) {
-      var everything = required.concat(optional);
-      if (everything.length === 0) {
-        throw new Error('You must specify at least one required or optional field.');
-      }
-      validateStrArr('required', required);
-      validateStrArr('optional', optional);
-      checkDupes(everything);
-      return function (obj) {
-        var keys$1 = keys(obj);
-        var allReqd = forall(required, function (req) {
-          return contains(keys$1, req);
-        });
-        if (!allReqd) {
-          reqMessage(required, keys$1);
-        }
-        var unsupported = filter(keys$1, function (key) {
-          return !contains(everything, key);
-        });
-        if (unsupported.length > 0) {
-          unsuppMessage(unsupported);
-        }
-        var r = {};
-        each(required, function (req) {
-          r[req] = constant(obj[req]);
-        });
-        each(optional, function (opt) {
-          r[opt] = constant(Object.prototype.hasOwnProperty.call(obj, opt) ? Option.some(obj[opt]) : Option.none());
-        });
-        return r;
-      };
-    };
 
     var owner = function (element) {
       return Element.fromDom(element.dom().ownerDocument);
@@ -2344,14 +2168,6 @@
     };
     var firstChild = function (element) {
       return child(element, 0);
-    };
-    var spot = Immutable('element', 'offset');
-
-    var fromHtml$1 = function (html, scope) {
-      var doc = scope || domGlobals.document;
-      var div = doc.createElement('div');
-      div.innerHTML = html;
-      return children(Element.fromDom(div));
     };
 
     var before = function (marker, element) {
@@ -2421,6 +2237,13 @@
       remove(wrapper);
     };
 
+    var fromHtml$1 = function (html, scope) {
+      var doc = scope || domGlobals.document;
+      var div = doc.createElement('div');
+      div.innerHTML = html;
+      return children(Element.fromDom(div));
+    };
+
     var get$1 = function (element) {
       return element.dom().innerHTML;
     };
@@ -2439,6 +2262,23 @@
       append(container, clone);
       return get$1(container);
     };
+
+    var Global = typeof domGlobals.window !== 'undefined' ? domGlobals.window : Function('return this;')();
+
+    var name = function (element) {
+      var r = element.dom().nodeName;
+      return r.toLowerCase();
+    };
+    var type = function (element) {
+      return element.dom().nodeType;
+    };
+    var isType$1 = function (t) {
+      return function (element) {
+        return type(element) === t;
+      };
+    };
+    var isElement = isType$1(ELEMENT);
+    var isText = isType$1(TEXT);
 
     var rawSet = function (dom, key, value) {
       if (isString(value) || isBoolean(value) || isNumber(value)) {
@@ -2460,6 +2300,9 @@
     var get$2 = function (element, key) {
       var v = element.dom().getAttribute(key);
       return v === null ? undefined : v;
+    };
+    var getOpt = function (element, key) {
+      return Option.from(get$2(element, key));
     };
     var has$1 = function (element, key) {
       var dom = element.dom();
@@ -2486,7 +2329,7 @@
     };
 
     var isRecursive = function (component, originator, target) {
-      return eq(originator, component.element()) && !eq(originator, target);
+      return eq$1(originator, component.element()) && !eq$1(originator, target);
     };
     var events = derive([can(focus(), function (component, simulatedEvent) {
         var originator = simulatedEvent.event().originator();
@@ -2500,6 +2343,7 @@
       })]);
 
     var DefaultEvents = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         events: events
     });
 
@@ -2541,7 +2385,7 @@
     var NoContextApi = function (getComp) {
       var fail = function (event) {
         return function () {
-          throw new Error('The component must be in a context to send: ' + event + '\n' + element(getComp().element()) + ' is not in context.');
+          throw new Error('The component must be in a context to send: ' + event + (getComp ? '\n' + element(getComp().element()) + ' is not in context.' : ''));
         };
       };
       return {
@@ -2614,7 +2458,7 @@
       return wrap$1(premadeTag, comp);
     };
     var getPremade = function (spec) {
-      return readOptFrom$1(spec, premadeTag);
+      return get(spec, premadeTag);
     };
     var makeApi = function (f) {
       return markAsSketchApi(function (component) {
@@ -2622,7 +2466,10 @@
         for (var _i = 1; _i < arguments.length; _i++) {
           rest[_i - 1] = arguments[_i];
         }
-        return f.apply(undefined, [component.getApis()].concat([component].concat(rest)));
+        return f.apply(void 0, __spreadArrays([
+          component.getApis(),
+          component
+        ], rest));
       }, f);
     };
 
@@ -2654,8 +2501,7 @@
       return {
         list: all,
         data: map$1(validated, function (optBlobThunk) {
-          var optBlob = optBlobThunk;
-          var output = optBlob.map(function (blob) {
+          var output = optBlobThunk.map(function (blob) {
             return {
               config: blob.config,
               state: blob.state.init(blob.config)
@@ -2678,7 +2524,7 @@
       var r = {};
       each$1(data, function (detail, key) {
         each$1(detail, function (value, indexKey) {
-          var chain = readOr$1(indexKey, [])(r);
+          var chain = get(r, indexKey).getOr([]);
           r[indexKey] = chain.concat([tuple(key, value)]);
         });
       });
@@ -2705,13 +2551,12 @@
       each(behaviours, function (behaviour) {
         modsByBehaviour[behaviour.name()] = behaviour.exhibit(info, base);
       });
-      var nameAndMod = function (name, modification) {
+      var byAspect = byInnerKey(modsByBehaviour, function (name, modification) {
         return {
           name: name,
           modification: modification
         };
-      };
-      var byAspect = byInnerKey(modsByBehaviour, nameAndMod);
+      });
       var combineObjects = function (objects) {
         return foldr(objects, function (b, a) {
           return __assign(__assign({}, a.modification), b);
@@ -2730,9 +2575,8 @@
     };
 
     var sortKeys = function (label, keyName, array, order) {
-      var sliced = array.slice(0);
       try {
-        var sorted = sliced.sort(function (a, b) {
+        var sorted = sort(array, function (a, b) {
           var aKey = a[keyName]();
           var bKey = b[keyName]();
           var aIndex = order.indexOf(aKey);
@@ -2898,9 +2742,18 @@
             'alloy.base.behaviour',
             'item-type-events'
           ],
+          'touchstart': [
+            'focusing',
+            'alloy.base.behaviour',
+            'item-type-events'
+          ],
           'mouseover': [
             'item-type-events',
             'tooltipping'
+          ],
+          'alloy.receive': [
+            'receiving',
+            'reflecting'
           ]
         }), anyValue$1()),
         option('domModification')
@@ -2999,6 +2852,21 @@
       return dom.style !== undefined && isFunction(dom.style.getPropertyValue);
     };
 
+    var inBody = function (element) {
+      var dom = isText(element) ? element.dom().parentNode : element.dom();
+      return dom !== undefined && dom !== null && dom.ownerDocument.body.contains(dom);
+    };
+    var body = function () {
+      return getBody(Element.fromDom(domGlobals.document));
+    };
+    var getBody = function (doc) {
+      var b = doc.dom().body;
+      if (b === null || b === undefined) {
+        throw new Error('Body is not available yet');
+      }
+      return Element.fromDom(b);
+    };
+
     var internalSet = function (dom, property, value) {
       if (!isString(value)) {
         domGlobals.console.error('Invalid call to CSS.set. Property ', property, ':: Value ', value, ':: Element ', dom);
@@ -3037,8 +2905,7 @@
       var dom = element.dom();
       var styles = domGlobals.window.getComputedStyle(dom);
       var r = styles.getPropertyValue(property);
-      var v = r === '' && !inBody(element) ? getUnsafeProperty(dom, property) : r;
-      return v === null ? undefined : v;
+      return r === '' && !inBody(element) ? getUnsafeProperty(dom, property) : r;
     };
     var getUnsafeProperty = function (dom, property) {
       return isSupported(dom) ? dom.style.getPropertyValue(property) : '';
@@ -3050,6 +2917,17 @@
         return r.length > 0;
       });
     };
+    var getAllRaw = function (element) {
+      var css = {};
+      var dom = element.dom();
+      if (isSupported(dom)) {
+        for (var i = 0; i < dom.style.length; i++) {
+          var ruleName = dom.style.item(i);
+          css[ruleName] = dom.style[ruleName];
+        }
+      }
+      return css;
+    };
     var isValidValue = function (tag, property, value) {
       var element = Element.fromTag(tag);
       set$2(element, property, value);
@@ -3059,7 +2937,7 @@
     var remove$6 = function (element, property) {
       var dom = element.dom();
       internalRemove(dom, property);
-      if (has$1(element, 'style') && trim(get$2(element, 'style')) === '') {
+      if (getOpt(element, 'style').map(trim).is('')) {
         remove$1(element, 'style');
       }
     };
@@ -3098,7 +2976,7 @@
     };
 
     var getBehaviours$1 = function (spec) {
-      var behaviours = readOr$1('behaviours', {})(spec);
+      var behaviours = get(spec, 'behaviours').getOr({});
       var keys$1 = filter(keys(behaviours), function (k) {
         return behaviours[k] !== undefined;
       });
@@ -3191,7 +3069,7 @@
     };
 
     var buildSubcomponents = function (spec) {
-      var components = readOr$1('components', [])(spec);
+      var components = get(spec, 'components').getOr([]);
       return map(components, build$1);
     };
     var buildFromSpec = function (userSpec) {
@@ -3333,7 +3211,11 @@
       return Position(box.left, box.top);
     };
     var firstDefinedOrZero = function (a, b) {
-      return a !== undefined ? a : b !== undefined ? b : 0;
+      if (a !== undefined) {
+        return a;
+      } else {
+        return b !== undefined ? b : 0;
+      }
     };
     var absolute = function (element) {
       var doc = element.dom().ownerDocument;
@@ -3366,7 +3248,7 @@
       return element.dom().offsetWidth;
     });
     var set$4 = function (element, h) {
-      api$1.set(element, h);
+      return api$1.set(element, h);
     };
     var get$7 = function (element) {
       return api$1.get(element);
@@ -3387,37 +3269,88 @@
       set$2(element, 'max-width', absMax + 'px');
     };
 
-    var isSafari = detect$3().browser.isSafari();
+    var mkEvent = function (target, x, y, stop, prevent, kill, raw) {
+      return {
+        target: constant(target),
+        x: constant(x),
+        y: constant(y),
+        stop: stop,
+        prevent: prevent,
+        kill: kill,
+        raw: constant(raw)
+      };
+    };
+    var fromRawEvent = function (rawEvent) {
+      var target = Element.fromDom(rawEvent.target);
+      var stop = function () {
+        return rawEvent.stopPropagation();
+      };
+      var prevent = function () {
+        return rawEvent.preventDefault();
+      };
+      var kill = compose(prevent, stop);
+      return mkEvent(target, rawEvent.clientX, rawEvent.clientY, stop, prevent, kill, rawEvent);
+    };
+    var handle = function (filter, handler) {
+      return function (rawEvent) {
+        if (filter(rawEvent)) {
+          handler(fromRawEvent(rawEvent));
+        }
+      };
+    };
+    var binder = function (element, event, filter, handler, useCapture) {
+      var wrapped = handle(filter, handler);
+      element.dom().addEventListener(event, wrapped, useCapture);
+      return { unbind: curry(unbind, element, event, wrapped, useCapture) };
+    };
+    var bind$2 = function (element, event, filter, handler) {
+      return binder(element, event, filter, handler, false);
+    };
+    var capture = function (element, event, filter, handler) {
+      return binder(element, event, filter, handler, true);
+    };
+    var unbind = function (element, event, handler, useCapture) {
+      element.dom().removeEventListener(event, handler, useCapture);
+    };
+
     var get$8 = function (_DOC) {
       var doc = _DOC !== undefined ? _DOC.dom() : domGlobals.document;
       var x = doc.body.scrollLeft || doc.documentElement.scrollLeft;
       var y = doc.body.scrollTop || doc.documentElement.scrollTop;
       return Position(x, y);
     };
+    var to = function (x, y, _DOC) {
+      var doc = _DOC !== undefined ? _DOC.dom() : domGlobals.document;
+      var win = doc.defaultView;
+      win.scrollTo(x, y);
+    };
 
+    var get$9 = function (_win) {
+      var win = _win === undefined ? domGlobals.window : _win;
+      return Option.from(win['visualViewport']);
+    };
     var bounds = function (x, y, width, height) {
       return {
-        x: constant(x),
-        y: constant(y),
-        width: constant(width),
-        height: constant(height),
-        right: constant(x + width),
-        bottom: constant(y + height)
+        x: x,
+        y: y,
+        width: width,
+        height: height,
+        right: x + width,
+        bottom: y + height
       };
     };
     var getBounds = function (_win) {
       var win = _win === undefined ? domGlobals.window : _win;
-      var visualViewport = win['visualViewport'];
-      if (visualViewport !== undefined) {
-        return bounds(visualViewport.pageLeft, visualViewport.pageTop, visualViewport.width, visualViewport.height);
-      } else {
-        var doc = Element.fromDom(win.document);
+      var doc = win.document;
+      var scroll = get$8(Element.fromDom(doc));
+      return get$9(win).fold(function () {
         var html = win.document.documentElement;
-        var scroll = get$8(doc);
         var width = html.clientWidth;
         var height = html.clientHeight;
         return bounds(scroll.left(), scroll.top(), width, height);
-      }
+      }, function (visualViewport) {
+        return bounds(Math.max(visualViewport.pageLeft, scroll.left()), Math.max(visualViewport.pageTop, scroll.top()), visualViewport.width, visualViewport.height);
+      });
     };
 
     var walkUp = function (navigation, doc) {
@@ -3443,6 +3376,7 @@
     };
 
     var Navigation = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         view: view,
         owner: owner$1
     });
@@ -3467,16 +3401,29 @@
       });
     };
 
-    var pointed = Immutable('point', 'width', 'height');
-    var rect = Immutable('x', 'y', 'width', 'height');
+    var pointed = function (point, width, height) {
+      return {
+        point: point,
+        width: width,
+        height: height
+      };
+    };
+    var rect = function (x, y, width, height) {
+      return {
+        x: x,
+        y: y,
+        width: width,
+        height: height
+      };
+    };
     var bounds$1 = function (x, y, width, height) {
       return {
-        x: constant(x),
-        y: constant(y),
-        width: constant(width),
-        height: constant(height),
-        right: constant(x + width),
-        bottom: constant(y + height)
+        x: x,
+        y: y,
+        width: width,
+        height: height,
+        right: x + width,
+        bottom: y + height
       };
     };
     var box = function (element) {
@@ -3495,12 +3442,53 @@
       return getBounds(domGlobals.window);
     };
 
-    var closest$2 = function (scope, predicate, isRoot) {
-      return closest(scope, predicate, isRoot).isSome();
+    function ClosestOrAncestor (is, ancestor, scope, a, isRoot) {
+      return is(scope, a) ? Option.some(scope) : isFunction(isRoot) && isRoot(scope) ? Option.none() : ancestor(scope, a, isRoot);
+    }
+
+    var ancestor$1 = function (scope, predicate, isRoot) {
+      var element = scope.dom();
+      var stop = isFunction(isRoot) ? isRoot : constant(false);
+      while (element.parentNode) {
+        element = element.parentNode;
+        var el = Element.fromDom(element);
+        if (predicate(el)) {
+          return Option.some(el);
+        } else if (stop(el)) {
+          break;
+        }
+      }
+      return Option.none();
+    };
+    var closest$1 = function (scope, predicate, isRoot) {
+      var is = function (s, test) {
+        return test(s);
+      };
+      return ClosestOrAncestor(is, ancestor$1, scope, predicate, isRoot);
+    };
+    var descendant = function (scope, predicate) {
+      var descend = function (node) {
+        for (var i = 0; i < node.childNodes.length; i++) {
+          var child_1 = Element.fromDom(node.childNodes[i]);
+          if (predicate(child_1)) {
+            return Option.some(child_1);
+          }
+          var res = descend(node.childNodes[i]);
+          if (res.isSome()) {
+            return res;
+          }
+        }
+        return Option.none();
+      };
+      return descend(scope.dom());
     };
 
-    var ancestor$1 = function (scope, selector, isRoot) {
-      return ancestor(scope, function (e) {
+    var closest$2 = function (scope, predicate, isRoot) {
+      return closest$1(scope, predicate, isRoot).isSome();
+    };
+
+    var ancestor$2 = function (scope, selector, isRoot) {
+      return ancestor$1(scope, function (e) {
         return is(e, selector);
       }, isRoot);
     };
@@ -3508,11 +3496,14 @@
       return one(selector, scope);
     };
     var closest$3 = function (scope, selector, isRoot) {
-      return ClosestOrAncestor(is, ancestor$1, scope, selector, isRoot);
+      var is$1 = function (element, selector) {
+        return is(element, selector);
+      };
+      return ClosestOrAncestor(is$1, ancestor$2, scope, selector, isRoot);
     };
 
     var find$4 = function (queryElem) {
-      var dependent = closest(queryElem, function (elem) {
+      var dependent = closest$1(queryElem, function (elem) {
         if (!isElement(elem)) {
           return false;
         }
@@ -3534,7 +3525,7 @@
         remove$1(elem, 'aria-owns');
       };
       return {
-        id: constant(ariaId),
+        id: ariaId,
         link: link,
         unlink: unlink
       };
@@ -3547,43 +3538,8 @@
     };
     var isPartOf = function (component, queryElem) {
       return closest$2(queryElem, function (el) {
-        return eq(el, component.element());
+        return eq$1(el, component.element());
       }, constant(false)) || isAriaPartOf(component, queryElem);
-    };
-
-    var cat = function (arr) {
-      var r = [];
-      var push = function (x) {
-        r.push(x);
-      };
-      for (var i = 0; i < arr.length; i++) {
-        arr[i].each(push);
-      }
-      return r;
-    };
-    var sequence = function (arr) {
-      var r = [];
-      for (var i = 0; i < arr.length; i++) {
-        var x = arr[i];
-        if (x.isSome()) {
-          r.push(x.getOrDie());
-        } else {
-          return Option.none();
-        }
-      }
-      return Option.some(r);
-    };
-    var findMap = function (arr, f) {
-      for (var i = 0; i < arr.length; i++) {
-        var r = f(arr[i], i);
-        if (r.isSome()) {
-          return r;
-        }
-      }
-      return Option.none();
-    };
-    var lift2 = function (oa, ob, f) {
-      return oa.isSome() && ob.isSome() ? Option.some(f(oa.getOrDie(), ob.getOrDie())) : Option.none();
     };
 
     var unknown$3 = 'unknown';
@@ -3598,34 +3554,34 @@
       var sequence = [];
       var startTime = new Date().getTime();
       return {
-        logEventCut: function (name, target, purpose) {
+        logEventCut: function (_name, target, purpose) {
           sequence.push({
             outcome: 'cut',
             target: target,
             purpose: purpose
           });
         },
-        logEventStopped: function (name, target, purpose) {
+        logEventStopped: function (_name, target, purpose) {
           sequence.push({
             outcome: 'stopped',
             target: target,
             purpose: purpose
           });
         },
-        logNoParent: function (name, target, purpose) {
+        logNoParent: function (_name, target, purpose) {
           sequence.push({
             outcome: 'no-parent',
             target: target,
             purpose: purpose
           });
         },
-        logEventNoHandlers: function (name, target) {
+        logEventNoHandlers: function (_name, target) {
           sequence.push({
             outcome: 'no-handlers-left',
             target: target
           });
         },
-        logEventResponse: function (name, target, purpose) {
+        logEventResponse: function (_name, target, purpose) {
           sequence.push({
             outcome: 'response',
             purpose: purpose,
@@ -3662,7 +3618,7 @@
       };
     };
     var processEvent = function (eventName, initialTarget, f) {
-      var status = readOptFrom$1(eventConfig.get(), eventName).orThunk(function () {
+      var status = get(eventConfig.get(), eventName).orThunk(function () {
         var patterns = keys(eventConfig.get());
         return findMap(patterns, function (p) {
           return eventName.indexOf(p) > -1 ? Option.some(eventConfig.get()[p]) : Option.none();
@@ -3767,7 +3723,16 @@
     };
     var initSize = constant(_initSize);
 
-    var nu$7 = Immutable('x', 'y', 'bubble', 'direction', 'label');
+    var nu$7 = function (x, y, bubble, direction, boundsRestriction, label) {
+      return {
+        x: constant(x),
+        y: constant(y),
+        bubble: constant(bubble),
+        direction: constant(direction),
+        boundsRestriction: constant(boundsRestriction),
+        label: constant(label)
+      };
+    };
 
     var adt$2 = Adt.generate([
       { southeast: [] },
@@ -3797,53 +3762,109 @@
     var east = adt$2.east;
     var west = adt$2.west;
 
+    var getRestriction = function (anchor, restriction) {
+      switch (restriction) {
+      case 1:
+        return anchor.x;
+      case 0:
+        return anchor.x + anchor.width;
+      case 2:
+        return anchor.y;
+      case 3:
+        return anchor.y + anchor.height;
+      }
+    };
+    var boundsRestriction = function (anchor, restrictions) {
+      return mapToObject([
+        'left',
+        'right',
+        'top',
+        'bottom'
+      ], function (dir) {
+        return get(restrictions, dir).map(function (restriction) {
+          return getRestriction(anchor, restriction);
+        });
+      });
+    };
+    var adjustBounds = function (bounds, boundsRestrictions, bubbleOffsets) {
+      var applyRestriction = function (dir, current) {
+        var bubbleOffset = dir === 'top' || dir === 'bottom' ? bubbleOffsets.top() : bubbleOffsets.left();
+        return get(boundsRestrictions, dir).bind(identity).bind(function (restriction) {
+          if (dir === 'left' || dir === 'top') {
+            return restriction >= current ? Option.some(restriction) : Option.none();
+          } else {
+            return restriction <= current ? Option.some(restriction) : Option.none();
+          }
+        }).map(function (restriction) {
+          return restriction + bubbleOffset;
+        }).getOr(current);
+      };
+      var adjustedLeft = applyRestriction('left', bounds.x);
+      var adjustedTop = applyRestriction('top', bounds.y);
+      var adjustedRight = applyRestriction('right', bounds.right);
+      var adjustedBottom = applyRestriction('bottom', bounds.bottom);
+      return bounds$1(adjustedLeft, adjustedTop, adjustedRight - adjustedLeft, adjustedBottom - adjustedTop);
+    };
+
     var eastX = function (anchor) {
-      return anchor.x();
+      return anchor.x;
     };
     var middleX = function (anchor, element) {
-      return anchor.x() + anchor.width() / 2 - element.width() / 2;
+      return anchor.x + anchor.width / 2 - element.width / 2;
     };
     var westX = function (anchor, element) {
-      return anchor.x() + anchor.width() - element.width();
+      return anchor.x + anchor.width - element.width;
     };
     var northY = function (anchor, element) {
-      return anchor.y() - element.height();
+      return anchor.y - element.height;
     };
     var southY = function (anchor) {
-      return anchor.y() + anchor.height();
+      return anchor.y + anchor.height;
     };
     var centreY = function (anchor, element) {
-      return anchor.y() + anchor.height() / 2 - element.height() / 2;
+      return anchor.y + anchor.height / 2 - element.height / 2;
     };
     var eastEdgeX = function (anchor) {
-      return anchor.x() + anchor.width();
+      return anchor.x + anchor.width;
     };
     var westEdgeX = function (anchor, element) {
-      return anchor.x() - element.width();
+      return anchor.x - element.width;
     };
     var southeast$1 = function (anchor, element, bubbles) {
-      return nu$7(eastX(anchor), southY(anchor), bubbles.southeast(), southeast(), 'layout-se');
+      return nu$7(eastX(anchor), southY(anchor), bubbles.southeast(), southeast(), boundsRestriction(anchor, {
+        left: 1,
+        top: 3
+      }), 'layout-se');
     };
     var southwest$1 = function (anchor, element, bubbles) {
-      return nu$7(westX(anchor, element), southY(anchor), bubbles.southwest(), southwest(), 'layout-sw');
+      return nu$7(westX(anchor, element), southY(anchor), bubbles.southwest(), southwest(), boundsRestriction(anchor, {
+        right: 0,
+        top: 3
+      }), 'layout-sw');
     };
     var northeast$1 = function (anchor, element, bubbles) {
-      return nu$7(eastX(anchor), northY(anchor, element), bubbles.northeast(), northeast(), 'layout-ne');
+      return nu$7(eastX(anchor), northY(anchor, element), bubbles.northeast(), northeast(), boundsRestriction(anchor, {
+        left: 1,
+        bottom: 2
+      }), 'layout-ne');
     };
     var northwest$1 = function (anchor, element, bubbles) {
-      return nu$7(westX(anchor, element), northY(anchor, element), bubbles.northwest(), northwest(), 'layout-nw');
+      return nu$7(westX(anchor, element), northY(anchor, element), bubbles.northwest(), northwest(), boundsRestriction(anchor, {
+        right: 0,
+        bottom: 2
+      }), 'layout-nw');
     };
     var north$1 = function (anchor, element, bubbles) {
-      return nu$7(middleX(anchor, element), northY(anchor, element), bubbles.north(), north(), 'layout-n');
+      return nu$7(middleX(anchor, element), northY(anchor, element), bubbles.north(), north(), boundsRestriction(anchor, { bottom: 2 }), 'layout-n');
     };
     var south$1 = function (anchor, element, bubbles) {
-      return nu$7(middleX(anchor, element), southY(anchor), bubbles.south(), south(), 'layout-s');
+      return nu$7(middleX(anchor, element), southY(anchor), bubbles.south(), south(), boundsRestriction(anchor, { top: 3 }), 'layout-s');
     };
     var east$1 = function (anchor, element, bubbles) {
-      return nu$7(eastEdgeX(anchor), centreY(anchor, element), bubbles.east(), east(), 'layout-e');
+      return nu$7(eastEdgeX(anchor), centreY(anchor, element), bubbles.east(), east(), boundsRestriction(anchor, { left: 0 }), 'layout-e');
     };
     var west$1 = function (anchor, element, bubbles) {
-      return nu$7(westEdgeX(anchor, element), centreY(anchor, element), bubbles.west(), west(), 'layout-w');
+      return nu$7(westEdgeX(anchor, element), centreY(anchor, element), bubbles.west(), west(), boundsRestriction(anchor, { right: 1 }), 'layout-w');
     };
     var all$2 = function () {
       return [
@@ -3867,6 +3888,26 @@
         north$1,
         east$1,
         west$1
+      ];
+    };
+    var aboveOrBelow = function () {
+      return [
+        northeast$1,
+        northwest$1,
+        southeast$1,
+        southwest$1,
+        north$1,
+        south$1
+      ];
+    };
+    var aboveOrBelowRtl = function () {
+      return [
+        northwest$1,
+        northeast$1,
+        southwest$1,
+        southeast$1,
+        north$1,
+        south$1
       ];
     };
     var belowOrAbove = function () {
@@ -3896,7 +3937,7 @@
       });
     };
     var loadEvent = function (bConfig, bState, f) {
-      return runOnInit(function (component, simulatedEvent) {
+      return runOnInit(function (component, _simulatedEvent) {
         f(component, bConfig, bState);
       });
     };
@@ -3938,7 +3979,7 @@
     };
     var doCreate = function (configSchema, schemaSchema, name, active, apis, extra, state) {
       var getConfig = function (info) {
-        return hasKey$1(info, name) ? info[name]() : Option.none();
+        return hasNonNullableKey(info, name) ? info[name]() : Option.none();
       };
       var wrappedApis = map$1(apis, function (apiF, apiName) {
         return wrapApi(name, apiF, apiName);
@@ -3968,7 +4009,7 @@
         },
         exhibit: function (info, base) {
           return getConfig(info).bind(function (behaviourInfo) {
-            return readOptFrom$1(active, 'exhibit').map(function (exhibitor) {
+            return get(active, 'exhibit').map(function (exhibitor) {
               return exhibitor(base, behaviourInfo.config, behaviourInfo.state);
             });
           }).getOr(nu$6({}));
@@ -3978,9 +4019,9 @@
         },
         handlers: function (info) {
           return getConfig(info).map(function (behaviourInfo) {
-            var getEvents = readOr$1('events', function (a, b) {
+            var getEvents = get(active, 'events').getOr(function () {
               return {};
-            })(active);
+            });
             return getEvents(behaviourInfo.config, behaviourInfo.state);
           }).getOr({});
         }
@@ -4027,17 +4068,19 @@
       return derive([run(receive(), function (component, message) {
           var channelMap = receiveConfig.channels;
           var channels = keys(channelMap);
-          var targetChannels = chooseChannels(channels, message);
+          var receivingData = message;
+          var targetChannels = chooseChannels(channels, receivingData);
           each(targetChannels, function (ch) {
             var channelInfo = channelMap[ch];
             var channelSchema = channelInfo.schema;
-            var data = asRawOrDie('channel[' + ch + '] data\nReceiver: ' + element(component.element()), channelSchema, message.data());
+            var data = asRawOrDie('channel[' + ch + '] data\nReceiver: ' + element(component.element()), channelSchema, receivingData.data());
             channelInfo.onReceive(component, data);
           });
         })]);
     };
 
     var ActiveReceiving = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         events: events$1
     });
 
@@ -4060,14 +4103,15 @@
     };
 
     var ActivePosition = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         exhibit: exhibit
     });
 
     var focus$1 = function (element) {
-      element.dom().focus();
+      return element.dom().focus();
     };
     var blur = function (element) {
-      element.dom().blur();
+      return element.dom().blur();
     };
     var hasFocus = function (element) {
       var doc = owner(element).dom();
@@ -4087,19 +4131,326 @@
       var ownerDoc = owner(container);
       var refocus = active(ownerDoc).bind(function (focused) {
         var hasFocus = function (elem) {
-          return eq(focused, elem);
+          return eq$1(focused, elem);
         };
         return hasFocus(container) ? Option.some(container) : descendant(container, hasFocus);
       });
       var result = f(container);
       refocus.each(function (oldFocus) {
         active(ownerDoc).filter(function (newFocus) {
-          return eq(newFocus, oldFocus);
+          return eq$1(newFocus, oldFocus);
         }).fold(function () {
           focus$1(oldFocus);
         }, noop);
       });
       return result;
+    };
+
+    var NuPositionCss = function (position, left, top, right, bottom) {
+      return {
+        position: constant(position),
+        left: constant(left),
+        top: constant(top),
+        right: constant(right),
+        bottom: constant(bottom)
+      };
+    };
+    var applyPositionCss = function (element, position) {
+      var addPx = function (num) {
+        return num + 'px';
+      };
+      setOptions(element, {
+        position: Option.some(position.position()),
+        left: position.left().map(addPx),
+        top: position.top().map(addPx),
+        right: position.right().map(addPx),
+        bottom: position.bottom().map(addPx)
+      });
+    };
+
+    var adt$3 = Adt.generate([
+      { none: [] },
+      {
+        relative: [
+          'x',
+          'y',
+          'width',
+          'height'
+        ]
+      },
+      {
+        fixed: [
+          'x',
+          'y',
+          'width',
+          'height'
+        ]
+      }
+    ]);
+    var positionWithDirection = function (posName, decision, x, y, width, height) {
+      var decisionX = decision.x - x;
+      var decisionY = decision.y - y;
+      var decisionWidth = decision.width;
+      var decisionHeight = decision.height;
+      var decisionRight = width - (decisionX + decisionWidth);
+      var decisionBottom = height - (decisionY + decisionHeight);
+      var left = Option.some(decisionX);
+      var top = Option.some(decisionY);
+      var right = Option.some(decisionRight);
+      var bottom = Option.some(decisionBottom);
+      var none = Option.none();
+      return cata(decision.direction, function () {
+        return NuPositionCss(posName, left, top, none, none);
+      }, function () {
+        return NuPositionCss(posName, none, top, right, none);
+      }, function () {
+        return NuPositionCss(posName, left, none, none, bottom);
+      }, function () {
+        return NuPositionCss(posName, none, none, right, bottom);
+      }, function () {
+        return NuPositionCss(posName, left, top, none, none);
+      }, function () {
+        return NuPositionCss(posName, left, none, none, bottom);
+      }, function () {
+        return NuPositionCss(posName, left, top, none, none);
+      }, function () {
+        return NuPositionCss(posName, none, top, right, none);
+      });
+    };
+    var reposition = function (origin, decision) {
+      return origin.fold(function () {
+        return NuPositionCss('absolute', Option.some(decision.x), Option.some(decision.y), Option.none(), Option.none());
+      }, function (x, y, width, height) {
+        return positionWithDirection('absolute', decision, x, y, width, height);
+      }, function (x, y, width, height) {
+        return positionWithDirection('fixed', decision, x, y, width, height);
+      });
+    };
+    var toBox = function (origin, element) {
+      var rel = curry(find$3, element);
+      var position = origin.fold(rel, rel, function () {
+        var scroll = get$8();
+        return find$3(element).translate(-scroll.left(), -scroll.top());
+      });
+      var width = getOuter$2(element);
+      var height = getOuter$1(element);
+      return bounds$1(position.left(), position.top(), width, height);
+    };
+    var viewport$1 = function (origin, getBounds) {
+      return getBounds.fold(function () {
+        return origin.fold(win, win, bounds$1);
+      }, function (b) {
+        return origin.fold(b, b, function () {
+          var bounds = b();
+          var pos = translate(origin, bounds.x, bounds.y);
+          return bounds$1(pos.left(), pos.top(), bounds.width, bounds.height);
+        });
+      });
+    };
+    var translate = function (origin, x, y) {
+      var pos = Position(x, y);
+      var removeScroll = function () {
+        var outerScroll = get$8();
+        return pos.translate(-outerScroll.left(), -outerScroll.top());
+      };
+      return origin.fold(constant(pos), constant(pos), removeScroll);
+    };
+    var cata$1 = function (subject, onNone, onRelative, onFixed) {
+      return subject.fold(onNone, onRelative, onFixed);
+    };
+    var none$1 = adt$3.none;
+    var relative = adt$3.relative;
+    var fixed = adt$3.fixed;
+
+    var anchor = function (anchorBox, origin) {
+      return {
+        anchorBox: constant(anchorBox),
+        origin: constant(origin)
+      };
+    };
+    var box$1 = function (anchorBox, origin) {
+      return anchor(anchorBox, origin);
+    };
+
+    var cycleBy = function (value, delta, min, max) {
+      var r = value + delta;
+      return r > max ? min : r < min ? max : r;
+    };
+    var clamp = function (value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    };
+
+    var adt$4 = Adt.generate([
+      { fit: ['reposition'] },
+      {
+        nofit: [
+          'reposition',
+          'deltaW',
+          'deltaH'
+        ]
+      }
+    ]);
+    var calcReposition = function (newX, newY, width, height, bounds) {
+      var boundsX = bounds.x;
+      var boundsY = bounds.y;
+      var boundsWidth = bounds.width;
+      var boundsHeight = bounds.height;
+      var xInBounds = newX >= boundsX;
+      var yInBounds = newY >= boundsY;
+      var originInBounds = xInBounds && yInBounds;
+      var xFit = newX + width <= boundsX + boundsWidth;
+      var yFit = newY + height <= boundsY + boundsHeight;
+      var sizeInBounds = xFit && yFit;
+      var deltaW = Math.abs(Math.min(width, xInBounds ? boundsX + boundsWidth - newX : boundsX - (newX + width)));
+      var deltaH = Math.abs(Math.min(height, yInBounds ? boundsY + boundsHeight - newY : boundsY - (newY + height)));
+      var maxX = Math.max(bounds.x, bounds.right - width);
+      var maxY = Math.max(bounds.y, bounds.bottom - height);
+      var limitX = clamp(newX, bounds.x, maxX);
+      var limitY = clamp(newY, bounds.y, maxY);
+      return {
+        originInBounds: originInBounds,
+        sizeInBounds: sizeInBounds,
+        limitX: limitX,
+        limitY: limitY,
+        deltaW: deltaW,
+        deltaH: deltaH
+      };
+    };
+    var attempt = function (candidate, width, height, bounds) {
+      var candidateX = candidate.x();
+      var candidateY = candidate.y();
+      var bubbleOffsets = candidate.bubble().offset();
+      var bubbleLeft = bubbleOffsets.left();
+      var bubbleTop = bubbleOffsets.top();
+      var adjustedBounds = adjustBounds(bounds, candidate.boundsRestriction(), bubbleOffsets);
+      var boundsY = adjustedBounds.y;
+      var boundsBottom = adjustedBounds.bottom;
+      var boundsX = adjustedBounds.x;
+      var boundsRight = adjustedBounds.right;
+      var newX = candidateX + bubbleLeft;
+      var newY = candidateY + bubbleTop;
+      var _a = calcReposition(newX, newY, width, height, adjustedBounds), originInBounds = _a.originInBounds, sizeInBounds = _a.sizeInBounds, limitX = _a.limitX, limitY = _a.limitY, deltaW = _a.deltaW, deltaH = _a.deltaH;
+      var upAvailable = constant(limitY + deltaH - boundsY);
+      var downAvailable = constant(boundsBottom - limitY);
+      var maxHeight = cataVertical(candidate.direction(), downAvailable, downAvailable, upAvailable);
+      var westAvailable = constant(limitX + deltaW - boundsX);
+      var eastAvailable = constant(boundsRight - limitX);
+      var maxWidth = cataHorizontal(candidate.direction(), eastAvailable, eastAvailable, westAvailable);
+      var reposition = {
+        x: limitX,
+        y: limitY,
+        width: deltaW,
+        height: deltaH,
+        maxHeight: maxHeight,
+        maxWidth: maxWidth,
+        direction: candidate.direction(),
+        classes: {
+          on: candidate.bubble().classesOn(),
+          off: candidate.bubble().classesOff()
+        },
+        label: candidate.label(),
+        candidateYforTest: newY
+      };
+      return originInBounds && sizeInBounds ? adt$4.fit(reposition) : adt$4.nofit(reposition, deltaW, deltaH);
+    };
+    var attempts = function (candidates, anchorBox, elementBox, bubbles, bounds) {
+      var panelWidth = elementBox.width;
+      var panelHeight = elementBox.height;
+      var attemptBestFit = function (layout, reposition, deltaW, deltaH) {
+        var next = layout(anchorBox, elementBox, bubbles);
+        var attemptLayout = attempt(next, panelWidth, panelHeight, bounds);
+        return attemptLayout.fold(adt$4.fit, function (newReposition, newDeltaW, newDeltaH) {
+          var improved = newDeltaH > deltaH || newDeltaW > deltaW;
+          return improved ? adt$4.nofit(newReposition, newDeltaW, newDeltaH) : adt$4.nofit(reposition, deltaW, deltaH);
+        });
+      };
+      var abc = foldl(candidates, function (b, a) {
+        var bestNext = curry(attemptBestFit, a);
+        return b.fold(adt$4.fit, bestNext);
+      }, adt$4.nofit({
+        x: anchorBox.x,
+        y: anchorBox.y,
+        width: elementBox.width,
+        height: elementBox.height,
+        maxHeight: elementBox.height,
+        maxWidth: elementBox.width,
+        direction: southeast(),
+        classes: {
+          on: [],
+          off: []
+        },
+        label: 'none',
+        candidateYforTest: anchorBox.y
+      }, -1, -1));
+      return abc.fold(identity, identity);
+    };
+
+    var elementSize = function (p) {
+      return {
+        width: getOuter$2(p),
+        height: getOuter$1(p)
+      };
+    };
+    var layout = function (anchorBox, element, bubbles, options) {
+      remove$6(element, 'max-height');
+      remove$6(element, 'max-width');
+      var elementBox = elementSize(element);
+      return attempts(options.preference, anchorBox, elementBox, bubbles, options.bounds);
+    };
+    var setClasses = function (element, decision) {
+      var classInfo = decision.classes;
+      remove$5(element, classInfo.off);
+      add$3(element, classInfo.on);
+    };
+    var setHeight = function (element, decision, options) {
+      var maxHeightFunction = options.maxHeightFunction;
+      maxHeightFunction(element, decision.maxHeight);
+    };
+    var setWidth = function (element, decision, options) {
+      var maxWidthFunction = options.maxWidthFunction;
+      maxWidthFunction(element, decision.maxWidth);
+    };
+    var position = function (element, decision, options) {
+      applyPositionCss(element, reposition(options.origin, decision));
+    };
+
+    var setMaxHeight = function (element, maxHeight) {
+      setMax(element, Math.floor(maxHeight));
+    };
+    var anchored = constant(function (element, available) {
+      setMaxHeight(element, available);
+      setAll$1(element, {
+        'overflow-x': 'hidden',
+        'overflow-y': 'auto'
+      });
+    });
+    var expandable = constant(function (element, available) {
+      setMaxHeight(element, available);
+    });
+
+    var defaultOr = function (options, key, dephault) {
+      return options[key] === undefined ? dephault : options[key];
+    };
+    var simple = function (anchor, element, bubble, layouts, getBounds, overrideOptions) {
+      var maxHeightFunction = defaultOr(overrideOptions, 'maxHeightFunction', anchored());
+      var maxWidthFunction = defaultOr(overrideOptions, 'maxWidthFunction', noop);
+      var anchorBox = anchor.anchorBox();
+      var origin = anchor.origin();
+      var options = {
+        bounds: viewport$1(origin, getBounds),
+        origin: origin,
+        preference: layouts,
+        maxHeightFunction: maxHeightFunction,
+        maxWidthFunction: maxWidthFunction
+      };
+      go(anchorBox, element, bubble, options);
+    };
+    var go = function (anchorBox, element, bubble, options) {
+      var decision = layout(anchorBox, element, bubble, options);
+      position(element, decision, options);
+      setClasses(element, decision);
+      setHeight(element, decision, options);
+      setWidth(element, decision, options);
     };
 
     var allAlignments = [
@@ -4114,7 +4465,7 @@
     ];
     var nu$8 = function (width, yoffset, classes) {
       var getClasses = function (prop) {
-        return readOptFrom$1(classes, prop).getOr([]);
+        return get(classes, prop).getOr([]);
       };
       var make = function (xDelta, yDelta, alignmentsOn) {
         var alignmentsOff = difference(allAlignments, alignmentsOn);
@@ -4233,113 +4584,6 @@
       return nu$8(0, 0, {});
     };
 
-    var decision = MixedBag([
-      'x',
-      'y',
-      'width',
-      'height',
-      'maxHeight',
-      'maxWidth',
-      'direction',
-      'classes',
-      'label',
-      'candidateYforTest'
-    ], []);
-    var css = Immutable('position', 'left', 'top', 'right', 'bottom');
-
-    var adt$3 = Adt.generate([
-      { none: [] },
-      {
-        relative: [
-          'x',
-          'y',
-          'width',
-          'height'
-        ]
-      },
-      {
-        fixed: [
-          'x',
-          'y',
-          'width',
-          'height'
-        ]
-      }
-    ]);
-    var positionWithDirection = function (posName, decision, x, y, width, height) {
-      var decisionX = decision.x() - x;
-      var decisionY = decision.y() - y;
-      var decisionWidth = decision.width();
-      var decisionHeight = decision.height();
-      var decisionRight = width - (decisionX + decisionWidth);
-      var decisionBottom = height - (decisionY + decisionHeight);
-      var left = Option.some(decisionX);
-      var top = Option.some(decisionY);
-      var right = Option.some(decisionRight);
-      var bottom = Option.some(decisionBottom);
-      var none = Option.none();
-      return cata(decision.direction(), function () {
-        return css(posName, left, top, none, none);
-      }, function () {
-        return css(posName, none, top, right, none);
-      }, function () {
-        return css(posName, left, none, none, bottom);
-      }, function () {
-        return css(posName, none, none, right, bottom);
-      }, function () {
-        return css(posName, left, top, none, none);
-      }, function () {
-        return css(posName, left, none, none, bottom);
-      }, function () {
-        return css(posName, left, top, none, none);
-      }, function () {
-        return css(posName, none, top, right, none);
-      });
-    };
-    var reposition = function (origin, decision) {
-      return origin.fold(function () {
-        return css('absolute', Option.some(decision.x()), Option.some(decision.y()), Option.none(), Option.none());
-      }, function (x, y, width, height) {
-        return positionWithDirection('absolute', decision, x, y, width, height);
-      }, function (x, y, width, height) {
-        return positionWithDirection('fixed', decision, x, y, width, height);
-      });
-    };
-    var toBox = function (origin, element) {
-      var rel = curry(find$3, element);
-      var position = origin.fold(rel, rel, function () {
-        var scroll = get$8();
-        return find$3(element).translate(-scroll.left(), -scroll.top());
-      });
-      var width = getOuter$2(element);
-      var height = getOuter$1(element);
-      return bounds$1(position.left(), position.top(), width, height);
-    };
-    var viewport$1 = function (origin, getBounds) {
-      return getBounds.fold(function () {
-        return origin.fold(win, win, bounds$1);
-      }, function (b) {
-        return origin.fold(b, b, function () {
-          var bounds = b();
-          var pos = translate(origin, bounds.x(), bounds.y());
-          return bounds$1(pos.left(), pos.top(), bounds.width(), bounds.height());
-        });
-      });
-    };
-    var translate = function (origin, x, y) {
-      var pos = Position(x, y);
-      var removeScroll = function () {
-        var outerScroll = get$8();
-        return pos.translate(-outerScroll.left(), -outerScroll.top());
-      };
-      return origin.fold(constant(pos), constant(pos), removeScroll);
-    };
-    var cata$1 = function (subject, onNone, onRelative, onFixed) {
-      return subject.fold(onNone, onRelative, onFixed);
-    };
-    var relative = adt$3.relative;
-    var fixed = adt$3.fixed;
-
     var nu$9 = function (x) {
       return x;
     };
@@ -4353,19 +4597,44 @@
       return get$4(element, 'direction') === 'rtl' ? 'rtl' : 'ltr';
     };
 
+    var AttributeValue;
+    (function (AttributeValue) {
+      AttributeValue['TopToBottom'] = 'toptobottom';
+      AttributeValue['BottomToTop'] = 'bottomtotop';
+    }(AttributeValue || (AttributeValue = {})));
+    var Attribute = 'data-alloy-vertical-dir';
+    var isBottomToTopDir = function (el) {
+      return closest$2(el, function (current) {
+        return isElement(current) && get$2(current, Attribute) === AttributeValue.BottomToTop;
+      });
+    };
+
     var schema$1 = function () {
       return optionObjOf('layouts', [
         strict$1('onLtr'),
-        strict$1('onRtl')
+        strict$1('onRtl'),
+        option('onBottomLtr'),
+        option('onBottomRtl')
       ]);
     };
-    var get$9 = function (elem, info, defaultLtr, defaultRtl) {
-      var ltr = info.layouts.map(function (ls) {
+    var get$a = function (elem, info, defaultLtr, defaultRtl, defaultBottomLtr, defaultBottomRtl, dirElement) {
+      var isBottomToTop = dirElement.map(isBottomToTopDir).getOr(false);
+      var customLtr = info.layouts.map(function (ls) {
         return ls.onLtr(elem);
-      }).getOr(defaultLtr);
-      var rtl = info.layouts.map(function (ls) {
+      });
+      var customRtl = info.layouts.map(function (ls) {
         return ls.onRtl(elem);
-      }).getOr(defaultRtl);
+      });
+      var ltr = isBottomToTop ? info.layouts.bind(function (ls) {
+        return ls.onBottomLtr.map(function (f) {
+          return f(elem);
+        });
+      }).or(customLtr).getOr(defaultBottomLtr) : customLtr.getOr(defaultLtr);
+      var rtl = isBottomToTop ? info.layouts.bind(function (ls) {
+        return ls.onBottomRtl.map(function (f) {
+          return f(elem);
+        });
+      }).or(customRtl).getOr(defaultBottomRtl) : customRtl.getOr(defaultRtl);
       var f = onDirection(ltr, rtl);
       return f(elem);
     };
@@ -4373,7 +4642,7 @@
     var placement = function (component, anchorInfo, origin) {
       var hotspot = anchorInfo.hotspot;
       var anchorBox = toBox(origin, hotspot.element());
-      var layouts = get$9(component.element(), anchorInfo, belowOrAbove(), belowOrAboveRtl());
+      var layouts = get$a(component.element(), anchorInfo, belowOrAbove(), belowOrAboveRtl(), aboveOrBelow(), aboveOrBelowRtl(), Option.some(anchorInfo.hotspot.element()));
       return Option.some(nu$9({
         anchorBox: anchorBox,
         bubble: anchorInfo.bubble.getOr(fallback()),
@@ -4393,7 +4662,7 @@
     var placement$1 = function (component, anchorInfo, origin) {
       var pos = translate(origin, anchorInfo.x, anchorInfo.y);
       var anchorBox = bounds$1(pos.left(), pos.top(), anchorInfo.width, anchorInfo.height);
-      var layouts = get$9(component.element(), anchorInfo, all$2(), allRtl());
+      var layouts = get$a(component.element(), anchorInfo, all$2(), allRtl(), all$2(), allRtl(), Option.none());
       return Option.some(nu$9({
         anchorBox: anchorBox,
         bubble: anchorInfo.bubble,
@@ -4413,14 +4682,20 @@
       output('placement', placement$1)
     ];
 
-    var zeroWidth = function () {
-      return '\uFEFF';
-    };
+    var zeroWidth = '\uFEFF';
+    var nbsp = '\xA0';
 
-    var create$2 = Immutable('start', 'soffset', 'finish', 'foffset');
+    var create$2 = function (start, soffset, finish, foffset) {
+      return {
+        start: constant(start),
+        soffset: constant(soffset),
+        finish: constant(finish),
+        foffset: constant(foffset)
+      };
+    };
     var SimRange = { create: create$2 };
 
-    var adt$4 = Adt.generate([
+    var adt$5 = Adt.generate([
       { before: ['element'] },
       {
         on: [
@@ -4436,9 +4711,9 @@
     var getStart = function (situ) {
       return situ.fold(identity, identity, identity);
     };
-    var before$2 = adt$4.before;
-    var on = adt$4.on;
-    var after$1 = adt$4.after;
+    var before$2 = adt$5.before;
+    var on = adt$5.on;
+    var after$1 = adt$5.after;
     var Situ = {
       before: before$2,
       on: on,
@@ -4447,7 +4722,7 @@
       getStart: getStart
     };
 
-    var adt$5 = Adt.generate([
+    var adt$6 = Adt.generate([
       { domRange: ['rng'] },
       {
         relative: [
@@ -4465,24 +4740,24 @@
       }
     ]);
     var exactFromRange = function (simRange) {
-      return adt$5.exact(simRange.start(), simRange.soffset(), simRange.finish(), simRange.foffset());
+      return adt$6.exact(simRange.start(), simRange.soffset(), simRange.finish(), simRange.foffset());
     };
     var getStart$1 = function (selection) {
       return selection.match({
         domRange: function (rng) {
           return Element.fromDom(rng.startContainer);
         },
-        relative: function (startSitu, finishSitu) {
+        relative: function (startSitu, _finishSitu) {
           return Situ.getStart(startSitu);
         },
-        exact: function (start, soffset, finish, foffset) {
+        exact: function (start, _soffset, _finish, _foffset) {
           return start;
         }
       });
     };
-    var domRange = adt$5.domRange;
-    var relative$1 = adt$5.relative;
-    var exact = adt$5.exact;
+    var domRange = adt$6.domRange;
+    var relative$1 = adt$6.relative;
+    var exact = adt$6.exact;
     var getWin = function (selection) {
       var start = getStart$1(selection);
       return defaultView(start);
@@ -4543,7 +4818,7 @@
       return rect.width > 0 || rect.height > 0 ? Option.some(rect).map(toRect) : Option.none();
     };
 
-    var adt$6 = Adt.generate([
+    var adt$7 = Adt.generate([
       {
         ltr: [
           'start',
@@ -4601,12 +4876,12 @@
           return rev.collapsed === false;
         });
         return reversed.map(function (rev) {
-          return adt$6.rtl(Element.fromDom(rev.endContainer), rev.endOffset, Element.fromDom(rev.startContainer), rev.startOffset);
+          return adt$7.rtl(Element.fromDom(rev.endContainer), rev.endOffset, Element.fromDom(rev.startContainer), rev.startOffset);
         }).getOrThunk(function () {
-          return fromRange(win, adt$6.ltr, rng);
+          return fromRange(win, adt$7.ltr, rng);
         });
       } else {
-        return fromRange(win, adt$6.ltr, rng);
+        return fromRange(win, adt$7.ltr, rng);
       }
     };
     var diagnose = function (win, selection) {
@@ -4630,30 +4905,8 @@
         }
       });
     };
-
-    var searchForPoint = function (rectForOffset, x, y, maxX, length) {
-      if (length === 0) {
-        return 0;
-      } else if (x === maxX) {
-        return length - 1;
-      }
-      var xDelta = maxX;
-      for (var i = 1; i < length; i++) {
-        var rect = rectForOffset(i);
-        var curDeltaX = Math.abs(x - rect.left);
-        if (y <= rect.bottom) {
-          if (y < rect.top || curDeltaX > xDelta) {
-            return i - 1;
-          } else {
-            xDelta = curDeltaX;
-          }
-        }
-      }
-      return 0;
-    };
-    var inRect = function (rect, x, y) {
-      return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
-    };
+    var ltr = adt$7.ltr;
+    var rtl = adt$7.rtl;
 
     function NodeValue (is, name) {
       var get = function (element) {
@@ -4679,58 +4932,11 @@
     }
 
     var api$2 = NodeValue(isText, 'text');
-    var get$a = function (element) {
+    var get$b = function (element) {
       return api$2.get(element);
     };
     var getOption = function (element) {
       return api$2.getOption(element);
-    };
-
-    var locateOffset = function (doc, textnode, x, y, rect) {
-      var rangeForOffset = function (o) {
-        var r = doc.dom().createRange();
-        r.setStart(textnode.dom(), o);
-        r.collapse(true);
-        return r;
-      };
-      var rectForOffset = function (o) {
-        var r = rangeForOffset(o);
-        return r.getBoundingClientRect();
-      };
-      var length = get$a(textnode).length;
-      var offset = searchForPoint(rectForOffset, x, y, rect.right, length);
-      return rangeForOffset(offset);
-    };
-    var locate = function (doc, node, x, y) {
-      var r = doc.dom().createRange();
-      r.selectNode(node.dom());
-      var rects = r.getClientRects();
-      var foundRect = findMap(rects, function (rect) {
-        return inRect(rect, x, y) ? Option.some(rect) : Option.none();
-      });
-      return foundRect.map(function (rect) {
-        return locateOffset(doc, node, x, y, rect);
-      });
-    };
-
-    var searchInChildren = function (doc, node, x, y) {
-      var r = doc.dom().createRange();
-      var nodes = children(node);
-      return findMap(nodes, function (n) {
-        r.selectNode(n.dom());
-        return inRect(r.getBoundingClientRect(), x, y) ? locateNode(doc, n, x, y) : Option.none();
-      });
-    };
-    var locateNode = function (doc, node, x, y) {
-      return isText(node) ? locate(doc, node, x, y) : searchInChildren(doc, node, x, y);
-    };
-    var locate$1 = function (doc, node, x, y) {
-      var r = doc.dom().createRange();
-      r.selectNode(node.dom());
-      var rect = r.getBoundingClientRect();
-      var boundedX = Math.max(rect.left, Math.min(rect.right, x));
-      var boundedY = Math.max(rect.top, Math.min(rect.bottom, y));
-      return locateNode(doc, node, boundedX, boundedY);
     };
 
     var getEnd = function (element) {
@@ -4740,10 +4946,9 @@
         return v.length;
       });
     };
-    var NBSP = '\xA0';
     var isTextNodeWithCursorPosition = function (el) {
       return getOption(el).filter(function (text) {
-        return text.trim().length !== 0 || text.indexOf(NBSP) > -1;
+        return text.trim().length !== 0 || text.indexOf(nbsp) > -1;
       }).isSome();
     };
     var elementsWithCursorPosition = [
@@ -4755,9 +4960,6 @@
       return hasCursorPosition || contains(elementsWithCursorPosition, name(elem));
     };
 
-    var first = function (element) {
-      return descendant(element, isCursorPosition);
-    };
     var last$1 = function (element) {
       return descendantRtl(element, isCursorPosition);
     };
@@ -4779,69 +4981,6 @@
       return descend(scope);
     };
 
-    var COLLAPSE_TO_LEFT = true;
-    var COLLAPSE_TO_RIGHT = false;
-    var getCollapseDirection = function (rect, x) {
-      return x - rect.left < rect.right - x ? COLLAPSE_TO_LEFT : COLLAPSE_TO_RIGHT;
-    };
-    var createCollapsedNode = function (doc, target, collapseDirection) {
-      var r = doc.dom().createRange();
-      r.selectNode(target.dom());
-      r.collapse(collapseDirection);
-      return r;
-    };
-    var locateInElement = function (doc, node, x) {
-      var cursorRange = doc.dom().createRange();
-      cursorRange.selectNode(node.dom());
-      var rect = cursorRange.getBoundingClientRect();
-      var collapseDirection = getCollapseDirection(rect, x);
-      var f = collapseDirection === COLLAPSE_TO_LEFT ? first : last$1;
-      return f(node).map(function (target) {
-        return createCollapsedNode(doc, target, collapseDirection);
-      });
-    };
-    var locateInEmpty = function (doc, node, x) {
-      var rect = node.dom().getBoundingClientRect();
-      var collapseDirection = getCollapseDirection(rect, x);
-      return Option.some(createCollapsedNode(doc, node, collapseDirection));
-    };
-    var search$1 = function (doc, node, x) {
-      var f = children(node).length === 0 ? locateInEmpty : locateInElement;
-      return f(doc, node, x);
-    };
-
-    var caretPositionFromPoint = function (doc, x, y) {
-      return Option.from(doc.dom().caretPositionFromPoint(x, y)).bind(function (pos) {
-        if (pos.offsetNode === null) {
-          return Option.none();
-        }
-        var r = doc.dom().createRange();
-        r.setStart(pos.offsetNode, pos.offset);
-        r.collapse();
-        return Option.some(r);
-      });
-    };
-    var caretRangeFromPoint = function (doc, x, y) {
-      return Option.from(doc.dom().caretRangeFromPoint(x, y));
-    };
-    var searchTextNodes = function (doc, node, x, y) {
-      var r = doc.dom().createRange();
-      r.selectNode(node.dom());
-      var rect = r.getBoundingClientRect();
-      var boundedX = Math.max(rect.left, Math.min(rect.right, x));
-      var boundedY = Math.max(rect.top, Math.min(rect.bottom, y));
-      return locate$1(doc, node, boundedX, boundedY);
-    };
-    var searchFromPoint = function (doc, x, y) {
-      return Element.fromPoint(doc, x, y).bind(function (elem) {
-        var fallback = function () {
-          return search$1(doc, elem, x);
-        };
-        return children(elem).length === 0 ? fallback() : searchTextNodes(doc, elem, x, y).orThunk(fallback);
-      });
-    };
-    var availableSearch = document.caretPositionFromPoint ? caretPositionFromPoint : document.caretRangeFromPoint ? caretRangeFromPoint : searchFromPoint;
-
     var descendants = function (scope, selector) {
       return all(selector, scope);
     };
@@ -4855,7 +4994,7 @@
     };
     var after$2 = function (start, soffset, finish, foffset) {
       var r = makeRange(start, soffset, finish, foffset);
-      var same = eq(start, finish) && soffset === foffset;
+      var same = eq$1(start, finish) && soffset === foffset;
       return r.collapsed && !same;
     };
 
@@ -4883,7 +5022,12 @@
       return getFirstRect(rng);
     };
 
-    var point = Immutable('element', 'offset');
+    var point = function (element, offset) {
+      return {
+        element: element,
+        offset: offset
+      };
+    };
     var descendOnce = function (element, offset) {
       var children$1 = children(element);
       if (children$1.length === 0) {
@@ -4892,12 +5036,12 @@
         return point(children$1[offset], 0);
       } else {
         var last = children$1[children$1.length - 1];
-        var len = isText(last) ? get$a(last).length : children(last).length;
+        var len = isText(last) ? get$b(last).length : children(last).length;
         return point(last, len);
       }
     };
 
-    var adt$7 = Adt.generate([
+    var adt$8 = Adt.generate([
       { screen: ['point'] },
       {
         absolute: [
@@ -4908,18 +5052,12 @@
       }
     ]);
     var toFixed = function (pos) {
-      return pos.fold(function (point) {
-        return point;
-      }, function (point, scrollLeft, scrollTop) {
+      return pos.fold(identity, function (point, scrollLeft, scrollTop) {
         return point.translate(-scrollLeft, -scrollTop);
       });
     };
     var toAbsolute = function (pos) {
-      return pos.fold(function (point) {
-        return point;
-      }, function (point, scrollLeft, scrollTop) {
-        return point;
-      });
+      return pos.fold(identity, identity);
     };
     var sum = function (points) {
       return foldl(points, function (b, a) {
@@ -4934,15 +5072,15 @@
       var points = map(positions, toAbsolute);
       return sum(points);
     };
-    var screen = adt$7.screen;
-    var absolute$2 = adt$7.absolute;
+    var screen = adt$8.screen;
+    var absolute$2 = adt$8.absolute;
 
     var getOffset = function (component, origin, anchorInfo) {
       var win = defaultView(anchorInfo.root).dom();
       var hasSameOwner = function (frame) {
         var frameOwner = owner(frame);
         var compOwner = owner(component.element());
-        return eq(frameOwner, compOwner);
+        return eq$1(frameOwner, compOwner);
       };
       return Option.from(win.frameElement).map(Element.fromDom).filter(hasSameOwner).map(absolute);
     };
@@ -4970,7 +5108,7 @@
       return optBox.map(function (box) {
         var points = [
           rootPoint,
-          box.point()
+          box.point
         ];
         var topLeft = cata$1(origin, function () {
           return sumAsAbsolute(points);
@@ -4979,42 +5117,10 @@
         }, function () {
           return sumAsFixed(points);
         });
-        var anchorBox = rect(topLeft.left(), topLeft.top(), box.width(), box.height());
-        var layoutsLtr = function () {
-          return anchorInfo.showAbove ? [
-            northeast$1,
-            northwest$1,
-            southeast$1,
-            southwest$1,
-            north$1,
-            south$1
-          ] : [
-            southeast$1,
-            southwest$1,
-            northeast$1,
-            northwest$1,
-            south$1,
-            south$1
-          ];
-        };
-        var layoutsRtl = function () {
-          return anchorInfo.showAbove ? [
-            northwest$1,
-            northeast$1,
-            southwest$1,
-            southeast$1,
-            north$1,
-            south$1
-          ] : [
-            southwest$1,
-            southeast$1,
-            northwest$1,
-            northeast$1,
-            south$1,
-            north$1
-          ];
-        };
-        var layouts = get$9(elem, anchorInfo, layoutsLtr(), layoutsRtl());
+        var anchorBox = rect(topLeft.left(), topLeft.top(), box.width, box.height);
+        var layoutsLtr = anchorInfo.showAbove ? aboveOrBelow() : belowOrAbove();
+        var layoutsRtl = anchorInfo.showAbove ? belowOrAboveRtl() : belowOrAboveRtl();
+        var layouts = get$a(elem, anchorInfo, layoutsLtr, layoutsRtl, layoutsLtr, layoutsRtl, Option.none());
         return nu$9({
           anchorBox: anchorBox,
           bubble: anchorInfo.bubble.getOr(fallback()),
@@ -5024,12 +5130,13 @@
         });
       });
     };
-    var ContentAnchorCommon = {
-      capRect: capRect,
-      calcNewAnchor: calcNewAnchor
-    };
 
-    var point$1 = Immutable('element', 'offset');
+    var point$1 = function (element, offset) {
+      return {
+        element: element,
+        offset: offset
+      };
+    };
     var descendOnce$1 = function (element, offset) {
       return isText(element) ? point$1(element, offset) : descendOnce(element, offset);
     };
@@ -5042,7 +5149,7 @@
       return getSelection().map(function (sel) {
         var modStart = descendOnce$1(sel.start(), sel.soffset());
         var modFinish = descendOnce$1(sel.finish(), sel.foffset());
-        return Selection.range(modStart.element(), modStart.offset(), modFinish.element(), modFinish.offset());
+        return Selection.range(modStart.element, modStart.offset, modFinish.element, modFinish.offset);
       });
     };
     var placement$2 = function (component, anchorInfo, origin) {
@@ -5050,7 +5157,7 @@
       var rootPoint = getRootPoint(component, origin, anchorInfo);
       var selectionBox = getAnchorSelection(win, anchorInfo).bind(function (sel) {
         var optRect = getFirstRect$1(win, Selection.exactFromRange(sel)).orThunk(function () {
-          var x = Element.fromText(zeroWidth());
+          var x = Element.fromText(zeroWidth);
           before(sel.start(), x);
           return getFirstRect$1(win, Selection.exact(x, 0, x, 1)).map(function (rect) {
             remove(x);
@@ -5058,14 +5165,14 @@
           });
         });
         return optRect.bind(function (rawRect) {
-          return ContentAnchorCommon.capRect(rawRect.left(), rawRect.top(), rawRect.width(), rawRect.height());
+          return capRect(rawRect.left(), rawRect.top(), rawRect.width(), rawRect.height());
         });
       });
       var targetElement = getAnchorSelection(win, anchorInfo).bind(function (sel) {
         return isElement(sel.start()) ? Option.some(sel.start()) : parent(sel.start());
       });
       var elem = targetElement.getOr(component.element());
-      return ContentAnchorCommon.calcNewAnchor(selectionBox, rootPoint, anchorInfo, origin, elem);
+      return calcNewAnchor(selectionBox, rootPoint, anchorInfo, origin, elem);
     };
     var SelectionAnchor = [
       option('getSelection'),
@@ -5081,9 +5188,9 @@
       var rootPoint = getRootPoint(component, origin, anchorInfo);
       return anchorInfo.node.bind(function (target) {
         var rect = target.dom().getBoundingClientRect();
-        var nodeBox = ContentAnchorCommon.capRect(rect.left, rect.top, rect.width, rect.height);
+        var nodeBox = capRect(rect.left, rect.top, rect.width, rect.height);
         var elem = anchorInfo.node.getOr(component.element());
-        return ContentAnchorCommon.calcNewAnchor(nodeBox, rootPoint, anchorInfo, origin, elem);
+        return calcNewAnchor(nodeBox, rootPoint, anchorInfo, origin, elem);
       });
     };
     var NodeAnchor = [
@@ -5097,28 +5204,40 @@
     ];
 
     var eastX$1 = function (anchor) {
-      return anchor.x() + anchor.width();
+      return anchor.x + anchor.width;
     };
     var westX$1 = function (anchor, element) {
-      return anchor.x() - element.width();
+      return anchor.x - element.width;
     };
     var northY$1 = function (anchor, element) {
-      return anchor.y() - element.height() + anchor.height();
+      return anchor.y - element.height + anchor.height;
     };
     var southY$1 = function (anchor) {
-      return anchor.y();
+      return anchor.y;
     };
     var southeast$2 = function (anchor, element, bubbles) {
-      return nu$7(eastX$1(anchor), southY$1(anchor), bubbles.southeast(), southeast(), 'link-layout-se');
+      return nu$7(eastX$1(anchor), southY$1(anchor), bubbles.southeast(), southeast(), boundsRestriction(anchor, {
+        left: 0,
+        top: 2
+      }), 'link-layout-se');
     };
     var southwest$2 = function (anchor, element, bubbles) {
-      return nu$7(westX$1(anchor, element), southY$1(anchor), bubbles.southwest(), southwest(), 'link-layout-sw');
+      return nu$7(westX$1(anchor, element), southY$1(anchor), bubbles.southwest(), southwest(), boundsRestriction(anchor, {
+        right: 1,
+        top: 2
+      }), 'link-layout-sw');
     };
     var northeast$2 = function (anchor, element, bubbles) {
-      return nu$7(eastX$1(anchor), northY$1(anchor, element), bubbles.northeast(), northeast(), 'link-layout-ne');
+      return nu$7(eastX$1(anchor), northY$1(anchor, element), bubbles.northeast(), northeast(), boundsRestriction(anchor, {
+        left: 0,
+        bottom: 3
+      }), 'link-layout-ne');
     };
     var northwest$2 = function (anchor, element, bubbles) {
-      return nu$7(westX$1(anchor, element), northY$1(anchor, element), bubbles.northwest(), northwest(), 'link-layout-nw');
+      return nu$7(westX$1(anchor, element), northY$1(anchor, element), bubbles.northwest(), northwest(), boundsRestriction(anchor, {
+        right: 1,
+        bottom: 3
+      }), 'link-layout-nw');
     };
     var all$3 = function () {
       return [
@@ -5139,7 +5258,7 @@
 
     var placement$4 = function (component, submenuInfo, origin) {
       var anchorBox = toBox(origin, submenuInfo.item.element());
-      var layouts = get$9(component.element(), submenuInfo, all$3(), allRtl$1());
+      var layouts = get$a(component.element(), submenuInfo, all$3(), allRtl$1(), all$3(), allRtl$1(), Option.none());
       return Option.some(nu$9({
         anchorBox: anchorBox,
         bubble: fallback(),
@@ -5162,213 +5281,6 @@
       submenu: SubmenuAnchor,
       makeshift: MakeshiftAnchor
     });
-
-    var anchor = Immutable('anchorBox', 'origin');
-    var box$1 = function (anchorBox, origin) {
-      return anchor(anchorBox, origin);
-    };
-
-    var cycleBy = function (value, delta, min, max) {
-      var r = value + delta;
-      if (r > max) {
-        return min;
-      } else {
-        return r < min ? max : r;
-      }
-    };
-    var cap = function (value, min, max) {
-      if (value <= min) {
-        return min;
-      } else {
-        return value >= max ? max : value;
-      }
-    };
-
-    var adt$8 = Adt.generate([
-      { fit: ['reposition'] },
-      {
-        nofit: [
-          'reposition',
-          'deltaW',
-          'deltaH'
-        ]
-      }
-    ]);
-    var calcReposition = function (newX, newY, width, height, bounds) {
-      var boundsX = bounds.x();
-      var boundsY = bounds.y();
-      var boundsWidth = bounds.width();
-      var boundsHeight = bounds.height();
-      var xInBounds = newX >= boundsX;
-      var yInBounds = newY >= boundsY;
-      var originInBounds = xInBounds && yInBounds;
-      var xFit = newX + width <= boundsX + boundsWidth;
-      var yFit = newY + height <= boundsY + boundsHeight;
-      var sizeInBounds = xFit && yFit;
-      var deltaW = Math.abs(Math.min(width, xInBounds ? boundsX + boundsWidth - newX : boundsX - (newX + width)));
-      var deltaH = Math.abs(Math.min(height, yInBounds ? boundsY + boundsHeight - newY : boundsY - (newY + height)));
-      var limitX = cap(newX, bounds.x(), bounds.right());
-      var limitY = cap(newY, bounds.y(), bounds.bottom());
-      return {
-        originInBounds: originInBounds,
-        sizeInBounds: sizeInBounds,
-        limitX: limitX,
-        limitY: limitY,
-        deltaW: deltaW,
-        deltaH: deltaH
-      };
-    };
-    var attempt = function (candidate, width, height, bounds) {
-      var candidateX = candidate.x();
-      var candidateY = candidate.y();
-      var bubbleLeft = candidate.bubble().offset().left();
-      var bubbleTop = candidate.bubble().offset().top();
-      var boundsY = bounds.y();
-      var boundsBottom = bounds.bottom();
-      var boundsX = bounds.x();
-      var boundsRight = bounds.right();
-      var newX = candidateX + bubbleLeft;
-      var newY = candidateY + bubbleTop;
-      var _a = calcReposition(newX, newY, width, height, bounds), originInBounds = _a.originInBounds, sizeInBounds = _a.sizeInBounds, limitX = _a.limitX, limitY = _a.limitY, deltaW = _a.deltaW, deltaH = _a.deltaH;
-      var upAvailable = constant(limitY + deltaH - boundsY);
-      var downAvailable = constant(boundsBottom - limitY);
-      var maxHeight = cataVertical(candidate.direction(), downAvailable, downAvailable, upAvailable);
-      var westAvailable = constant(limitX + deltaW - boundsX);
-      var eastAvailable = constant(boundsRight - limitX);
-      var maxWidth = cataHorizontal(candidate.direction(), eastAvailable, eastAvailable, westAvailable);
-      var reposition = decision({
-        x: limitX,
-        y: limitY,
-        width: deltaW,
-        height: deltaH,
-        maxHeight: maxHeight,
-        maxWidth: maxWidth,
-        direction: candidate.direction(),
-        classes: {
-          on: candidate.bubble().classesOn(),
-          off: candidate.bubble().classesOff()
-        },
-        label: candidate.label(),
-        candidateYforTest: newY
-      });
-      return originInBounds && sizeInBounds ? adt$8.fit(reposition) : adt$8.nofit(reposition, deltaW, deltaH);
-    };
-    var attempts = function (candidates, anchorBox, elementBox, bubbles, bounds) {
-      var panelWidth = elementBox.width();
-      var panelHeight = elementBox.height();
-      var attemptBestFit = function (layout, reposition, deltaW, deltaH) {
-        var next = layout(anchorBox, elementBox, bubbles);
-        var attemptLayout = attempt(next, panelWidth, panelHeight, bounds);
-        return attemptLayout.fold(adt$8.fit, function (newReposition, newDeltaW, newDeltaH) {
-          var improved = newDeltaH > deltaH || newDeltaW > deltaW;
-          return improved ? adt$8.nofit(newReposition, newDeltaW, newDeltaH) : adt$8.nofit(reposition, deltaW, deltaH);
-        });
-      };
-      var abc = foldl(candidates, function (b, a) {
-        var bestNext = curry(attemptBestFit, a);
-        return b.fold(adt$8.fit, bestNext);
-      }, adt$8.nofit(decision({
-        x: anchorBox.x(),
-        y: anchorBox.y(),
-        width: elementBox.width(),
-        height: elementBox.height(),
-        maxHeight: elementBox.height(),
-        maxWidth: elementBox.width(),
-        direction: southeast(),
-        classes: {
-          on: [],
-          off: []
-        },
-        label: 'none',
-        candidateYforTest: anchorBox.y()
-      }), -1, -1));
-      return abc.fold(identity, identity);
-    };
-
-    var elementSize = function (p) {
-      return {
-        width: constant(getOuter$2(p)),
-        height: constant(getOuter$1(p))
-      };
-    };
-    var layout = function (anchorBox, element, bubbles, options) {
-      remove$6(element, 'max-height');
-      remove$6(element, 'max-width');
-      var elementBox = elementSize(element);
-      return attempts(options.preference(), anchorBox, elementBox, bubbles, options.bounds());
-    };
-    var setClasses = function (element, decision) {
-      var classInfo = decision.classes();
-      remove$5(element, classInfo.off);
-      add$3(element, classInfo.on);
-    };
-    var setHeight = function (element, decision, options) {
-      var maxHeightFunction = options.maxHeightFunction();
-      maxHeightFunction(element, decision.maxHeight());
-    };
-    var setWidth = function (element, decision, options) {
-      var maxWidthFunction = options.maxWidthFunction();
-      maxWidthFunction(element, decision.maxWidth());
-    };
-    var position = function (element, decision, options) {
-      var addPx = function (num) {
-        return num + 'px';
-      };
-      var newPosition = reposition(options.origin(), decision);
-      setOptions(element, {
-        position: Option.some(newPosition.position()),
-        left: newPosition.left().map(addPx),
-        top: newPosition.top().map(addPx),
-        right: newPosition.right().map(addPx),
-        bottom: newPosition.bottom().map(addPx)
-      });
-    };
-
-    var setMaxHeight = function (element, maxHeight) {
-      setMax(element, Math.floor(maxHeight));
-    };
-    var anchored = constant(function (element, available) {
-      setMaxHeight(element, available);
-      setAll$1(element, {
-        'overflow-x': 'hidden',
-        'overflow-y': 'auto'
-      });
-    });
-    var expandable = constant(function (element, available) {
-      setMaxHeight(element, available);
-    });
-
-    var reparteeOptions = MixedBag([
-      'bounds',
-      'origin',
-      'preference',
-      'maxHeightFunction',
-      'maxWidthFunction'
-    ], []);
-    var defaultOr = function (options, key, dephault) {
-      return options[key] === undefined ? dephault : options[key];
-    };
-    var simple = function (anchor, element, bubble, layouts, getBounds, overrideOptions) {
-      var maxHeightFunction = defaultOr(overrideOptions, 'maxHeightFunction', anchored());
-      var maxWidthFunction = defaultOr(overrideOptions, 'maxWidthFunction', noop);
-      var anchorBox = anchor.anchorBox();
-      var origin = anchor.origin();
-      var options = reparteeOptions({
-        bounds: viewport$1(origin, getBounds),
-        origin: origin,
-        preference: layouts,
-        maxHeightFunction: maxHeightFunction,
-        maxWidthFunction: maxWidthFunction
-      });
-      go(anchorBox, element, bubble, options);
-    };
-    var go = function (anchorBox, element, bubble, options) {
-      var decision = layout(anchorBox, element, bubble, options);
-      position(element, decision, options);
-      setClasses(element, decision);
-      setHeight(element, decision, options);
-      setWidth(element, decision, options);
-    };
 
     var getFixedOrigin = function () {
       var html = domGlobals.document.documentElement;
@@ -5413,11 +5325,12 @@
         }
       }, placee.element());
     };
-    var getMode = function (component, pConfig, pState) {
+    var getMode = function (component, pConfig, _pState) {
       return pConfig.useFixed() ? 'fixed' : 'absolute';
     };
 
     var PositionApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         position: position$1,
         positionWithin: positionWithin,
         positionWithinBounds: positionWithinBounds,
@@ -5531,7 +5444,7 @@
     };
 
     var rebuild = function (sandbox, sConfig, sState, data) {
-      sState.get().each(function (data) {
+      sState.get().each(function (_data) {
         detachChildren$1(sandbox);
       });
       var point = sConfig.getAttachPoint(sandbox);
@@ -5565,7 +5478,7 @@
         sState.clear();
       });
     };
-    var isOpen = function (sandbox, sConfig, sState) {
+    var isOpen = function (_sandbox, _sConfig, sState) {
       return sState.isOpen();
     };
     var isPartOf$1 = function (sandbox, sConfig, sState, queryElem) {
@@ -5573,7 +5486,7 @@
         return sConfig.isPartOf(sandbox, data, queryElem);
       });
     };
-    var getState = function (sandbox, sConfig, sState) {
+    var getState = function (_sandbox, _sConfig, sState) {
       return sState.get();
     };
     var store = function (sandbox, cssKey, attr, newValue) {
@@ -5585,14 +5498,13 @@
       set$2(sandbox.element(), cssKey, newValue);
     };
     var restore = function (sandbox, cssKey, attr) {
-      if (has$1(sandbox.element(), attr)) {
-        var oldValue = get$2(sandbox.element(), attr);
-        set$2(sandbox.element(), cssKey, oldValue);
-      } else {
-        remove$6(sandbox.element(), cssKey);
-      }
+      getOpt(sandbox.element(), attr).fold(function () {
+        return remove$6(sandbox.element(), cssKey);
+      }, function (oldValue) {
+        return set$2(sandbox.element(), cssKey, oldValue);
+      });
     };
-    var cloak = function (sandbox, sConfig, sState) {
+    var cloak = function (sandbox, sConfig, _sState) {
       var sink = sConfig.getAttachPoint(sandbox);
       set$2(sandbox.element(), 'position', Positioning.getMode(sink));
       store(sandbox, 'visibility', sConfig.cloakVisibilityAttr, 'hidden');
@@ -5607,7 +5519,7 @@
         return getRaw(element, pos).isSome();
       });
     };
-    var decloak = function (sandbox, sConfig, sState) {
+    var decloak = function (sandbox, sConfig, _sState) {
       if (!hasPosition(sandbox.element())) {
         remove$6(sandbox.element(), 'position');
       }
@@ -5615,6 +5527,7 @@
     };
 
     var SandboxApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         cloak: cloak,
         decloak: decloak,
         open: open,
@@ -5627,12 +5540,13 @@
     });
 
     var events$2 = function (sandboxConfig, sandboxState) {
-      return derive([run(sandboxClose(), function (sandbox, simulatedEvent) {
+      return derive([run(sandboxClose(), function (sandbox, _simulatedEvent) {
           close(sandbox, sandboxConfig, sandboxState);
         })]);
     };
 
     var ActiveSandbox = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         events: events$2
     });
 
@@ -5650,10 +5564,10 @@
       var isOpen = function () {
         return contents.get().isSome();
       };
-      var set = function (c) {
-        contents.set(Option.some(c));
+      var set = function (comp) {
+        contents.set(Option.some(comp));
       };
-      var get = function (c) {
+      var get = function () {
         return contents.get();
       };
       var clear = function () {
@@ -5669,6 +5583,7 @@
     };
 
     var SandboxState = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         init: init
     });
 
@@ -5709,7 +5624,6 @@
     };
 
     var schema$3 = objOfOnly([
-      defaulted$1('isExtraPart', constant(false)),
       optionObjOf('fireEventInstead', [defaulted$1('event', repositionRequested())]),
       strictFunction('doReposition')
     ]);
@@ -5746,6 +5660,7 @@
     };
 
     var RepresentApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         onLoad: onLoad,
         onUnload: onUnload,
         setValue: setValue,
@@ -5755,10 +5670,10 @@
 
     var events$3 = function (repConfig, repState) {
       var es = repConfig.resetOnDom ? [
-        runOnAttached(function (comp, se) {
+        runOnAttached(function (comp, _se) {
           onLoad(comp, repConfig, repState);
         }),
-        runOnDetached(function (comp, se) {
+        runOnDetached(function (comp, _se) {
           onUnload(comp, repConfig, repState);
         })
       ] : [loadEvent(repConfig, repState, onLoad)];
@@ -5766,6 +5681,7 @@
     };
 
     var ActiveRepresenting = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         events: events$3
     });
 
@@ -5811,8 +5727,8 @@
         dataByText.set({});
       };
       var lookup = function (itemString) {
-        return readOptFrom$1(dataByValue.get(), itemString).orThunk(function () {
-          return readOptFrom$1(dataByText.get(), itemString);
+        return get(dataByValue.get(), itemString).orThunk(function () {
+          return get(dataByText.get(), itemString);
         });
       };
       var update = function (items) {
@@ -5822,8 +5738,8 @@
         var newDataByText = {};
         each(items, function (item) {
           newDataByValue[item.value] = item;
-          readOptFrom$1(item, 'meta').each(function (meta) {
-            readOptFrom$1(meta, 'text').each(function (text) {
+          get(item, 'meta').each(function (meta) {
+            get(meta, 'text').each(function (text) {
               newDataByText[text] = item;
             });
           });
@@ -5843,6 +5759,7 @@
     };
 
     var RepresentState = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         memory: memory,
         dataset: dataset,
         manual: manual,
@@ -5887,14 +5804,14 @@
       })
     ];
 
-    var getValue$2 = function (component, repConfig, repState) {
+    var getValue$2 = function (component, repConfig, _repState) {
       return repConfig.store.getValue(component);
     };
-    var setValue$2 = function (component, repConfig, repState, data) {
+    var setValue$2 = function (component, repConfig, _repState, data) {
       repConfig.store.setValue(component, data);
       repConfig.onSetValue(component, data);
     };
-    var onLoad$2 = function (component, repConfig, repState) {
+    var onLoad$2 = function (component, repConfig, _repState) {
       repConfig.store.initialValue.each(function (data) {
         repConfig.store.setValue(component, data);
       });
@@ -5969,7 +5886,7 @@
         return forbid(f.name(), 'Cannot configure ' + f.name() + ' for ' + name);
       }).concat([state$1('dump', identity)]));
     };
-    var get$b = function (data) {
+    var get$c = function (data) {
       return data.dump;
     };
     var augment = function (data, original) {
@@ -5978,7 +5895,7 @@
     var SketchBehaviours = {
       field: field$1,
       augment: augment,
-      get: get$b
+      get: get$c
     };
 
     var _placeholder = 'placeholder';
@@ -5996,20 +5913,23 @@
         ]
       }
     ]);
+    var isSubstituted = function (spec) {
+      return has(spec, 'uiType');
+    };
     var subPlaceholder = function (owner, detail, compSpec, placeholders) {
       if (owner.exists(function (o) {
           return o !== compSpec.owner;
         })) {
         return adt$9.single(true, constant(compSpec));
       }
-      return readOptFrom$1(placeholders, compSpec.name).fold(function () {
+      return get(placeholders, compSpec.name).fold(function () {
         throw new Error('Unknown placeholder component: ' + compSpec.name + '\nKnown: [' + keys(placeholders) + ']\nNamespace: ' + owner.getOr('none') + '\nSpec: ' + JSON.stringify(compSpec, null, 2));
       }, function (newSpec) {
         return newSpec.replace();
       });
     };
     var scan = function (owner, detail, compSpec, placeholders) {
-      if (compSpec.uiType === _placeholder) {
+      if (isSubstituted(compSpec) && compSpec.uiType === _placeholder) {
         return subPlaceholder(owner, detail, compSpec, placeholders);
       } else {
         return adt$9.single(false, constant(compSpec));
@@ -6018,16 +5938,20 @@
     var substitute = function (owner, detail, compSpec, placeholders) {
       var base = scan(owner, detail, compSpec, placeholders);
       return base.fold(function (req, valueThunk) {
-        var value = valueThunk(detail, compSpec.config, compSpec.validated);
-        var childSpecs = readOptFrom$1(value, 'components').getOr([]);
+        var value = isSubstituted(compSpec) ? valueThunk(detail, compSpec.config, compSpec.validated) : valueThunk(detail);
+        var childSpecs = get(value, 'components').getOr([]);
         var substituted = bind(childSpecs, function (c) {
           return substitute(owner, detail, c, placeholders);
         });
         return [__assign(__assign({}, value), { components: substituted })];
       }, function (req, valuesThunk) {
-        var values = valuesThunk(detail, compSpec.config, compSpec.validated);
-        var preprocessor = compSpec.validated.preprocess.getOr(identity);
-        return preprocessor(values);
+        if (isSubstituted(compSpec)) {
+          var values = valuesThunk(detail, compSpec.config, compSpec.validated);
+          var preprocessor = compSpec.validated.preprocess.getOr(identity);
+          return preprocessor(values);
+        } else {
+          return valuesThunk(detail);
+        }
       });
     };
     var substituteAll = function (owner, detail, components, placeholders) {
@@ -6041,7 +5965,7 @@
         return called;
       };
       var replace = function () {
-        if (called === true) {
+        if (called) {
           throw new Error('Trying to use the same placeholder more than once: ' + label);
         }
         called = true;
@@ -6151,6 +6075,7 @@
     var original = constant('entirety');
 
     var PartType = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         required: required,
         external: external$1,
         optional: optional,
@@ -6260,7 +6185,7 @@
     };
     var getAllParts = function (component, detail) {
       var system = component.getSystem();
-      return map$1(detail.partUids, function (pUid, k) {
+      return map$1(detail.partUids, function (pUid, _k) {
         return constant(system.getByUid(pUid));
       });
     };
@@ -6292,6 +6217,7 @@
     };
 
     var AlloyParts = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         generate: generate$4,
         generateOne: generateOne,
         schemas: schemas,
@@ -6337,8 +6263,11 @@
       var components$1 = components(owner, detail, subs.internals());
       return factory(detail, components$1, specWithUid, subs.externals());
     };
+    var hasUid = function (spec) {
+      return has(spec, 'uid');
+    };
     var supplyUid = function (spec) {
-      return spec.hasOwnProperty('uid') ? spec : __assign(__assign({}, spec), { uid: generate$2('uid') });
+      return hasUid(spec) ? spec : __assign(__assign({}, spec), { uid: generate$2('uid') });
     };
 
     function isSketchSpec(spec) {
@@ -6370,7 +6299,6 @@
       });
       return __assign(__assign({
         name: constant(config.name),
-        partFields: constant([]),
         configFields: constant(config.configFields),
         sketch: sketch
       }, apis), extraApis);
@@ -6394,15 +6322,45 @@
       }, apis), extraApis);
     };
 
+    var cat = function (arr) {
+      var r = [];
+      var push = function (x) {
+        r.push(x);
+      };
+      for (var i = 0; i < arr.length; i++) {
+        arr[i].each(push);
+      }
+      return r;
+    };
+    var sequence = function (arr) {
+      var r = [];
+      for (var i = 0; i < arr.length; i++) {
+        var x = arr[i];
+        if (x.isSome()) {
+          r.push(x.getOrDie());
+        } else {
+          return Option.none();
+        }
+      }
+      return Option.some(r);
+    };
+    var lift2 = function (oa, ob, f) {
+      return oa.isSome() && ob.isSome() ? Option.some(f(oa.getOrDie(), ob.getOrDie())) : Option.none();
+    };
+    var lift3 = function (oa, ob, oc, f) {
+      return oa.isSome() && ob.isSome() && oc.isSome() ? Option.some(f(oa.getOrDie(), ob.getOrDie(), oc.getOrDie())) : Option.none();
+    };
+
     var inside = function (target) {
       return name(target) === 'input' && get$2(target, 'type') !== 'radio' || name(target) === 'textarea';
     };
 
-    var getCurrent = function (component, composeConfig, composeState) {
+    var getCurrent = function (component, composeConfig, _composeState) {
       return composeConfig.find(component);
     };
 
     var ComposeApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         getCurrent: getCurrent
     });
 
@@ -6473,7 +6431,7 @@
     var isHighlighted = function (component, hConfig, hState, queryTarget) {
       return has$2(queryTarget.element(), hConfig.highlightClass);
     };
-    var getHighlighted = function (component, hConfig, hState) {
+    var getHighlighted = function (component, hConfig, _hState) {
       return descendant$1(component.element(), '.' + hConfig.highlightClass).bind(function (e) {
         return component.getSystem().getByDom(e).toOption();
       });
@@ -6484,12 +6442,12 @@
         return Result.error('No element found with index ' + index);
       }, component.getSystem().getByDom);
     };
-    var getFirst = function (component, hConfig, hState) {
+    var getFirst = function (component, hConfig, _hState) {
       return descendant$1(component.element(), '.' + hConfig.itemClass).bind(function (e) {
         return component.getSystem().getByDom(e).toOption();
       });
     };
-    var getLast = function (component, hConfig, hState) {
+    var getLast = function (component, hConfig, _hState) {
       var items = descendants(component.element(), '.' + hConfig.itemClass);
       var last = items.length > 0 ? Option.some(items[items.length - 1]) : Option.none();
       return last.bind(function (c) {
@@ -6512,7 +6470,7 @@
     var getNext = function (component, hConfig, hState) {
       return getDelta(component, hConfig, hState, +1);
     };
-    var getCandidates = function (component, hConfig, hState) {
+    var getCandidates = function (component, hConfig, _hState) {
       var items = descendants(component.element(), '.' + hConfig.itemClass);
       return cat(map(items, function (i) {
         return component.getSystem().getByDom(i).toOption();
@@ -6520,6 +6478,7 @@
     };
 
     var HighlightApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         dehighlightAll: dehighlightAll,
         dehighlight: dehighlight$1,
         highlight: highlight$1,
@@ -6637,7 +6596,7 @@
     var reportFocusShifting = function (component, prevFocus, newFocus) {
       var noChange = prevFocus.exists(function (p) {
         return newFocus.exists(function (n) {
-          return eq(n, p);
+          return eq$1(n, p);
         });
       });
       if (!noChange) {
@@ -6727,7 +6686,7 @@
             });
           }
         };
-        return derive(onFocusHandler.toArray().concat([
+        var keyboardEvents = [
           run(keydown(), function (component, simulatedEvent) {
             processKey(component, simulatedEvent, getKeydownRules, keyingConfig, keyingState).fold(function () {
               tryGoInsideComponent(component, simulatedEvent);
@@ -6740,7 +6699,8 @@
               simulatedEvent.stop();
             });
           })
-        ]));
+        ];
+        return derive(onFocusHandler.toArray().concat(keyboardEvents));
       };
       var me = {
         schema: schema,
@@ -6780,7 +6740,7 @@
       var isTabstop = function (tabbingConfig, element) {
         return isVisible(tabbingConfig, element) && tabbingConfig.useTabstopAt(element);
       };
-      var focusIn = function (component, tabbingConfig) {
+      var focusIn = function (component, tabbingConfig, _tabbingState) {
         findInitial(component, tabbingConfig).each(function (target) {
           tabbingConfig.focusManager.set(component, target);
         });
@@ -6795,29 +6755,29 @@
           return Option.some(true);
         });
       };
-      var go = function (component, simulatedEvent, tabbingConfig, cycle) {
+      var go = function (component, _simulatedEvent, tabbingConfig, cycle) {
         var tabstops = descendants(component.element(), tabbingConfig.selector);
         return findCurrent(component, tabbingConfig).bind(function (tabstop) {
-          var optStopIndex = findIndex(tabstops, curry(eq, tabstop));
+          var optStopIndex = findIndex(tabstops, curry(eq$1, tabstop));
           return optStopIndex.bind(function (stopIndex) {
             return goFromTabstop(component, tabstops, stopIndex, tabbingConfig, cycle);
           });
         });
       };
-      var goBackwards = function (component, simulatedEvent, tabbingConfig, tabbingState) {
+      var goBackwards = function (component, simulatedEvent, tabbingConfig) {
         var navigate = tabbingConfig.cyclic ? cyclePrev : tryPrev;
         return go(component, simulatedEvent, tabbingConfig, navigate);
       };
-      var goForwards = function (component, simulatedEvent, tabbingConfig, tabbingState) {
+      var goForwards = function (component, simulatedEvent, tabbingConfig) {
         var navigate = tabbingConfig.cyclic ? cycleNext : tryNext;
         return go(component, simulatedEvent, tabbingConfig, navigate);
       };
-      var execute = function (component, simulatedEvent, tabbingConfig, tabbingState) {
+      var execute = function (component, simulatedEvent, tabbingConfig) {
         return tabbingConfig.onEnter.bind(function (f) {
           return f(component, simulatedEvent);
         });
       };
-      var exit = function (component, simulatedEvent, tabbingConfig, tabbingState) {
+      var exit = function (component, simulatedEvent, tabbingConfig) {
         return tabbingConfig.onEscape.bind(function (f) {
           return f(component, simulatedEvent);
         });
@@ -6844,14 +6804,15 @@
 
     var CyclicType = create$3(state$1('cyclic', constant(true)));
 
-    var doDefaultExecute = function (component, simulatedEvent, focused) {
+    var doDefaultExecute = function (component, _simulatedEvent, focused) {
       dispatch(component, focused, execute());
       return Option.some(true);
     };
     var defaultExecute = function (component, simulatedEvent, focused) {
-      return inside(focused) && inSet(SPACE())(simulatedEvent.event()) ? Option.none() : doDefaultExecute(component, simulatedEvent, focused);
+      var isComplex = inside(focused) && inSet(SPACE())(simulatedEvent.event());
+      return isComplex ? Option.none() : doDefaultExecute(component, simulatedEvent, focused);
     };
-    var stopEventForFirefox = function (component, simulatedEvent) {
+    var stopEventForFirefox = function (_component, _simulatedEvent) {
       return Option.some(true);
     };
 
@@ -6865,7 +6826,7 @@
     var execute$1 = function (component, simulatedEvent, executeConfig) {
       return executeConfig.execute(component, simulatedEvent, component.element());
     };
-    var getKeydownRules = function (component, simulatedEvent, executeConfig, executeState) {
+    var getKeydownRules = function (component, _simulatedEvent, executeConfig, _executeState) {
       var spaceExec = executeConfig.useSpace && !inside(component.element()) ? SPACE() : [];
       var enterExec = executeConfig.useEnter ? ENTER() : [];
       var downExec = executeConfig.useDown ? DOWN() : [];
@@ -6875,37 +6836,37 @@
           inSet(ENTER())
         ]), execute$1)] : []);
     };
-    var getKeyupRules = function (component, simulatedEvent, executeConfig, executeState) {
+    var getKeyupRules = function (component, _simulatedEvent, executeConfig, _executeState) {
       return executeConfig.useSpace && !inside(component.element()) ? [rule(inSet(SPACE()), stopEventForFirefox)] : [];
     };
     var ExecutionType = typical(schema$4, NoState.init, getKeydownRules, getKeyupRules, function () {
       return Option.none();
     });
 
-    var flatgrid = function (spec) {
+    var flatgrid = function () {
       var dimensions = Cell(Option.none());
       var setGridSize = function (numRows, numColumns) {
         dimensions.set(Option.some({
-          numRows: constant(numRows),
-          numColumns: constant(numColumns)
+          numRows: numRows,
+          numColumns: numColumns
         }));
       };
       var getNumRows = function () {
         return dimensions.get().map(function (d) {
-          return d.numRows();
+          return d.numRows;
         });
       };
       var getNumColumns = function () {
         return dimensions.get().map(function (d) {
-          return d.numColumns();
+          return d.numColumns;
         });
       };
       return nu$5({
         readState: function () {
           return dimensions.get().map(function (d) {
             return {
-              numRows: d.numRows(),
-              numColumns: d.numColumns()
+              numRows: String(d.numRows),
+              numColumns: String(d.numColumns)
             };
           }).getOr({
             numRows: '?',
@@ -6922,6 +6883,7 @@
     };
 
     var KeyingState = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         flatgrid: flatgrid,
         init: init$2
     });
@@ -6962,32 +6924,29 @@
       return dom.offsetWidth <= 0 && dom.offsetHeight <= 0;
     };
     var isVisible = function (element) {
-      var dom = element.dom();
-      return !isHidden(dom);
+      return !isHidden(element.dom());
     };
 
-    var indexInfo = MixedBag([
-      'index',
-      'candidates'
-    ], []);
-    var locate$2 = function (candidates, predicate) {
+    var locate = function (candidates, predicate) {
       return findIndex(candidates, predicate).map(function (index) {
-        return indexInfo({
-          index: index,
-          candidates: candidates
-        });
+        return {
+          index: constant(index),
+          candidates: constant(candidates)
+        };
       });
     };
 
     var locateVisible = function (container, current, selector) {
-      var predicate = curry(eq, current);
+      var predicate = function (x) {
+        return eq$1(x, current);
+      };
       var candidates = descendants(container, selector);
       var visible = filter(candidates, isVisible);
-      return locate$2(visible, predicate);
+      return locate(visible, predicate);
     };
     var findIndex$1 = function (elements, target) {
       return findIndex(elements, function (elem) {
-        return eq(target, elem);
+        return eq$1(target, elem);
       });
     };
 
@@ -7015,7 +6974,7 @@
         var newRow = cycleBy(oldRow, delta, 0, numRows - 1);
         var onLastRow = newRow === numRows - 1;
         var colsInRow = onLastRow ? values.length - newRow * numCols : numCols;
-        var newCol = cap(oldColumn, 0, colsInRow - 1);
+        var newCol = clamp(oldColumn, 0, colsInRow - 1);
         return Option.some({
           row: constant(newRow),
           column: constant(newCol)
@@ -7042,7 +7001,7 @@
       defaulted$1('captureTab', false),
       initSize()
     ];
-    var focusIn = function (component, gridConfig, gridState) {
+    var focusIn = function (component, gridConfig, _gridState) {
       descendant$1(component.element(), gridConfig.selector).each(function (first) {
         gridConfig.focusManager.set(component, first);
       });
@@ -7052,7 +7011,7 @@
         return closest$3(elem, gridConfig.selector);
       });
     };
-    var execute$2 = function (component, simulatedEvent, gridConfig, gridState) {
+    var execute$2 = function (component, simulatedEvent, gridConfig, _gridState) {
       return findCurrent(component, gridConfig).bind(function (focused) {
         return gridConfig.execute(component, simulatedEvent, focused);
       });
@@ -7064,10 +7023,10 @@
         });
       };
     };
-    var handleTab = function (component, simulatedEvent, gridConfig, gridState) {
+    var handleTab = function (_component, _simulatedEvent, gridConfig) {
       return gridConfig.captureTab ? Option.some(true) : Option.none();
     };
-    var doEscape = function (component, simulatedEvent, gridConfig, gridState) {
+    var doEscape = function (component, simulatedEvent, gridConfig) {
       return gridConfig.onEscape(component, simulatedEvent);
     };
     var moveLeft = doMove(cycleLeft);
@@ -7132,7 +7091,7 @@
         return flowConfig.execute(component, simulatedEvent, focused);
       });
     };
-    var focusIn$1 = function (component, flowConfig) {
+    var focusIn$1 = function (component, flowConfig, _state) {
       flowConfig.getInitial(component).orThunk(function () {
         return descendant$1(component.element(), flowConfig.selector);
       }).each(function (first) {
@@ -7146,13 +7105,13 @@
       return horizontal(element, info.selector, focused, +1);
     };
     var doMove$1 = function (movement) {
-      return function (component, simulatedEvent, flowConfig) {
-        return movement(component, simulatedEvent, flowConfig).bind(function () {
+      return function (component, simulatedEvent, flowConfig, flowState) {
+        return movement(component, simulatedEvent, flowConfig, flowState).bind(function () {
           return flowConfig.executeOnMove ? execute$3(component, simulatedEvent, flowConfig) : Option.some(true);
         });
       };
     };
-    var doEscape$1 = function (component, simulatedEvent, flowConfig, _flowState) {
+    var doEscape$1 = function (component, simulatedEvent, flowConfig) {
       return flowConfig.onEscape(component, simulatedEvent);
     };
     var getKeydownRules$2 = function (_component, _se, flowConfig, _flowState) {
@@ -7171,19 +7130,14 @@
       return Option.some(focusIn$1);
     });
 
-    var outcome = MixedBag([
-      'rowIndex',
-      'columnIndex',
-      'cell'
-    ], []);
     var toCell = function (matrix, rowIndex, columnIndex) {
       return Option.from(matrix[rowIndex]).bind(function (row) {
         return Option.from(row[columnIndex]).map(function (cell) {
-          return outcome({
+          return {
             rowIndex: rowIndex,
             columnIndex: columnIndex,
             cell: cell
-          });
+          };
         });
       });
     };
@@ -7196,19 +7150,19 @@
     var cycleVertical$1 = function (matrix, colIndex, startRow, deltaRow) {
       var nextRowIndex = cycleBy(startRow, deltaRow, 0, matrix.length - 1);
       var colsInNextRow = matrix[nextRowIndex].length;
-      var nextColIndex = cap(colIndex, 0, colsInNextRow - 1);
+      var nextColIndex = clamp(colIndex, 0, colsInNextRow - 1);
       return toCell(matrix, nextRowIndex, nextColIndex);
     };
     var moveHorizontal = function (matrix, rowIndex, startCol, deltaCol) {
       var row = matrix[rowIndex];
       var colsInRow = row.length;
-      var newColIndex = cap(startCol + deltaCol, 0, colsInRow - 1);
+      var newColIndex = clamp(startCol + deltaCol, 0, colsInRow - 1);
       return toCell(matrix, rowIndex, newColIndex);
     };
     var moveVertical = function (matrix, colIndex, startRow, deltaRow) {
-      var nextRowIndex = cap(startRow + deltaRow, 0, matrix.length - 1);
+      var nextRowIndex = clamp(startRow + deltaRow, 0, matrix.length - 1);
       var colsInNextRow = matrix[nextRowIndex].length;
-      var nextColIndex = cap(colIndex, 0, colsInNextRow - 1);
+      var nextColIndex = clamp(colIndex, 0, colsInNextRow - 1);
       return toCell(matrix, nextRowIndex, nextColIndex);
     };
     var cycleRight$1 = function (matrix, startRow, startCol) {
@@ -7245,7 +7199,7 @@
       defaulted$1('previousSelector', Option.none),
       defaulted$1('execute', defaultExecute)
     ];
-    var focusIn$2 = function (component, matrixConfig) {
+    var focusIn$2 = function (component, matrixConfig, _state) {
       var focused = matrixConfig.previousSelector(component).orThunk(function () {
         var selectors = matrixConfig.selectors;
         return descendant$1(component.element(), selectors.cell);
@@ -7274,7 +7228,7 @@
             return findIndex$1(allRows, inRow).bind(function (rowIndex) {
               var matrix = toMatrix(allRows, matrixConfig);
               return move(matrix, rowIndex, colIndex).map(function (next) {
-                return next.cell();
+                return next.cell;
               });
             });
           });
@@ -7307,7 +7261,7 @@
         return menuConfig.execute(component, simulatedEvent, focused);
       });
     };
-    var focusIn$3 = function (component, menuConfig) {
+    var focusIn$3 = function (component, menuConfig, _state) {
       descendant$1(component.element(), menuConfig.selector).each(function (first) {
         menuConfig.focusManager.set(component, first);
       });
@@ -7318,11 +7272,11 @@
     var moveDown$1 = function (element, focused, info) {
       return horizontal(element, info.selector, focused, +1);
     };
-    var fireShiftTab = function (component, simulatedEvent, menuConfig) {
-      return menuConfig.moveOnTab ? move(moveUp$1)(component, simulatedEvent, menuConfig) : Option.none();
+    var fireShiftTab = function (component, simulatedEvent, menuConfig, menuState) {
+      return menuConfig.moveOnTab ? move(moveUp$1)(component, simulatedEvent, menuConfig, menuState) : Option.none();
     };
-    var fireTab = function (component, simulatedEvent, menuConfig) {
-      return menuConfig.moveOnTab ? move(moveDown$1)(component, simulatedEvent, menuConfig) : Option.none();
+    var fireTab = function (component, simulatedEvent, menuConfig, menuState) {
+      return menuConfig.moveOnTab ? move(moveDown$1)(component, simulatedEvent, menuConfig, menuState) : Option.none();
     };
     var getKeydownRules$4 = constant([
       rule(inSet(UP()), move(moveUp$1)),
@@ -7401,6 +7355,7 @@
     var special = SpecialType.schema();
 
     var KeyboardBranches = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         acyclic: acyclic,
         cyclic: cyclic,
         flow: flow,
@@ -7411,6 +7366,9 @@
         special: special
     });
 
+    var isFlatgridState = function (keyState) {
+      return hasNonNullableKey(keyState, 'setGridSize');
+    };
     var Keying = createModes$1({
       branchKey: 'mode',
       branches: KeyboardBranches,
@@ -7430,7 +7388,7 @@
           });
         },
         setGridSize: function (component, keyConfig, keyState, numRows, numColumns) {
-          if (!hasKey$1(keyState, 'setGridSize')) {
+          if (!isFlatgridState(keyState)) {
             domGlobals.console.error('Layout does not support setGridSize');
           } else {
             keyState.setGridSize(numRows, numColumns);
@@ -7459,11 +7417,11 @@
     var remove$7 = function (component, replaceConfig, replaceState, removee) {
       var children = contents(component);
       var foundChild = find(children, function (child) {
-        return eq(removee.element(), child.element());
+        return eq$1(removee.element(), child.element());
       });
       foundChild.each(detach);
     };
-    var contents = function (component, replaceConfig) {
+    var contents = function (component, _replaceConfig) {
       return component.components();
     };
     var replaceAt = function (component, replaceConfig, replaceState, replaceeIndex, replacer) {
@@ -7486,6 +7444,7 @@
     };
 
     var ReplaceApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         append: append$2,
         prepend: prepend$1,
         remove: remove$7,
@@ -7539,6 +7498,7 @@
     };
 
     var FocusApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         focus: focus$2,
         blur: blur$1,
         isFocused: isFocused
@@ -7558,6 +7518,7 @@
     };
 
     var ActiveFocus = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         exhibit: exhibit$1,
         events: events$5
     });
@@ -7613,6 +7574,7 @@
     };
 
     var ToggleApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         onLoad: onLoad$4,
         toggle: toggle,
         isOn: isOn,
@@ -7621,7 +7583,7 @@
         set: set$6
     });
 
-    var exhibit$2 = function (base, toggleConfig, toggleState) {
+    var exhibit$2 = function () {
       return nu$6({});
     };
     var events$6 = function (toggleConfig, toggleState) {
@@ -7634,6 +7596,7 @@
     };
 
     var ActiveToggle = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         exhibit: exhibit$2,
         events: events$6
     });
@@ -7703,6 +7666,31 @@
       state: SetupBehaviourCellState(false)
     });
 
+    var pointerEvents = function () {
+      var onClick = function (component, simulatedEvent) {
+        simulatedEvent.stop();
+        emitExecute(component);
+      };
+      return [
+        run(click(), onClick),
+        run(tap(), onClick),
+        cutter(touchstart()),
+        cutter(mousedown())
+      ];
+    };
+    var events$7 = function (optAction) {
+      var executeHandler = function (action) {
+        return runOnExecute(function (component, simulatedEvent) {
+          action(component);
+          simulatedEvent.stop();
+        });
+      };
+      return derive(flatten([
+        optAction.map(executeHandler).toArray(),
+        pointerEvents()
+      ]));
+    };
+
     var hoverEvent = 'alloy.item-hover';
     var focusEvent = 'alloy.item-focus';
     var onHover = function (item) {
@@ -7741,12 +7729,10 @@
               initialValue: detail.data
             }
           }),
-          config('item-type-events', [
-            run(tapOrClick(), emitExecute),
-            cutter(mousedown()),
+          config('item-type-events', __spreadArrays(pointerEvents(), [
             run(mouseover(), onHover),
             run(focusItem(), Focusing.focus)
-          ])
+          ]))
         ]),
         components: detail.components,
         eventOrder: detail.eventOrder
@@ -7793,7 +7779,7 @@
             behaviours: derive$1([Representing.config({
                 store: {
                   mode: 'manual',
-                  getValue: function (component) {
+                  getValue: function (_component) {
                     return detail.data;
                   },
                   setValue: function () {
@@ -7829,12 +7815,12 @@
         domModification: detail.domModification,
         events: derive([
           runOnExecute(function (component, simulatedEvent) {
-            focusWidget(component).each(function (widget) {
+            focusWidget(component).each(function (_widget) {
               simulatedEvent.stop();
             });
           }),
           run(mouseover(), onHover),
-          run(focusItem(), function (component, simulatedEvent) {
+          run(focusItem(), function (component, _simulatedEvent) {
             if (detail.autofocus) {
               focusWidget(component);
             } else {
@@ -7985,7 +7971,7 @@
 
     var focus$4 = constant('alloy.menu-focus');
 
-    var make$1 = function (detail, components, spec, externals) {
+    var make$1 = function (detail, components, _spec, _externals) {
       return {
         uid: detail.uid,
         dom: detail.dom,
@@ -8044,8 +8030,8 @@
       });
     };
     var trace = function (items, byItem, byMenu, finish) {
-      return readOptFrom$1(byMenu, finish).bind(function (triggerItem) {
-        return readOptFrom$1(items, triggerItem).bind(function (triggerMenu) {
+      return get(byMenu, finish).bind(function (triggerItem) {
+        return get(items, triggerItem).bind(function (triggerMenu) {
           var rest = trace(items, byItem, byMenu, triggerMenu);
           return Option.some([triggerMenu].concat(rest));
         });
@@ -8064,7 +8050,7 @@
         return [submenu].concat(trace(items, byItem, byMenu, submenu));
       });
       return map$1(items, function (menu) {
-        return readOptFrom$1(menuPaths, menu).getOr([menu]);
+        return get(menuPaths, menu).getOr([menu]);
       });
     };
 
@@ -8099,7 +8085,7 @@
         paths.set(sPaths);
       };
       var getTriggeringItem = function (menuValue) {
-        return find$1(expansions.get(), function (v, k) {
+        return find$1(expansions.get(), function (v, _k) {
           return v === menuValue;
         });
       };
@@ -8120,7 +8106,7 @@
         var extraPath = filter(lookupItem(itemValue).toArray(), function (menuValue) {
           return getPreparedMenu(menuValue).isSome();
         });
-        return readOptFrom$1(paths.get(), itemValue).bind(function (path) {
+        return get(paths.get(), itemValue).bind(function (path) {
           var revPath = reverse(extraPath.concat(path));
           var triggers = bind(revPath, function (menuValue, menuIndex) {
             return getTriggerData(menuValue, getItemByValue, revPath.slice(0, menuIndex + 1)).fold(function () {
@@ -8133,27 +8119,27 @@
         });
       };
       var expand = function (itemValue) {
-        return readOptFrom$1(expansions.get(), itemValue).map(function (menu) {
-          var current = readOptFrom$1(paths.get(), itemValue).getOr([]);
+        return get(expansions.get(), itemValue).map(function (menu) {
+          var current = get(paths.get(), itemValue).getOr([]);
           return [menu].concat(current);
         });
       };
       var collapse = function (itemValue) {
-        return readOptFrom$1(paths.get(), itemValue).bind(function (path) {
+        return get(paths.get(), itemValue).bind(function (path) {
           return path.length > 1 ? Option.some(path.slice(1)) : Option.none();
         });
       };
       var refresh = function (itemValue) {
-        return readOptFrom$1(paths.get(), itemValue);
+        return get(paths.get(), itemValue);
       };
       var getPreparedMenu = function (menuValue) {
         return lookupMenu(menuValue).bind(extractPreparedMenu);
       };
       var lookupMenu = function (menuValue) {
-        return readOptFrom$1(menus.get(), menuValue);
+        return get(menus.get(), menuValue);
       };
       var lookupItem = function (itemValue) {
-        return readOptFrom$1(expansions.get(), itemValue);
+        return get(expansions.get(), itemValue);
       };
       var otherMenus = function (path) {
         var menuValues = directory.get();
@@ -8189,7 +8175,7 @@
       extractPreparedMenu: extractPreparedMenu
     };
 
-    var make$2 = function (detail, rawUiSpec) {
+    var make$2 = function (detail, _rawUiSpec) {
       var submenuParentItems = Cell(Option.none());
       var buildMenus = function (container, primaryName, menus) {
         return map$1(menus, function (spec, name) {
@@ -8222,7 +8208,7 @@
       var getItemValue = function (item) {
         return Representing.getValue(item).value;
       };
-      var getItemByValue = function (container, menus, itemValue) {
+      var getItemByValue = function (_container, menus, itemValue) {
         return findMap(menus, function (menu) {
           if (!menu.getSystem().isConnected()) {
             return Option.none();
@@ -8233,8 +8219,8 @@
           });
         });
       };
-      var toDirectory = function (container) {
-        return map$1(detail.data.menus, function (data, menuName) {
+      var toDirectory = function (_container) {
+        return map$1(detail.data.menus, function (data, _menuName) {
           return bind(data.items, function (item) {
             return item.type === 'separator' ? [] : [item.data.value];
           });
@@ -8415,7 +8401,7 @@
             });
           });
         }),
-        runOnAttached(function (container, simulatedEvent) {
+        runOnAttached(function (container, _simulatedEvent) {
           setup(container).each(function (primary) {
             Replacing.append(container, premade$1(primary));
             detail.onOpenMenu(container, primary);
@@ -8488,7 +8474,7 @@
             onRight: keyOnItem(onRight),
             onLeft: keyOnItem(onLeft),
             onEscape: keyOnItem(onEscape),
-            focusIn: function (container, keyInfo) {
+            focusIn: function (container, _keyInfo) {
               layeredState.getPrimary().each(function (primary) {
                 dispatch(container, primary.element(), focusItem());
               });
@@ -8539,7 +8525,7 @@
         onStrictKeyboardHandler('onEscape'),
         onStrictHandler('onOpenMenu'),
         onStrictHandler('onOpenSubmenu'),
-        onStrictHandler('onRepositionMenu'),
+        onHandler('onRepositionMenu'),
         onHandler('onCollapseMenu'),
         defaulted$1('highlightImmediately', true),
         strictObjOf('data', [
@@ -8605,6 +8591,7 @@
         dom: { tag: 'div' },
         data: menuSpec.data,
         markers: menuSpec.menu.markers,
+        highlightImmediately: menuSpec.menu.highlightImmediately,
         onEscape: function () {
           Sandboxing.close(menuSandbox);
           detail.onEscape.map(function (handler) {
@@ -8683,8 +8670,10 @@
         }));
       };
       var hide = function (sandbox) {
-        Representing.setValue(sandbox, Option.none());
-        Sandboxing.close(sandbox);
+        if (Sandboxing.isOpen(sandbox)) {
+          Representing.setValue(sandbox, Option.none());
+          Sandboxing.close(sandbox);
+        }
       };
       var getContent = function (sandbox) {
         return Sandboxing.getState(sandbox);
@@ -8743,9 +8732,9 @@
             }
           }),
           Receiving.config({
-            channels: __assign(__assign({}, receivingChannel(__assign({ isExtraPart: constant(false) }, detail.fireDismissalEventInstead.map(function (fe) {
+            channels: __assign(__assign({}, receivingChannel(__assign({ isExtraPart: spec.isExtraPart }, detail.fireDismissalEventInstead.map(function (fe) {
               return { fireEventInstead: { event: fe.event } };
-            }).getOr({})))), receivingChannel$1(__assign(__assign({ isExtraPart: constant(false) }, detail.fireRepositionEventInstead.map(function (fe) {
+            }).getOr({})))), receivingChannel$1(__assign(__assign({}, detail.fireRepositionEventInstead.map(function (fe) {
               return { fireEventInstead: { event: fe.event } };
             }).getOr({})), { doReposition: reposition })))
           })
@@ -8769,6 +8758,7 @@
         optionObjOf('fireDismissalEventInstead', [defaulted$1('event', dismissRequested())]),
         optionObjOf('fireRepositionEventInstead', [defaulted$1('event', repositionRequested())]),
         defaulted$1('getRelated', Option.none),
+        defaulted$1('isExtraPart', never),
         defaulted$1('eventOrder', Option.none)
       ],
       factory: factory,
@@ -8807,69 +8797,59 @@
     });
 
     var westEdgeX$1 = function (anchor) {
-      return anchor.x();
+      return anchor.x;
     };
     var middleX$1 = function (anchor, element) {
-      return anchor.x() + anchor.width() / 2 - element.width() / 2;
+      return anchor.x + anchor.width / 2 - element.width / 2;
     };
     var eastEdgeX$1 = function (anchor, element) {
-      return anchor.x() + anchor.width() - element.width();
+      return anchor.x + anchor.width - element.width;
     };
     var northY$2 = function (anchor) {
-      return anchor.y();
+      return anchor.y;
     };
     var southY$2 = function (anchor, element) {
-      return anchor.y() + anchor.height() - element.height();
+      return anchor.y + anchor.height - element.height;
     };
     var southeast$3 = function (anchor, element, bubbles) {
-      return nu$7(westEdgeX$1(anchor), southY$2(anchor, element), bubbles.innerSoutheast(), southeast(), 'layout-se');
+      return nu$7(eastEdgeX$1(anchor, element), southY$2(anchor, element), bubbles.innerSoutheast(), northwest(), boundsRestriction(anchor, {
+        right: 0,
+        bottom: 3
+      }), 'layout-inner-se');
     };
     var southwest$3 = function (anchor, element, bubbles) {
-      return nu$7(eastEdgeX$1(anchor, element), southY$2(anchor, element), bubbles.innerSouthwest(), southwest(), 'layout-sw');
+      return nu$7(westEdgeX$1(anchor), southY$2(anchor, element), bubbles.innerSouthwest(), northeast(), boundsRestriction(anchor, {
+        left: 1,
+        bottom: 3
+      }), 'layout-inner-sw');
     };
     var northeast$3 = function (anchor, element, bubbles) {
-      return nu$7(westEdgeX$1(anchor), northY$2(anchor), bubbles.innerNortheast(), northeast(), 'layout-ne');
+      return nu$7(eastEdgeX$1(anchor, element), northY$2(anchor), bubbles.innerNortheast(), southwest(), boundsRestriction(anchor, {
+        right: 0,
+        top: 2
+      }), 'layout-inner-ne');
     };
     var northwest$3 = function (anchor, element, bubbles) {
-      return nu$7(eastEdgeX$1(anchor, element), northY$2(anchor), bubbles.innerNorthwest(), northwest(), 'layout-nw');
+      return nu$7(westEdgeX$1(anchor), northY$2(anchor), bubbles.innerNorthwest(), southeast(), boundsRestriction(anchor, {
+        left: 1,
+        top: 2
+      }), 'layout-inner-nw');
     };
     var north$3 = function (anchor, element, bubbles) {
-      return nu$7(middleX$1(anchor, element), northY$2(anchor), bubbles.innerNorth(), north(), 'layout-n');
+      return nu$7(middleX$1(anchor, element), northY$2(anchor), bubbles.innerNorth(), south(), boundsRestriction(anchor, { top: 2 }), 'layout-inner-n');
     };
     var south$3 = function (anchor, element, bubbles) {
-      return nu$7(middleX$1(anchor, element), southY$2(anchor, element), bubbles.innerSouth(), south(), 'layout-s');
+      return nu$7(middleX$1(anchor, element), southY$2(anchor, element), bubbles.innerSouth(), north(), boundsRestriction(anchor, { bottom: 3 }), 'layout-inner-s');
     };
 
-    var events$7 = function (optAction) {
-      var executeHandler = function (action) {
-        return run(execute(), function (component, simulatedEvent) {
-          action(component);
-          simulatedEvent.stop();
-        });
-      };
-      var onClick = function (component, simulatedEvent) {
-        simulatedEvent.stop();
-        emitExecute(component);
-      };
-      var onMousedown = function (component, simulatedEvent) {
-        simulatedEvent.cut();
-      };
-      var pointerEvents = detect$3().deviceType.isTouch() ? [run(tap(), onClick)] : [
-        run(click(), onClick),
-        run(mousedown(), onMousedown)
-      ];
-      return derive(flatten([
-        optAction.map(executeHandler).toArray(),
-        pointerEvents
-      ]));
-    };
+    var global$2 = tinymce.util.Tools.resolve('tinymce.util.Delay');
 
     var factory$1 = function (detail) {
       var events = events$7(detail.action);
       var tag = detail.dom.tag;
       var lookupAttr = function (attr) {
-        return readOptFrom$1(detail.dom, 'attributes').bind(function (attrs) {
-          return readOptFrom$1(attrs, attr);
+        return get(detail.dom, 'attributes').bind(function (attrs) {
+          return get(attrs, attr);
         });
       };
       var getModAttributes = function () {
@@ -8919,7 +8899,7 @@
     });
 
     var record = function (spec) {
-      var uid = isSketchSpec(spec) && hasKey$1(spec, 'uid') ? spec.uid : generate$2('memento');
+      var uid = isSketchSpec(spec) && hasNonNullableKey(spec, 'uid') ? spec.uid : generate$2('memento');
       var get = function (anyInSystem) {
         return anyInSystem.getSystem().getByUid(uid).getOrDie();
       };
@@ -8939,7 +8919,7 @@
     var defaultIcon = function (icons) {
       return Option.from(icons()['temporary-placeholder']).getOr('!not found!');
     };
-    var get$c = function (name, icons) {
+    var get$d = function (name, icons) {
       return Option.from(icons()[name]).getOrThunk(function () {
         return defaultIcon(icons);
       });
@@ -9076,28 +9056,28 @@
             components: [memBannerText.asSpec()],
             behaviours: derive$1([Replacing.config({})])
           }
-        ].concat(detail.progress ? [memBannerProgress.asSpec()] : []).concat(Button.sketch({
-          dom: {
-            tag: 'button',
-            classes: [
-              'tox-notification__dismiss',
-              'tox-button',
-              'tox-button--naked',
-              'tox-button--icon'
-            ]
-          },
-          components: [{
-              dom: {
-                tag: 'div',
-                classes: ['tox-icon'],
-                innerHtml: get$c('close', detail.iconProvider),
-                attributes: { 'aria-label': detail.translationProvider('Close') }
-              }
-            }],
-          action: function (comp) {
-            detail.onAction(comp);
-          }
-        })),
+        ].concat(detail.progress ? [memBannerProgress.asSpec()] : []).concat(!detail.closeButton ? [] : [Button.sketch({
+            dom: {
+              tag: 'button',
+              classes: [
+                'tox-notification__dismiss',
+                'tox-button',
+                'tox-button--naked',
+                'tox-button--icon'
+              ]
+            },
+            components: [{
+                dom: {
+                  tag: 'div',
+                  classes: ['tox-icon'],
+                  innerHtml: get$d('close', detail.iconProvider),
+                  attributes: { 'aria-label': detail.translationProvider('Close') }
+                }
+              }],
+            action: function (comp) {
+              detail.onAction(comp);
+            }
+          })]),
         apis: apis
       };
     };
@@ -9111,7 +9091,8 @@
         strict$1('onAction'),
         strict$1('text'),
         strict$1('iconProvider'),
-        strict$1('translationProvider')
+        strict$1('translationProvider'),
+        defaultedBoolean('closeButton', true)
       ],
       apis: {
         updateProgress: function (apis, comp, percent) {
@@ -9122,8 +9103,6 @@
         }
       }
     });
-
-    var global$2 = tinymce.util.Tools.resolve('tinymce.util.Delay');
 
     function NotificationManagerImpl (editor, extras, uiMothership) {
       var backstage = extras.backstage;
@@ -9162,6 +9141,7 @@
         positionNotifications(notifications);
       };
       var open = function (settings, closeCallback) {
+        var hideCloseButton = !settings.closeButton && settings.timeout && (settings.timeout > 0 || settings.timeout < 0);
         var close = function () {
           closeCallback();
           InlineView.hide(notificationWrapper);
@@ -9177,18 +9157,19 @@
           ], settings.type) ? settings.type : undefined,
           progress: settings.progressBar === true,
           icon: Option.from(settings.icon),
+          closeButton: !hideCloseButton,
           onAction: close,
           iconProvider: backstage.shared.providers.icons,
           translationProvider: backstage.shared.providers.translate
         }));
-        var notificationWrapper = build$1(InlineView.sketch({
+        var notificationWrapper = build$1(InlineView.sketch(__assign({
           dom: {
             tag: 'div',
             classes: ['tox-notifications-container']
           },
           lazySink: extras.backstage.shared.getSink,
           fireDismissalEventInstead: {}
-        }));
+        }, backstage.shared.header.isPositionedAtTop() ? {} : { fireRepositionEventInstead: {} })));
         uiMothership.add(notificationWrapper);
         if (settings.timeout > 0) {
           global$2.setTimeout(function () {
@@ -9253,7 +9234,7 @@
       };
     }
 
-    var first$1 = function (fn, rate) {
+    var first = function (fn, rate) {
       var timer = null;
       var cancel = function () {
         if (timer !== null) {
@@ -9305,11 +9286,8 @@
       };
     };
 
-    var global$3 = tinymce.util.Tools.resolve('tinymce.dom.TreeWalker');
+    var global$3 = tinymce.util.Tools.resolve('tinymce.dom.TextSeeker');
 
-    var isText$1 = function (node) {
-      return node.nodeType === domGlobals.Node.TEXT_NODE;
-    };
     var isBoundary = function (dom, node) {
       return dom.isBlock(node) || contains([
         'BR',
@@ -9318,42 +9296,11 @@
         'INPUT'
       ], node.nodeName) || dom.getContentEditable(node) === 'false';
     };
-    var outcome$1 = Adt.generate([
-      { aborted: [] },
-      { edge: ['element'] },
-      { success: ['info'] }
-    ]);
-    var phase = Adt.generate([
-      { abort: [] },
-      { kontinue: [] },
-      { finish: ['info'] }
-    ]);
-    var repeat = function (dom, node, offset, process, walker, recent) {
-      var terminate = function () {
-        return recent.fold(outcome$1.aborted, outcome$1.edge);
-      };
-      var recurse = function () {
-        var next = walker();
-        if (next) {
-          return repeat(dom, next, Option.none(), process, walker, Option.some(node));
-        } else {
-          return terminate();
-        }
-      };
-      if (isBoundary(dom, node)) {
-        return terminate();
-      } else if (!isText$1(node)) {
-        return recurse();
-      } else {
-        var text = node.textContent;
-        return process(phase, node, text, offset).fold(outcome$1.aborted, function () {
-          return recurse();
-        }, outcome$1.success);
-      }
-    };
     var repeatLeft = function (dom, node, offset, process, rootNode) {
-      var walker = new global$3(node, rootNode || dom.getRoot());
-      return repeat(dom, node, Option.some(offset), process, walker.prev, Option.none());
+      var search = global$3(dom, function (node) {
+        return isBoundary(dom, node);
+      });
+      return Option.from(search.backwards(node, offset, process, rootNode));
     };
 
     var autocompleteSelector = '[data-mce-autocompleter]';
@@ -9378,26 +9325,28 @@
     var isValidTextRange = function (rng) {
       return rng.collapsed && rng.startContainer.nodeType === 3;
     };
-    var whiteSpace = /[\u00a0 \t\r\n]/;
-    var parse = function (text, index, ch, minChars) {
+    var getText = function (rng) {
+      return rng.toString().replace(/\u00A0/g, ' ').replace(/\uFEFF/g, '');
+    };
+    var isWhitespace = function (chr) {
+      return chr !== '' && ' \xA0\f\n\r\t\x0B'.indexOf(chr) !== -1;
+    };
+
+    var stripTriggerChar = function (text, triggerCh) {
+      return text.substring(triggerCh.length);
+    };
+    var findChar = function (text, index, ch) {
       var i;
       for (i = index - 1; i >= 0; i--) {
         var char = text.charAt(i);
-        if (whiteSpace.test(char)) {
+        if (isWhitespace(char)) {
           return Option.none();
         }
         if (char === ch) {
           break;
         }
       }
-      if (i === -1 || index - i < minChars) {
-        return Option.none();
-      }
-      return Option.some(text.substring(i + 1, index));
-    };
-    var getText = function (rng, ch) {
-      var text = rng.toString().substring(ch.length);
-      return text.replace(/\u00A0/g, ' ').replace(/\uFEFF/g, '');
+      return Option.some(i);
     };
     var findStart = function (dom, initRange, ch, minChars) {
       if (minChars === void 0) {
@@ -9406,22 +9355,29 @@
       if (!isValidTextRange(initRange)) {
         return Option.none();
       }
-      var findTriggerCh = function (phase, element, text, optOffset) {
-        var index = optOffset.getOr(text.length);
-        return parse(text, index, ch, 1).fold(function () {
-          return text.match(whiteSpace) ? phase.abort() : phase.kontinue();
-        }, function (newText) {
-          var range = initRange.cloneRange();
-          range.setStart(element, index - newText.length - 1);
-          range.setEnd(initRange.endContainer, initRange.endOffset);
-          return text.length < minChars ? phase.abort() : phase.finish({
-            text: getText(range, ch),
+      var findTriggerChIndex = function (element, offset, text) {
+        return findChar(text, offset, ch).getOr(offset);
+      };
+      var root = dom.getParent(initRange.startContainer, dom.isBlock) || dom.getRoot();
+      return repeatLeft(dom, initRange.startContainer, initRange.startOffset, findTriggerChIndex, root).bind(function (spot) {
+        var range = initRange.cloneRange();
+        range.setStart(spot.container, spot.offset);
+        range.setEnd(initRange.endContainer, initRange.endOffset);
+        if (range.collapsed) {
+          return Option.none();
+        }
+        var text = getText(range);
+        var triggerCharIndex = text.lastIndexOf(ch);
+        if (triggerCharIndex !== 0 || stripTriggerChar(text, ch).length < minChars) {
+          return Option.none();
+        } else {
+          return Option.some({
+            text: stripTriggerChar(text, ch),
             range: range,
             triggerChar: ch
           });
-        });
-      };
-      return repeatLeft(dom, initRange.startContainer, initRange.startOffset, findTriggerCh).fold(Option.none, Option.none, Option.some);
+        }
+      });
     };
     var getContext = function (dom, initRange, ch, minChars) {
       if (minChars === void 0) {
@@ -9432,9 +9388,10 @@
       }, function (elm) {
         var range = dom.createRng();
         range.selectNode(elm.dom());
+        var text = getText(range);
         return Option.some({
           range: range,
-          text: getText(range, ch),
+          text: stripTriggerChar(text, ch),
           triggerChar: ch
         });
       });
@@ -9493,21 +9450,21 @@
 
     var global$4 = tinymce.util.Tools.resolve('tinymce.util.Promise');
 
-    var point$2 = function (element, offset) {
+    var point$2 = function (container, offset) {
       return {
-        element: element,
+        container: container,
         offset: offset
       };
     };
 
-    var isText$2 = function (node) {
+    var isText$1 = function (node) {
       return node.nodeType === domGlobals.Node.TEXT_NODE;
     };
     var isElement$1 = function (node) {
       return node.nodeType === domGlobals.Node.ELEMENT_NODE;
     };
     var toLast = function (node) {
-      if (isText$2(node)) {
+      if (isText$1(node)) {
         return point$2(node, node.data.length);
       } else {
         var children = node.childNodes;
@@ -9525,14 +9482,18 @@
       }
     };
 
+    var isPreviousCharContent = function (dom, leaf) {
+      return repeatLeft(dom, leaf.container, leaf.offset, function (element, offset) {
+        return offset === 0 ? -1 : offset;
+      }, dom.getRoot()).filter(function (spot) {
+        var char = spot.container.data.charAt(spot.offset - 1);
+        return !isWhitespace(char);
+      }).isSome();
+    };
     var isStartOfWord = function (dom) {
-      var process = function (phase, element, text, optOffset) {
-        var index = optOffset.getOr(text.length);
-        return index === 0 ? phase.kontinue() : phase.finish(/\s/.test(text.charAt(index - 1)));
-      };
       return function (rng) {
         var leaf = toLeaf(rng.startContainer, rng.startOffset);
-        return repeatLeft(dom, leaf.element, leaf.offset, process).fold(constant(true), constant(true), identity);
+        return !isPreviousCharContent(dom, leaf);
       };
     };
     var getTriggerContext = function (dom, initRange, database) {
@@ -9691,6 +9652,7 @@
 
     var toggleMenuItemSchema = objOf([
       strictString('type'),
+      optionString('icon'),
       defaultedBoolean('active', false),
       defaultedFunction('onSetup', function () {
         return noop;
@@ -9795,8 +9757,8 @@
       var getTooltip = function () {
         return popup.get();
       };
-      var setTooltip = function (s) {
-        popup.set(Option.some(s));
+      var setTooltip = function (comp) {
+        popup.set(Option.some(comp));
       };
       var clearTooltip = function () {
         popup.set(Option.none());
@@ -9828,6 +9790,7 @@
     };
 
     var TooltippingState = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         init: init$4
     });
 
@@ -9835,7 +9798,7 @@
     var ShowTooltipEvent = generate$1('tooltip.show');
     var HideTooltipEvent = generate$1('tooltip.hide');
 
-    var hideAllExclusive = function (component, tConfig, tState) {
+    var hideAllExclusive = function (component, _tConfig, _tState) {
       component.getSystem().broadcastOn([ExclusivityChannel], {});
     };
     var setComponents = function (component, tConfig, tState, specs) {
@@ -9847,6 +9810,7 @@
     };
 
     var TooltippingApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         hideAllExclusive: hideAllExclusive,
         setComponents: setComponents
     });
@@ -9919,7 +9883,7 @@
             emit(comp, HideTooltipEvent);
           })
         ] : [
-          run(highlight(), function (comp, se) {
+          run(highlight(), function (comp, _se) {
             emit(comp, ShowTooltipEvent);
           }),
           run(dehighlight(), function (comp) {
@@ -9930,6 +9894,7 @@
     };
 
     var ActiveTooltipping = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         events: events$8
     });
 
@@ -9940,33 +9905,6 @@
       state: TooltippingState,
       apis: TooltippingApis
     });
-
-    var getAttrs = function (elem) {
-      var attributes = elem.dom().attributes !== undefined ? elem.dom().attributes : [];
-      return foldl(attributes, function (b, attr) {
-        var _a;
-        if (attr.name === 'class') {
-          return b;
-        } else {
-          return __assign(__assign({}, b), (_a = {}, _a[attr.name] = attr.value, _a));
-        }
-      }, {});
-    };
-    var getClasses = function (elem) {
-      return Array.prototype.slice.call(elem.dom().classList, 0);
-    };
-    var fromHtml$2 = function (html) {
-      var elem = Element.fromHtml(html);
-      var children$1 = children(elem);
-      var attrs = getAttrs(elem);
-      var classes = getClasses(elem);
-      var contents = children$1.length === 0 ? {} : { innerHtml: get$1(elem) };
-      return __assign({
-        tag: name(elem),
-        classes: classes,
-        attributes: attrs
-      }, contents);
-    };
 
     var global$5 = tinymce.util.Tools.resolve('tinymce.util.I18n');
 
@@ -9987,7 +9925,7 @@
     var activeClass = 'tox-collection__item--active';
     var iconClassRtl = 'tox-collection__item-icon-rtl';
     var classForPreset = function (presets) {
-      return readOptFrom$1(presetClasses, presets).getOr(navClass);
+      return get(presetClasses, presets).getOr(navClass);
     };
 
     var global$6 = tinymce.util.Tools.resolve('tinymce.Env');
@@ -10012,7 +9950,6 @@
       });
       return global$6.mac ? updated.join('') : updated.join('+');
     };
-    var ConvertShortcut = { convertText: convertText };
 
     var renderIcon = function (iconHtml) {
       return {
@@ -10050,7 +9987,7 @@
         components: [{
             dom: {
               tag: style.tag,
-              attributes: { style: style.styleAttr }
+              styles: style.styles
             },
             components: [text(global$5.translate(text$1))]
           }]
@@ -10061,7 +9998,7 @@
         dom: {
           tag: 'div',
           classes: [accessoryClass],
-          innerHtml: ConvertShortcut.convertText(shortcut)
+          innerHtml: convertText(shortcut)
         }
       };
     };
@@ -10069,11 +10006,8 @@
       return {
         dom: {
           tag: 'div',
-          classes: [
-            iconClass,
-            checkmarkClass
-          ],
-          innerHtml: get$c('checkmark', icons)
+          classes: [checkmarkClass],
+          innerHtml: get$d('checkmark', icons)
         }
       };
     };
@@ -10082,7 +10016,7 @@
         dom: {
           tag: 'div',
           classes: [caretClass],
-          innerHtml: get$c('chevron-right', icons)
+          innerHtml: get$d('chevron-right', icons)
         }
       };
     };
@@ -10091,7 +10025,7 @@
         dom: {
           tag: 'div',
           classes: [caretClass],
-          innerHtml: get$c('chevron-down', icons)
+          innerHtml: get$d('chevron-down', icons)
         }
       };
     };
@@ -10102,15 +10036,30 @@
       var getDom = function () {
         var common = colorClass;
         var icon = iconSvg.getOr('');
-        var title = itemText.map(function (text) {
-          return ' title="' + providerBackstage.translate(text) + '"';
-        }).getOr('');
+        var attributes = itemText.map(function (text) {
+          return { title: providerBackstage.translate(text) };
+        }).getOr({});
+        var baseDom = {
+          tag: 'div',
+          attributes: attributes,
+          classes: [common]
+        };
         if (itemValue === colorPickerCommand) {
-          return fromHtml$2('<button class="' + common + ' tox-swatches__picker-btn"' + title + '>' + icon + '</button>');
+          return __assign(__assign({}, baseDom), {
+            tag: 'button',
+            classes: __spreadArrays(baseDom.classes, ['tox-swatches__picker-btn']),
+            innerHtml: icon
+          });
         } else if (itemValue === removeColorCommand) {
-          return fromHtml$2('<div class="' + common + ' tox-swatch--remove"' + title + '>' + icon + '</div>');
+          return __assign(__assign({}, baseDom), {
+            classes: __spreadArrays(baseDom.classes, ['tox-swatch--remove']),
+            innerHtml: icon
+          });
         } else {
-          return fromHtml$2('<div class="' + common + '" style="background-color: ' + itemValue + '" data-mce-color="' + itemValue + '"' + title + '></div>');
+          return __assign(__assign({}, baseDom), {
+            attributes: __assign(__assign({}, baseDom.attributes), { 'data-mce-color': itemValue }),
+            styles: { 'background-color': itemValue }
+          });
         }
       };
       return {
@@ -10119,13 +10068,12 @@
       };
     };
     var renderNormalItemStructure = function (info, icon, renderIcons, textRender, rtlClass) {
-      var leftIcon = renderIcons ? info.checkMark.orThunk(function () {
-        return icon.or(Option.some('')).map(renderIcon);
-      }) : Option.none();
+      var leftIcon = renderIcons ? icon.or(Option.some('')).map(renderIcon) : Option.none();
+      var checkmark = info.checkMark;
       var domTitle = info.ariaLabel.map(function (label) {
         return { attributes: { title: global$5.translate(label) } };
       }).getOr({});
-      var dom = merge({
+      var dom = __assign({
         tag: 'div',
         classes: [
           navClass,
@@ -10143,6 +10091,7 @@
           leftIcon,
           content,
           info.shortcutContent.map(renderShortcut),
+          checkmark,
           info.caret
         ]
       };
@@ -10195,9 +10144,8 @@
       'select'
     ];
     var onLoad$5 = function (component, disableConfig, disableState) {
-      if (disableConfig.disabled) {
-        disable(component, disableConfig);
-      }
+      var f = disableConfig.disabled() ? disable : enable;
+      f(component, disableConfig, disableState);
     };
     var hasNative = function (component, config) {
       return config.useNative === true && contains(nativeDisabled, name(component.element()));
@@ -10220,7 +10168,7 @@
     var ariaEnable = function (component) {
       set$1(component.element(), 'aria-disabled', 'false');
     };
-    var disable = function (component, disableConfig, disableState) {
+    var disable = function (component, disableConfig, _disableState) {
       disableConfig.disableClass.each(function (disableClass) {
         add$2(component.element(), disableClass);
       });
@@ -10228,7 +10176,7 @@
       f(component);
       disableConfig.onDisabled(component);
     };
-    var enable = function (component, disableConfig, disableState) {
+    var enable = function (component, disableConfig, _disableState) {
       disableConfig.disableClass.each(function (disableClass) {
         remove$4(component.element(), disableClass);
       });
@@ -10245,6 +10193,7 @@
     };
 
     var DisableApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         enable: enable,
         disable: disable,
         isDisabled: isDisabled,
@@ -10252,12 +10201,12 @@
         set: set$7
     });
 
-    var exhibit$3 = function (base, disableConfig, disableState) {
+    var exhibit$3 = function (base, disableConfig) {
       return nu$6({ classes: disableConfig.disabled ? disableConfig.disableClass.map(pure).getOr([]) : [] });
     };
     var events$9 = function (disableConfig, disableState) {
       return derive([
-        abort(execute(), function (component, simulatedEvent) {
+        abort(execute(), function (component, _simulatedEvent) {
           return isDisabled(component, disableConfig);
         }),
         loadEvent(disableConfig, disableState, onLoad$5)
@@ -10265,12 +10214,13 @@
     };
 
     var ActiveDisable = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         exhibit: exhibit$3,
         events: events$9
     });
 
     var DisableSchema = [
-      defaulted$1('disabled', false),
+      defaultedFunction('disabled', never),
       defaulted$1('useNative', true),
       option('disableClass'),
       onHandler('onDisabled'),
@@ -10283,6 +10233,175 @@
       active: ActiveDisable,
       apis: DisableApis
     });
+
+    var global$7 = tinymce.util.Tools.resolve('tinymce.dom.DOMUtils');
+
+    var global$8 = tinymce.util.Tools.resolve('tinymce.EditorManager');
+
+    var getSkinUrl = function (editor) {
+      var settings = editor.settings;
+      var skin = settings.skin;
+      var skinUrl = settings.skin_url;
+      if (skin !== false) {
+        var skinName = skin ? skin : 'oxide';
+        if (skinUrl) {
+          skinUrl = editor.documentBaseURI.toAbsolute(skinUrl);
+        } else {
+          skinUrl = global$8.baseURL + '/skins/ui/' + skinName;
+        }
+      }
+      return skinUrl;
+    };
+    var isReadOnly = function (editor) {
+      return editor.getParam('readonly', false, 'boolean');
+    };
+    var isSkinDisabled = function (editor) {
+      return editor.getParam('skin') === false;
+    };
+    var getHeightSetting = function (editor) {
+      return editor.getParam('height', Math.max(editor.getElement().offsetHeight, 200));
+    };
+    var getWidthSetting = function (editor) {
+      return editor.getParam('width', global$7.DOM.getStyle(editor.getElement(), 'width'));
+    };
+    var getMinWidthSetting = function (editor) {
+      return Option.from(editor.settings.min_width).filter(isNumber);
+    };
+    var getMinHeightSetting = function (editor) {
+      return Option.from(editor.settings.min_height).filter(isNumber);
+    };
+    var getMaxWidthSetting = function (editor) {
+      return Option.from(editor.getParam('max_width')).filter(isNumber);
+    };
+    var getMaxHeightSetting = function (editor) {
+      return Option.from(editor.getParam('max_height')).filter(isNumber);
+    };
+    var getUserStyleFormats = function (editor) {
+      return Option.from(editor.getParam('style_formats')).filter(isArray);
+    };
+    var isMergeStyleFormats = function (editor) {
+      return editor.getParam('style_formats_merge', false, 'boolean');
+    };
+    var getRemovedMenuItems = function (editor) {
+      return editor.getParam('removed_menuitems', '');
+    };
+    var isMenubarEnabled = function (editor) {
+      return editor.getParam('menubar', true, 'boolean') !== false;
+    };
+    var isToolbarEnabled = function (editor) {
+      var toolbar = editor.getParam('toolbar', true);
+      var isToolbarTrue = toolbar === true;
+      var isToolbarString = isString(toolbar);
+      var isToolbarObjectArray = isArray(toolbar) && toolbar.length > 0;
+      return !isMultipleToolbars(editor) && (isToolbarObjectArray || isToolbarString || isToolbarTrue);
+    };
+    var getMultipleToolbarsSetting = function (editor) {
+      var keys$1 = keys(editor.settings);
+      var toolbarKeys = filter(keys$1, function (key) {
+        return /^toolbar([1-9])$/.test(key);
+      });
+      var toolbars = map(toolbarKeys, function (key) {
+        return editor.getParam(key, false, 'string');
+      });
+      var toolbarArray = filter(toolbars, function (toolbar) {
+        return typeof toolbar === 'string';
+      });
+      return toolbarArray.length > 0 ? Option.some(toolbarArray) : Option.none();
+    };
+    var isMultipleToolbars = function (editor) {
+      return getMultipleToolbarsSetting(editor).fold(function () {
+        var toolbar = editor.getParam('toolbar', [], 'string[]');
+        return toolbar.length > 0;
+      }, function () {
+        return true;
+      });
+    };
+    var ToolbarMode;
+    (function (ToolbarMode) {
+      ToolbarMode['default'] = 'wrap';
+      ToolbarMode['floating'] = 'floating';
+      ToolbarMode['sliding'] = 'sliding';
+      ToolbarMode['scrolling'] = 'scrolling';
+    }(ToolbarMode || (ToolbarMode = {})));
+    var getToolbarMode = function (editor) {
+      return editor.getParam('toolbar_mode', '', 'string');
+    };
+    var ToolbarLocation;
+    (function (ToolbarLocation) {
+      ToolbarLocation['auto'] = 'auto';
+      ToolbarLocation['top'] = 'top';
+      ToolbarLocation['bottom'] = 'bottom';
+    }(ToolbarLocation || (ToolbarLocation = {})));
+    var getToolbarGroups = function (editor) {
+      return editor.getParam('toolbar_groups', {}, 'object');
+    };
+    var getToolbarLocation = function (editor) {
+      return editor.getParam('toolbar_location', ToolbarLocation.auto, 'string');
+    };
+    var isToolbarLocationBottom = function (editor) {
+      return getToolbarLocation(editor) === ToolbarLocation.bottom;
+    };
+    var fixedContainerSelector = function (editor) {
+      return editor.getParam('fixed_toolbar_container', '', 'string');
+    };
+    var fixedContainerElement = function (editor) {
+      var selector = fixedContainerSelector(editor);
+      return selector.length > 0 && editor.inline ? descendant$1(body(), selector) : Option.none();
+    };
+    var useFixedContainer = function (editor) {
+      return editor.inline && fixedContainerElement(editor).isSome();
+    };
+    var getUiContainer = function (editor) {
+      var fixedContainer = fixedContainerElement(editor);
+      return fixedContainer.getOr(body());
+    };
+    var isDistractionFree = function (editor) {
+      return editor.inline && !isMenubarEnabled(editor) && !isToolbarEnabled(editor) && !isMultipleToolbars(editor);
+    };
+    var isStickyToolbar = function (editor) {
+      var isStickyToolbar = editor.getParam('toolbar_sticky', false, 'boolean');
+      return (isStickyToolbar || editor.inline) && !useFixedContainer(editor) && !isDistractionFree(editor);
+    };
+    var isDraggableModal = function (editor) {
+      return editor.getParam('draggable_modal', false, 'boolean');
+    };
+
+    var ReadOnlyChannel = 'silver.readonly';
+    var ReadOnlyDataSchema = objOf([strictBoolean('readonly')]);
+    var broadcastReadonly = function (uiComponents, readonly) {
+      var outerContainer = uiComponents.outerContainer;
+      var target = outerContainer.element();
+      if (readonly) {
+        uiComponents.mothership.broadcastOn([dismissPopups()], { target: target });
+        uiComponents.uiMothership.broadcastOn([dismissPopups()], { target: target });
+      }
+      uiComponents.mothership.broadcastOn([ReadOnlyChannel], { readonly: readonly });
+      uiComponents.uiMothership.broadcastOn([ReadOnlyChannel], { readonly: readonly });
+    };
+    var setupReadonlyModeSwitch = function (editor, uiComponents) {
+      editor.on('init', function () {
+        if (editor.mode.isReadOnly()) {
+          broadcastReadonly(uiComponents, true);
+        }
+      });
+      editor.on('SwitchMode', function () {
+        return broadcastReadonly(uiComponents, editor.mode.isReadOnly());
+      });
+      if (isReadOnly(editor)) {
+        editor.setMode('readonly');
+      }
+    };
+    var receivingConfig = function () {
+      var _a;
+      return Receiving.config({
+        channels: (_a = {}, _a[ReadOnlyChannel] = {
+          schema: ReadOnlyDataSchema,
+          onReceive: function (comp, data) {
+            Disabling.set(comp, data.readonly);
+          }
+        }, _a)
+      });
+    };
 
     var item = function (disabled) {
       return Disabling.config({
@@ -10366,7 +10485,7 @@
         return o.toArray();
       });
     };
-    var renderCommonItem = function (spec, structure, itemResponse) {
+    var renderCommonItem = function (spec, structure, itemResponse, providersbackstage) {
       var editorOffCell = Cell(noop);
       return {
         type: 'item',
@@ -10381,7 +10500,10 @@
             onControlAttached(spec, editorOffCell),
             onControlDetached(spec, editorOffCell)
           ]),
-          DisablingConfigs.item(spec.disabled),
+          DisablingConfigs.item(function () {
+            return spec.disabled || providersbackstage.isReadOnly();
+          }),
+          receivingConfig(),
           Replacing.config({})
         ].concat(spec.itemBehaviours))
       };
@@ -10389,11 +10511,9 @@
     var buildData = function (source) {
       return {
         value: source.value,
-        meta: merge({ text: source.text.getOr('') }, source.meta)
+        meta: __assign({ text: source.text.getOr('') }, source.meta)
       };
     };
-
-    var global$7 = tinymce.util.Tools.resolve('tinymce.dom.DOMUtils');
 
     var tooltipBehaviour = function (meta, sharedBackstage) {
       return get(meta, 'tooltipWorker').map(function (tooltipWorker) {
@@ -10470,10 +10590,13 @@
         },
         triggersSubmenu: false,
         itemBehaviours: tooltipBehaviour(spec.meta, sharedBackstage)
-      }, structure, itemResponse);
+      }, structure, itemResponse, sharedBackstage.providers);
     };
 
-    var renderChoiceItem = function (spec, useText, presets, onItemValueHandler, isSelected, itemResponse, providersBackstage) {
+    var renderChoiceItem = function (spec, useText, presets, onItemValueHandler, isSelected, itemResponse, providersBackstage, renderIcons) {
+      if (renderIcons === void 0) {
+        renderIcons = true;
+      }
       var getApi = function (component) {
         return {
           setActive: function (state) {
@@ -10500,7 +10623,7 @@
         checkMark: useText ? Option.some(renderCheckmark(providersBackstage.icons)) : Option.none(),
         caret: Option.none(),
         value: spec.value
-      }, providersBackstage, true);
+      }, providersBackstage, renderIcons);
       return deepMerge(renderCommonItem({
         data: buildData(spec),
         disabled: spec.disabled,
@@ -10515,7 +10638,7 @@
         },
         triggersSubmenu: false,
         itemBehaviours: []
-      }, structure, itemResponse), {
+      }, structure, itemResponse, providersBackstage), {
         toggling: {
           toggleClass: tickedClass,
           toggleOnExecute: false,
@@ -10542,6 +10665,10 @@
           col: col
         });
       };
+      var onClick = function (c, se) {
+        se.stop();
+        emitExecute(c);
+      };
       return build$1({
         dom: {
           tag: 'div',
@@ -10551,7 +10678,8 @@
           config('insert-table-picker-cell', [
             run(mouseover(), Focusing.focus),
             run(execute(), emitExecute),
-            run(tapOrClick(), emitExecute)
+            run(click(), onClick),
+            run(tap(), onClick)
           ]),
           Toggling.config({
             toggleClass: 'tox-insert-table-picker__selected',
@@ -10587,7 +10715,7 @@
     var makeLabelText = function (row, col) {
       return text(col + 1 + 'x' + (row + 1));
     };
-    function renderInsertTableMenuItem(spec) {
+    var renderInsertTableMenuItem = function (spec) {
       var numRows = 10;
       var numColumns = 10;
       var sizeLabelId = generate$1('size-label');
@@ -10642,10 +10770,10 @@
             ])
           })]
       };
-    }
+    };
 
-    var hexColour = function (hexString) {
-      return { value: constant(hexString) };
+    var hexColour = function (value) {
+      return { value: value };
     };
     var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
     var longformRegex = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i;
@@ -10653,14 +10781,14 @@
       return shorthandRegex.test(hex) || longformRegex.test(hex);
     };
     var getLongForm = function (hex) {
-      var hexString = hex.value().replace(shorthandRegex, function (m, r, g, b) {
+      var hexString = hex.value.replace(shorthandRegex, function (m, r, g, b) {
         return r + r + g + g + b + b;
       });
-      return { value: constant(hexString) };
+      return { value: hexString };
     };
     var extractValues = function (hex) {
       var longForm = getLongForm(hex);
-      var splitForm = longformRegex.exec(longForm.value());
+      var splitForm = longformRegex.exec(longForm.value);
       return splitForm === null ? [
         'FFFFFF',
         'FF',
@@ -10673,7 +10801,7 @@
       return hex.length === 1 ? '0' + hex : hex;
     };
     var fromRgba = function (rgbaColour) {
-      var value = toHex(rgbaColour.red()) + toHex(rgbaColour.green()) + toHex(rgbaColour.blue());
+      var value = toHex(rgbaColour.red) + toHex(rgbaColour.green) + toHex(rgbaColour.blue);
       return hexColour(value);
     };
 
@@ -10684,10 +10812,10 @@
     var rgbaRegex = /^rgba\((\d+),\s*(\d+),\s*(\d+),\s*(\d?(?:\.\d+)?)\)/;
     var rgbaColour = function (red, green, blue, alpha) {
       return {
-        red: constant(red),
-        green: constant(green),
-        blue: constant(blue),
-        alpha: constant(alpha)
+        red: red,
+        green: green,
+        blue: blue,
+        alpha: alpha
       };
     };
     var isRgbaComponent = function (value) {
@@ -10698,9 +10826,9 @@
       var r;
       var g;
       var b;
-      var hue = (hsv.hue() || 0) % 360;
-      var saturation = hsv.saturation() / 100;
-      var brightness = hsv.value() / 100;
+      var hue = (hsv.hue || 0) % 360;
+      var saturation = hsv.saturation / 100;
+      var brightness = hsv.value / 100;
       saturation = max(0, min(saturation, 1));
       brightness = max(0, min(brightness, 1));
       if (saturation === 0) {
@@ -10779,18 +10907,18 @@
       return Option.none();
     };
     var toString = function (rgba) {
-      return 'rgba(' + rgba.red() + ',' + rgba.green() + ',' + rgba.blue() + ',' + rgba.alpha() + ')';
+      return 'rgba(' + rgba.red + ',' + rgba.green + ',' + rgba.blue + ',' + rgba.alpha + ')';
     };
-    var redColour = constant(rgbaColour(255, 0, 0, 1));
+    var red = rgbaColour(255, 0, 0, 1);
 
-    var global$8 = tinymce.util.Tools.resolve('tinymce.util.LocalStorage');
+    var global$9 = tinymce.util.Tools.resolve('tinymce.util.LocalStorage');
 
     var storageName = 'tinymce-custom-colors';
     function ColorCache (max) {
       if (max === void 0) {
         max = 10;
       }
-      var storageString = global$8.getItem(storageName);
+      var storageString = global$9.getItem(storageName);
       var localstorage = isString(storageString) ? JSON.parse(storageString) : [];
       var prune = function (list) {
         var diff = max - list.length;
@@ -10803,7 +10931,7 @@
         if (cache.length > max) {
           cache.pop();
         }
-        global$8.setItem(storageName, JSON.stringify(cache));
+        global$9.setItem(storageName, JSON.stringify(cache));
       };
       var remove = function (idx) {
         cache.splice(idx, 1);
@@ -10989,24 +11117,15 @@
     var addColor = function (color) {
       colorCache.add(color);
     };
-    var Settings = {
-      mapColors: mapColors,
-      getColorCols: getColorCols,
-      hasCustomColors: hasCustomColors,
-      getColorMap: getColorMap,
-      getColors: getColors,
-      getCurrentColors: getCurrentColors,
-      addColor: addColor
-    };
 
     var fireSkinLoaded = function (editor) {
       return editor.fire('SkinLoaded');
     };
+    var fireSkinLoadError = function (editor, error) {
+      return editor.fire('SkinLoadError', error);
+    };
     var fireResizeEditor = function (editor) {
       return editor.fire('ResizeEditor');
-    };
-    var fireBeforeRenderUI = function (editor) {
-      return editor.fire('BeforeRenderUI');
     };
     var fireResizeContent = function (editor, e) {
       return editor.fire('ResizeContent', e);
@@ -11016,14 +11135,6 @@
     };
     var fireTextColorChange = function (editor, data) {
       return editor.fire('TextColorChange', data);
-    };
-    var Events = {
-      fireSkinLoaded: fireSkinLoaded,
-      fireResizeEditor: fireResizeEditor,
-      fireScrollContent: fireScrollContent,
-      fireBeforeRenderUI: fireBeforeRenderUI,
-      fireResizeContent: fireResizeContent,
-      fireTextColorChange: fireTextColorChange
     };
 
     var getCurrentColor = function (editor, format) {
@@ -11062,9 +11173,9 @@
       return Math.max(5, Math.ceil(Math.sqrt(colors)));
     };
     var getColorCols$1 = function (editor) {
-      var colors = Settings.getColors(editor);
+      var colors = getColors(editor);
       var defaultCols = calcCols(colors.length);
-      return Settings.getColorCols(editor, defaultCols);
+      return getColorCols(editor, defaultCols);
     };
     var getAdditionalColors = function (hasCustom) {
       var type = 'choiceitem';
@@ -11090,7 +11201,7 @@
         var dialog = colorPickerDialog(editor);
         dialog(function (colorOpt) {
           colorOpt.each(function (color) {
-            Settings.addColor(color);
+            addColor(color);
             editor.execCommand('mceApplyTextcolor', format, color);
             onChoice(color);
           });
@@ -11103,12 +11214,12 @@
         editor.execCommand('mceApplyTextcolor', format, value);
       }
     };
-    var getMenuColors = function (colors, hasCustom) {
-      return colors.concat(Settings.getCurrentColors().concat(getAdditionalColors(hasCustom)));
+    var getColors$1 = function (colors, hasCustom) {
+      return colors.concat(getCurrentColors().concat(getAdditionalColors(hasCustom)));
     };
     var getFetch = function (colors, hasCustom) {
       return function (callback) {
-        callback(getMenuColors(colors, hasCustom));
+        callback(getColors$1(colors, hasCustom));
       };
     };
     var setIconColor = function (splitButtonApi, name, newColor) {
@@ -11128,23 +11239,23 @@
           var optCurrentRgb = Option.from(getCurrentColor(editor, format));
           return optCurrentRgb.bind(function (currentRgb) {
             return fromString(currentRgb).map(function (rgba) {
-              var currentHex = fromRgba(rgba).value();
+              var currentHex = fromRgba(rgba).value;
               return contains$1(value.toLowerCase(), currentHex);
             });
           }).getOr(false);
         },
         columns: getColorCols$1(editor),
-        fetch: getFetch(Settings.getColors(editor), Settings.hasCustomColors(editor)),
-        onAction: function (splitButtonApi) {
+        fetch: getFetch(getColors(editor), hasCustomColors(editor)),
+        onAction: function (_splitButtonApi) {
           if (lastColor.get() !== null) {
             applyColor(editor, format, lastColor.get(), function () {
             });
           }
         },
-        onItemAction: function (splitButtonApi, value) {
+        onItemAction: function (_splitButtonApi, value) {
           applyColor(editor, format, value, function (newColor) {
             lastColor.set(newColor);
-            Events.fireTextColorChange(editor, {
+            fireTextColorChange(editor, {
               name: name,
               color: newColor
             });
@@ -11245,14 +11356,59 @@
       registerTextColorMenuItem(editor, 'forecolor', 'forecolor', 'Text color');
       registerTextColorMenuItem(editor, 'backcolor', 'hilitecolor', 'Background color');
     };
-    var ColorSwatch = {
-      register: register$1,
-      getColors: getMenuColors,
-      getFetch: getFetch,
-      colorPickerDialog: colorPickerDialog,
-      getCurrentColor: getCurrentColor,
-      getColorCols: getColorCols$1,
-      calcCols: calcCols
+
+    var forMenu = function (presets) {
+      if (presets === 'color') {
+        return 'tox-swatches';
+      } else {
+        return 'tox-menu';
+      }
+    };
+    var classes = function (presets) {
+      return {
+        backgroundMenu: 'tox-background-menu',
+        selectedMenu: 'tox-selected-menu',
+        selectedItem: 'tox-collection__item--active',
+        hasIcons: 'tox-menu--has-icons',
+        menu: forMenu(presets),
+        tieredMenu: 'tox-tiered-menu'
+      };
+    };
+
+    var markers$1 = function (presets) {
+      var menuClasses = classes(presets);
+      return {
+        backgroundMenu: menuClasses.backgroundMenu,
+        selectedMenu: menuClasses.selectedMenu,
+        menu: menuClasses.menu,
+        selectedItem: menuClasses.selectedItem,
+        item: classForPreset(presets)
+      };
+    };
+    var dom$1 = function (hasIcons, columns, presets) {
+      var menuClasses = classes(presets);
+      return {
+        tag: 'div',
+        classes: flatten([
+          [
+            menuClasses.menu,
+            'tox-menu-' + columns + '-column'
+          ],
+          hasIcons ? [menuClasses.hasIcons] : []
+        ])
+      };
+    };
+    var components$1 = [Menu.parts().items({})];
+    var part = function (hasIcons, columns, presets) {
+      var menuClasses = classes(presets);
+      var d = {
+        tag: 'div',
+        classes: flatten([[menuClasses.tieredMenu]])
+      };
+      return {
+        dom: d,
+        markers: markers$1(presets)
+      };
     };
 
     var chunk$1 = function (rowDom, numColumns) {
@@ -11381,65 +11537,10 @@
       };
     };
 
-    var forMenu = function (presets) {
-      if (presets === 'color') {
-        return 'tox-swatches';
-      } else {
-        return 'tox-menu';
-      }
-    };
-    var classes = function (presets) {
-      return {
-        backgroundMenu: 'tox-background-menu',
-        selectedMenu: 'tox-selected-menu',
-        selectedItem: 'tox-collection__item--active',
-        hasIcons: 'tox-menu--has-icons',
-        menu: forMenu(presets),
-        tieredMenu: 'tox-tiered-menu'
-      };
-    };
-
-    var markers$1 = function (presets) {
-      var menuClasses = classes(presets);
-      return {
-        backgroundMenu: menuClasses.backgroundMenu,
-        selectedMenu: menuClasses.selectedMenu,
-        menu: menuClasses.menu,
-        selectedItem: menuClasses.selectedItem,
-        item: classForPreset(presets)
-      };
-    };
-    var dom$1 = function (hasIcons, columns, presets) {
-      var menuClasses = classes(presets);
-      return {
-        tag: 'div',
-        classes: flatten([
-          [
-            menuClasses.menu,
-            'tox-menu-' + columns + '-column'
-          ],
-          hasIcons ? [menuClasses.hasIcons] : []
-        ])
-      };
-    };
-    var components$1 = [Menu.parts().items({})];
-    var part = function (hasIcons, columns, presets) {
-      var menuClasses = classes(presets);
-      var d = {
-        tag: 'div',
-        classes: flatten([[menuClasses.tieredMenu]])
-      };
-      return {
-        dom: d,
-        markers: markers$1(presets)
-      };
-    };
-
-    var hasIcon = function (item) {
-      return item.icon !== undefined || item.type === 'togglemenuitem' || item.type === 'choicemenuitem';
-    };
     var menuHasIcons = function (xs) {
-      return exists(xs, hasIcon);
+      return exists(xs, function (item) {
+        return 'icon' in item && item.icon !== undefined;
+      });
     };
     var handleError = function (error) {
       domGlobals.console.error(formatError(error));
@@ -11519,7 +11620,7 @@
       return cat(map(items, function (item) {
         if (item.type === 'choiceitem') {
           return createChoiceMenuItem(item).fold(handleError, function (d) {
-            return Option.some(renderChoiceItem(d, columns === 1, itemPresets, onItemValueHandler, select(item.value), itemResponse, providersBackstage));
+            return Option.some(renderChoiceItem(d, columns === 1, itemPresets, onItemValueHandler, select(item.value), itemResponse, providersBackstage, menuHasIcons(items)));
           });
         } else {
           return Option.none();
@@ -11579,7 +11680,7 @@
     };
 
     function renderColorSwatchItem(spec, backstage) {
-      var items = ColorSwatch.getColors(backstage.colorinput.getColors(), backstage.colorinput.hasCustomColors());
+      var items = getColors$1(backstage.colorinput.getColors(), backstage.colorinput.hasCustomColors());
       var columns = backstage.colorinput.getColorCols();
       var presets = 'color';
       var menuSpec = createPartialChoiceMenu(generate$1('menu-value'), items, function (value) {
@@ -11587,10 +11688,10 @@
       }, columns, presets, ItemResponse$1.CLOSE_ON_EXECUTE, function () {
         return false;
       }, backstage.shared.providers);
-      var widgetSpec = deepMerge(__assign(__assign({}, menuSpec), {
+      var widgetSpec = __assign(__assign({}, menuSpec), {
         markers: markers$1(presets),
         movement: deriveMenuMovement(columns, presets)
-      }));
+      });
       return {
         type: 'widget',
         data: { value: generate$1('widget-id') },
@@ -11648,7 +11749,7 @@
         onSetup: spec.onSetup,
         triggersSubmenu: false,
         itemBehaviours: []
-      }, structure, itemResponse);
+      }, structure, itemResponse, providersBackstage);
     };
 
     var renderNestedItem = function (spec, itemResponse, providersBackstage, renderIcons, downwardsCaret) {
@@ -11687,7 +11788,7 @@
         onSetup: spec.onSetup,
         triggersSubmenu: true,
         itemBehaviours: []
-      }, structure, itemResponse);
+      }, structure, itemResponse, providersBackstage);
     };
 
     var renderSeparatorItem = function (spec) {
@@ -11709,7 +11810,10 @@
       };
     };
 
-    var renderToggleMenuItem = function (spec, itemResponse, providersBackstage) {
+    var renderToggleMenuItem = function (spec, itemResponse, providersBackstage, renderIcons) {
+      if (renderIcons === void 0) {
+        renderIcons = true;
+      }
       var getApi = function (component) {
         return {
           setActive: function (state) {
@@ -11727,7 +11831,7 @@
         };
       };
       var structure = renderItemStructure({
-        iconContent: Option.none(),
+        iconContent: spec.icon,
         textContent: spec.text,
         htmlContent: Option.none(),
         ariaLabel: spec.text,
@@ -11736,7 +11840,7 @@
         shortcutContent: spec.shortcut,
         presets: 'normal',
         meta: spec.meta
-      }, providersBackstage, true);
+      }, providersBackstage, renderIcons);
       return deepMerge(renderCommonItem({
         data: buildData(spec),
         disabled: spec.disabled,
@@ -11745,7 +11849,7 @@
         onSetup: spec.onSetup,
         triggersSubmenu: false,
         itemBehaviours: []
-      }, structure, itemResponse), {
+      }, structure, itemResponse, providersBackstage), {
         toggling: {
           toggleClass: tickedClass,
           toggleOnExecute: false,
@@ -11766,12 +11870,6 @@
       FocusMode[FocusMode['ContentFocus'] = 0] = 'ContentFocus';
       FocusMode[FocusMode['UiFocus'] = 1] = 'UiFocus';
     }(FocusMode || (FocusMode = {})));
-    var hasIcon$1 = function (item) {
-      return item.icon !== undefined || item.type === 'togglemenuitem' || item.type === 'choicemenuitem';
-    };
-    var menuHasIcons$1 = function (xs) {
-      return exists(xs, hasIcon$1);
-    };
     var createMenuItemFromBridge = function (item, itemResponse, backstage, menuHasIcons, isHorizontalMenu) {
       var providersBackstage = backstage.shared.providers;
       var parseForHorizontalMenu = function (menuitem) {
@@ -11791,7 +11889,7 @@
         });
       case 'togglemenuitem':
         return createToggleMenuItem(item).fold(handleError, function (d) {
-          return Option.some(toggle$1(parseForHorizontalMenu(d), itemResponse, providersBackstage));
+          return Option.some(toggle$1(parseForHorizontalMenu(d), itemResponse, providersBackstage, menuHasIcons));
         });
       case 'separator':
         return createSeparatorMenuItem(item).fold(handleError, function (d) {
@@ -11809,7 +11907,7 @@
     };
     var createAutocompleteItems = function (items, matchText, onItemValueHandler, columns, itemResponse, sharedBackstage) {
       var renderText = columns === 1;
-      var renderIcons = !renderText || menuHasIcons$1(items);
+      var renderIcons = !renderText || menuHasIcons(items);
       return cat(map(items, function (item) {
         if (item.type === 'separator') {
           return createSeparatorItem(item).fold(handleError, function (d) {
@@ -11823,7 +11921,7 @@
       }));
     };
     var createPartialMenu = function (value, items, itemResponse, backstage, isHorizontalMenu) {
-      var hasIcons = menuHasIcons$1(items);
+      var hasIcons = menuHasIcons(items);
       var alloyItems = cat(map(items, function (item) {
         var itemHasIcon = function (i) {
           return isHorizontalMenu ? !i.hasOwnProperty('text') : hasIcons;
@@ -11832,7 +11930,7 @@
           return createMenuItemFromBridge(i, itemResponse, backstage, itemHasIcon(i), isHorizontalMenu);
         };
         if (item.type === 'nestedmenuitem' && item.getSubmenuItems().length <= 0) {
-          return createItem(merge(item, { disabled: true }));
+          return createItem(__assign(__assign({}, item), { disabled: true }));
         } else {
           return createItem(item);
         }
@@ -11859,7 +11957,7 @@
         movement: movement,
         fakeFocus: focusMode === FocusMode.ContentFocus,
         focusManager: focusManager,
-        menuBehaviours: SimpleBehaviours.unnamedEvents(columns !== 'auto' ? [] : [runOnAttached(function (comp, se) {
+        menuBehaviours: SimpleBehaviours.unnamedEvents(columns !== 'auto' ? [] : [runOnAttached(function (comp, _se) {
             detectSize(comp, 4, menuMarkers.item).each(function (_a) {
               var numColumns = _a.numColumns, numRows = _a.numRows;
               Keying.setGridSize(comp, numRows, numColumns);
@@ -12008,57 +12106,12 @@
     };
     var Autocompleter = { register: register$2 };
 
-    var mkEvent = function (target, x, y, stop, prevent, kill, raw) {
-      return {
-        target: constant(target),
-        x: constant(x),
-        y: constant(y),
-        stop: stop,
-        prevent: prevent,
-        kill: kill,
-        raw: constant(raw)
-      };
-    };
-    var fromRawEvent = function (rawEvent) {
-      var target = Element.fromDom(rawEvent.target);
-      var stop = function () {
-        rawEvent.stopPropagation();
-      };
-      var prevent = function () {
-        rawEvent.preventDefault();
-      };
-      var kill = compose(prevent, stop);
-      return mkEvent(target, rawEvent.clientX, rawEvent.clientY, stop, prevent, kill, rawEvent);
-    };
-    var handle = function (filter, handler) {
-      return function (rawEvent) {
-        if (!filter(rawEvent)) {
-          return;
-        }
-        handler(fromRawEvent(rawEvent));
-      };
-    };
-    var binder = function (element, event, filter, handler, useCapture) {
-      var wrapped = handle(filter, handler);
-      element.dom().addEventListener(event, wrapped, useCapture);
-      return { unbind: curry(unbind, element, event, wrapped, useCapture) };
-    };
-    var bind$2 = function (element, event, filter, handler) {
-      return binder(element, event, filter, handler, false);
-    };
-    var capture = function (element, event, filter, handler) {
-      return binder(element, event, filter, handler, true);
-    };
-    var unbind = function (element, event, handler, useCapture) {
-      element.dom().removeEventListener(event, handler, useCapture);
-    };
-
-    var filter$1 = constant(true);
+    var filter$2 = constant(true);
     var bind$3 = function (element, event, handler) {
-      return bind$2(element, event, filter$1, handler);
+      return bind$2(element, event, filter$2, handler);
     };
     var capture$1 = function (element, event, handler) {
-      return capture(element, event, filter$1, handler);
+      return capture(element, event, filter$2, handler);
     };
     var fromRawEvent$1 = fromRawEvent;
 
@@ -12100,8 +12153,8 @@
       return Option.some(raw.touches[0]);
     };
     var isFarEnough = function (touch, data) {
-      var distX = Math.abs(touch.clientX - data.x());
-      var distY = Math.abs(touch.clientY - data.y());
+      var distX = Math.abs(touch.clientX - data.x);
+      var distY = Math.abs(touch.clientY - data.y);
       return distX > SIGNIFICANT_MOVE || distY > SIGNIFICANT_MOVE;
     };
     var monitor = function (settings) {
@@ -12115,9 +12168,9 @@
         getTouch(event).each(function (touch) {
           longpress$1.cancel();
           var data = {
-            x: constant(touch.clientX),
-            y: constant(touch.clientY),
-            target: event.target
+            x: touch.clientX,
+            y: touch.clientY,
+            target: event.target()
           };
           longpress$1.schedule(event);
           longpressFired.set(false);
@@ -12139,9 +12192,9 @@
       var handleTouchend = function (event) {
         longpress$1.cancel();
         var isSame = function (data) {
-          return eq(data.target(), event.target());
+          return eq$1(data.target, event.target());
         };
-        return startData.get().filter(isSame).map(function (data) {
+        return startData.get().filter(isSame).map(function (_data) {
           if (longpressFired.get()) {
             event.prevent();
             return false;
@@ -12165,7 +12218,7 @@
         }
       ]);
       var fireIfReady = function (event, type) {
-        return readOptFrom$1(handlers, type).bind(function (handler) {
+        return get(handlers, type).bind(function (handler) {
           return handler(event);
         });
       };
@@ -12179,20 +12232,22 @@
         'textarea'
       ], name(event.target())) && !closest$4(event.target(), '[contenteditable="true"]');
     };
-    var isFirefox = detect$3().browser.isFirefox();
+    var isFirefox = function () {
+      return detect$3().browser.isFirefox();
+    };
     var settingsSchema = objOfOnly([
       strictFunction('triggerEvent'),
       defaulted$1('stopBackspace', true)
     ]);
     var bindFocus = function (container, handler) {
-      if (isFirefox) {
+      if (isFirefox()) {
         return capture$1(container, 'focus', handler);
       } else {
         return bind$3(container, 'focusin', handler);
       }
     };
     var bindBlur = function (container, handler) {
-      if (isFirefox) {
+      if (isFirefox()) {
         return capture$1(container, 'blur', handler);
       } else {
         return bind$3(container, 'focusout', handler);
@@ -12200,12 +12255,12 @@
     };
     var setup$1 = function (container, rawSettings) {
       var settings = asRawOrDie('Getting GUI events settings', settingsSchema, rawSettings);
-      var pointerEvents = detect$3().deviceType.isTouch() ? [
+      var pointerEvents = [
         'touchstart',
         'touchmove',
         'touchend',
-        'gesturestart'
-      ] : [
+        'touchcancel',
+        'gesturestart',
         'mousedown',
         'mouseup',
         'mouseover',
@@ -12295,7 +12350,7 @@
     };
 
     var derive$2 = function (rawEvent, rawTarget) {
-      var source = readOptFrom$1(rawEvent, 'target').map(function (getTarget) {
+      var source = get(rawEvent, 'target').map(function (getTarget) {
         return getTarget();
       }).getOr(rawTarget);
       return Cell(source);
@@ -12348,21 +12403,21 @@
         logger.logEventNoHandlers(eventType, target);
         return adt$b.complete();
       }, function (handlerInfo) {
-        var descHandler = handlerInfo.descHandler();
+        var descHandler = handlerInfo.descHandler;
         var eventHandler = getCurried(descHandler);
         eventHandler(simulatedEvent);
         if (simulatedEvent.isStopped()) {
-          logger.logEventStopped(eventType, handlerInfo.element(), descHandler.purpose());
+          logger.logEventStopped(eventType, handlerInfo.element, descHandler.purpose());
           return adt$b.stopped();
         } else if (simulatedEvent.isCut()) {
-          logger.logEventCut(eventType, handlerInfo.element(), descHandler.purpose());
+          logger.logEventCut(eventType, handlerInfo.element, descHandler.purpose());
           return adt$b.complete();
         } else {
-          return parent(handlerInfo.element()).fold(function () {
-            logger.logNoParent(eventType, handlerInfo.element(), descHandler.purpose());
+          return parent(handlerInfo.element).fold(function () {
+            logger.logNoParent(eventType, handlerInfo.element, descHandler.purpose());
             return adt$b.complete();
           }, function (parent) {
-            logger.logEventResponse(eventType, handlerInfo.element(), descHandler.purpose());
+            logger.logEventResponse(eventType, handlerInfo.element, descHandler.purpose());
             return adt$b.resume(parent);
           });
         }
@@ -12381,7 +12436,7 @@
       var source = derive$2(rawEvent, target);
       return doTriggerHandler(lookup, eventType, rawEvent, target, source, logger);
     };
-    var broadcast = function (listeners, rawEvent, logger) {
+    var broadcast = function (listeners, rawEvent, _logger) {
       var simulatedEvent = fromExternal(rawEvent);
       each(listeners, function (listener) {
         var descHandler = listener.descHandler();
@@ -12399,7 +12454,12 @@
       return doTriggerOnUntilStopped(lookup, eventType, rawEvent, rawTarget, source, logger);
     };
 
-    var eventHandler = Immutable('element', 'descHandler');
+    var eventHandler = function (element, descHandler) {
+      return {
+        element: element,
+        descHandler: descHandler
+      };
+    };
     var broadcastHandler = function (id, handler) {
       return {
         id: constant(id),
@@ -12419,28 +12479,28 @@
         return read$1(elem).fold(function () {
           return Option.none();
         }, function (id) {
-          var reader = readOpt$1(id);
-          return handlers.bind(reader).map(function (descHandler) {
+          return handlers.bind(function (h) {
+            return get(h, id);
+          }).map(function (descHandler) {
             return eventHandler(elem, descHandler);
           });
         });
       };
       var filterByType = function (type) {
-        return readOptFrom$1(registry, type).map(function (handlers) {
+        return get(registry, type).map(function (handlers) {
           return mapToArray(handlers, function (f, id) {
             return broadcastHandler(id, f);
           });
         }).getOr([]);
       };
       var find = function (isAboveRoot, type, target) {
-        var readType = readOpt$1(type);
-        var handlers = readType(registry);
-        return closest$1(target, function (elem) {
+        var handlers = get(registry, type);
+        return closest(target, function (elem) {
           return findHandler(handlers, elem);
         }, isAboveRoot);
       };
       var unregisterId = function (id) {
-        each$1(registry, function (handlersById, eventName) {
+        each$1(registry, function (handlersById, _eventName) {
           if (handlersById.hasOwnProperty(id)) {
             delete handlersById[id];
           }
@@ -12475,7 +12535,7 @@
       };
       var register = function (component) {
         var tagId = readOrTag(component);
-        if (hasKey$1(components, tagId)) {
+        if (hasNonNullableKey(components, tagId)) {
           failOnDuplicate(component, tagId);
         }
         var extraArgs = [component];
@@ -12495,7 +12555,7 @@
         return events.find(isAboveRoot, type, target);
       };
       var getById = function (id) {
-        return readOpt$1(id)(components);
+        return get(components, id);
       };
       return {
         find: find,
@@ -12515,7 +12575,7 @@
           attributes: __assign({ role: 'presentation' }, attributes)
         }, domWithoutAttributes),
         components: detail.components,
-        behaviours: get$b(detail.containerBehaviours),
+        behaviours: get$c(detail.containerBehaviours),
         events: detail.events,
         domModification: detail.domModification,
         eventOrder: detail.eventOrder
@@ -12538,7 +12598,7 @@
         return parent(root.element()).fold(function () {
           return true;
         }, function (parent) {
-          return eq(el, parent);
+          return eq$1(el, parent);
         });
       };
       var registry = Registry();
@@ -12556,7 +12616,7 @@
         debugInfo: constant('real'),
         triggerEvent: function (eventName, target, data) {
           monitorEvent(eventName, target, function (logger) {
-            triggerOnUntilStopped(lookup, eventName, data, target, logger);
+            return triggerOnUntilStopped(lookup, eventName, data, target, logger);
           });
         },
         triggerFocus: function (target, originator) {
@@ -12570,6 +12630,7 @@
                 prevent: noop,
                 target: constant(target)
               }, target, logger);
+              return false;
             });
           });
         },
@@ -12682,117 +12743,6 @@
       };
     };
 
-    var global$9 = tinymce.util.Tools.resolve('tinymce.EditorManager');
-
-    var getSkinUrl = function (editor) {
-      var settings = editor.settings;
-      var skin = settings.skin;
-      var skinUrl = settings.skin_url;
-      if (skin !== false) {
-        var skinName = skin ? skin : 'oxide';
-        if (skinUrl) {
-          skinUrl = editor.documentBaseURI.toAbsolute(skinUrl);
-        } else {
-          skinUrl = global$9.baseURL + '/skins/ui/' + skinName;
-        }
-      }
-      return skinUrl;
-    };
-    var isReadOnly = function (editor) {
-      return editor.getParam('readonly', false, 'boolean');
-    };
-    var isSkinDisabled = function (editor) {
-      return editor.getParam('skin') === false;
-    };
-    var getHeightSetting = function (editor) {
-      return editor.getParam('height', Math.max(editor.getElement().offsetHeight, 200));
-    };
-    var getMinWidthSetting = function (editor) {
-      return Option.from(editor.settings.min_width).filter(isNumber);
-    };
-    var getMinHeightSetting = function (editor) {
-      return Option.from(editor.settings.min_height).filter(isNumber);
-    };
-    var getMaxWidthSetting = function (editor) {
-      return Option.from(editor.getParam('max_width')).filter(isNumber);
-    };
-    var getMaxHeightSetting = function (editor) {
-      return Option.from(editor.getParam('max_height')).filter(isNumber);
-    };
-    var getUserStyleFormats = function (editor) {
-      return Option.from(editor.getParam('style_formats')).filter(isArray);
-    };
-    var isMergeStyleFormats = function (editor) {
-      return editor.getParam('style_formats_merge', false, 'boolean');
-    };
-    var getRemovedMenuItems = function (editor) {
-      return editor.getParam('removed_menuitems', '');
-    };
-    var isMenubarEnabled = function (editor) {
-      return editor.getParam('menubar', true, 'boolean') !== false;
-    };
-    var isToolbarEnabled = function (editor) {
-      var toolbar = editor.getParam('toolbar', true);
-      var isToolbarTrue = toolbar === true;
-      var isToolbarString = isString(toolbar);
-      var isToolbarObjectArray = isArray(toolbar) && toolbar.length > 0;
-      return !isMultipleToolbars(editor) && (isToolbarObjectArray || isToolbarString || isToolbarTrue);
-    };
-    var getMultipleToolbarsSetting = function (editor) {
-      var keys$1 = keys(editor.settings);
-      var toolbarKeys = filter(keys$1, function (key) {
-        return /^toolbar([1-9])$/.test(key);
-      });
-      var toolbars = map(toolbarKeys, function (key) {
-        return editor.getParam(key, false, 'string');
-      });
-      var toolbarArray = filter(toolbars, function (toolbar) {
-        return typeof toolbar === 'string';
-      });
-      return toolbarArray.length > 0 ? Option.some(toolbarArray) : Option.none();
-    };
-    var isMultipleToolbars = function (editor) {
-      return getMultipleToolbarsSetting(editor).fold(function () {
-        var toolbar = editor.getParam('toolbar', [], 'string[]');
-        return toolbar.length > 0;
-      }, function () {
-        return true;
-      });
-    };
-    var ToolbarDrawer;
-    (function (ToolbarDrawer) {
-      ToolbarDrawer['default'] = '';
-      ToolbarDrawer['floating'] = 'floating';
-      ToolbarDrawer['sliding'] = 'sliding';
-    }(ToolbarDrawer || (ToolbarDrawer = {})));
-    var getToolbarDrawer = function (editor) {
-      return editor.getParam('toolbar_drawer', '', 'string');
-    };
-    var fixedContainerSelector = function (editor) {
-      return editor.getParam('fixed_toolbar_container', '', 'string');
-    };
-    var fixedContainerElement = function (editor) {
-      var selector = fixedContainerSelector(editor);
-      return selector.length > 0 && editor.inline ? descendant$1(body(), selector) : Option.none();
-    };
-    var useFixedContainer = function (editor) {
-      return editor.inline && fixedContainerElement(editor).isSome();
-    };
-    var getUiContainer = function (editor) {
-      var fixedContainer = fixedContainerElement(editor);
-      return fixedContainer.getOr(body());
-    };
-    var isDistractionFree = function (editor) {
-      return editor.inline && !isMenubarEnabled(editor) && !isToolbarEnabled(editor) && !isMultipleToolbars(editor);
-    };
-    var isStickyToolbar = function (editor) {
-      var isStickyToolbar = editor.getParam('toolbar_sticky', false, 'boolean');
-      return (isStickyToolbar || editor.inline) && !useFixedContainer(editor) && !isDistractionFree(editor);
-    };
-    var isDraggableModal = function (editor) {
-      return editor.getParam('draggable_modal', false, 'boolean');
-    };
-
     var formChangeEvent = generate$1('form-component-change');
     var formCloseEvent = generate$1('form-close');
     var formCancelEvent = generate$1('form-cancel');
@@ -12828,7 +12778,7 @@
                     'tox-button--naked',
                     'tox-button--icon'
                   ],
-                  innerHtml: get$c(spec.icon, providersBackstage.icons),
+                  innerHtml: get$d(spec.icon, providersBackstage.icons),
                   attributes: { title: providersBackstage.translate(spec.iconTooltip) }
                 },
                 action: function (comp) {
@@ -12904,7 +12854,7 @@
       })
     ]);
 
-    var factory$4 = function (detail, components, spec, externals) {
+    var factory$4 = function (detail, components, _spec, _externals) {
       var behaviours = augment(detail.fieldBehaviours, [
         Composing.config({
           find: function (container) {
@@ -12925,7 +12875,7 @@
           }
         })
       ]);
-      var events = derive([runOnAttached(function (component, simulatedEvent) {
+      var events = derive([runOnAttached(function (component, _simulatedEvent) {
           var ps = getParts(component, detail, [
             'label',
             'field',
@@ -12993,7 +12943,7 @@
     ]);
     var focusBehaviours = function (detail) {
       return derive$1([Focusing.config({
-          onFocus: detail.selectOnFocus === false ? noop : function (component) {
+          onFocus: !detail.selectOnFocus ? noop : function (component) {
             var input = component.element();
             var value = get$5(input);
             input.dom().setSelectionRange(0, value.length);
@@ -13002,9 +12952,9 @@
     };
     var behaviours = function (detail) {
       return __assign(__assign({}, focusBehaviours(detail)), augment(detail.inputBehaviours, [Representing.config({
-          store: {
-            mode: 'manual',
-            initialValue: detail.data.getOr(undefined),
+          store: __assign(__assign({ mode: 'manual' }, detail.data.map(function (data) {
+            return { initialValue: data };
+          }).getOr({})), {
             getValue: function (input) {
               return get$5(input.element());
             },
@@ -13014,7 +12964,7 @@
                 set$3(input.element(), data);
               }
             }
-          },
+          }),
           onSetValue: detail.onSetValue
         })]));
     };
@@ -13027,7 +12977,7 @@
       };
     };
 
-    var factory$5 = function (detail, spec) {
+    var factory$5 = function (detail, _spec) {
       return {
         uid: detail.uid,
         dom: dom$2(detail),
@@ -13691,7 +13641,7 @@
         notifyInfo.onInvalid(component, text);
       });
     };
-    var query = function (component, invalidConfig, invalidState) {
+    var query = function (component, invalidConfig, _invalidState) {
       return invalidConfig.validator.fold(function () {
         return Future.pure(Result.value(true));
       }, function (validatorInfo) {
@@ -13722,6 +13672,7 @@
     };
 
     var InvalidateApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         markValid: markValid,
         markInvalid: markInvalid,
         query: query,
@@ -13740,6 +13691,7 @@
     };
 
     var ActiveInvalidate = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         events: events$a
     });
 
@@ -13786,6 +13738,7 @@
     };
 
     var ActiveTabstopping = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         exhibit: exhibit$4
     });
 
@@ -13835,20 +13788,21 @@
     };
 
     var CouplingApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         getCoupled: getCoupled
     });
 
     var CouplingSchema = [strictOf('others', setOf$1(Result.value, anyValue$1()))];
 
-    var init$5 = function (spec) {
+    var init$5 = function () {
       var coupled = {};
       var getOrCreate = function (component, coupleConfig, name) {
         var available = keys(coupleConfig.others);
         if (!available) {
           throw new Error('Cannot find coupled component: ' + name + '. Known coupled components: ' + JSON.stringify(available, null, 2));
         } else {
-          return readOptFrom$1(coupled, name).getOrThunk(function () {
-            var builder = readOptFrom$1(coupleConfig.others, name).getOrDie('No information found for coupled component: ' + name);
+          return get(coupled, name).getOrThunk(function () {
+            var builder = get(coupleConfig.others, name).getOrDie('No information found for coupled component: ' + name);
             var spec = builder(component);
             var built = component.getSystem().build(spec);
             coupled[name] = built;
@@ -13864,6 +13818,7 @@
     };
 
     var CouplingState = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         init: init$5
     });
 
@@ -14039,7 +13994,7 @@
           tag: 'div',
           classes: detail.sandboxClasses,
           attributes: {
-            id: ariaOwner.id(),
+            id: ariaOwner.id,
             role: 'listbox'
           }
         },
@@ -14067,12 +14022,7 @@
               });
             }
           }),
-          Receiving.config({
-            channels: __assign(__assign({}, receivingChannel({ isExtraPart: constant(false) })), receivingChannel$1({
-              isExtraPart: constant(false),
-              doReposition: doRepositionMenus
-            }))
-          })
+          Receiving.config({ channels: __assign(__assign({}, receivingChannel({ isExtraPart: never })), receivingChannel$1({ doReposition: doRepositionMenus })) })
         ])
       };
     };
@@ -14100,7 +14050,7 @@
       onKeyboardHandler('onExecute'),
       defaulted$1('getHotspot', Option.some),
       defaulted$1('getAnchorOverrides', constant({})),
-      defaulted$1('layouts', Option.none()),
+      schema$1(),
       field$1('dropdownBehaviours', [
         Toggling,
         Coupling,
@@ -14128,8 +14078,8 @@
     var factory$6 = function (detail, components, _spec, externals) {
       var _a;
       var lookupAttr = function (attr) {
-        return readOptFrom$1(detail.dom, 'attributes').bind(function (attrs) {
-          return readOptFrom$1(attrs, attr);
+        return get(detail.dom, 'attributes').bind(function (attrs) {
+          return get(attrs, attr);
         });
       };
       var switchToMenu = function (sandbox) {
@@ -14172,7 +14122,7 @@
           }
         }
       };
-      var triggerExecute = function (comp, se) {
+      var triggerExecute = function (comp, _se) {
         emitExecute(comp);
         return Option.some(true);
       };
@@ -14203,7 +14153,7 @@
             mode: 'special',
             onSpace: triggerExecute,
             onEnter: triggerExecute,
-            onDown: function (comp, se) {
+            onDown: function (comp, _se) {
               if (Dropdown.isOpen(comp)) {
                 var sandbox = Coupling.getCoupled(comp, 'sandbox');
                 switchToMenu(sandbox);
@@ -14212,7 +14162,7 @@
               }
               return Option.some(true);
             },
-            onEscape: function (comp, se) {
+            onEscape: function (comp, _se) {
               if (Dropdown.isOpen(comp)) {
                 Dropdown.close(comp);
                 return Option.some(true);
@@ -14263,7 +14213,7 @@
       }
     });
 
-    var exhibit$5 = function (base, unselectConfig) {
+    var exhibit$5 = function () {
       return nu$6({
         styles: {
           '-webkit-user-select': 'none',
@@ -14274,11 +14224,12 @@
         attributes: { unselectable: 'on' }
       });
     };
-    var events$b = function (unselectConfig) {
+    var events$b = function () {
       return derive([abort(selectstart(), constant(true))]);
     };
 
     var ActiveUnselecting = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         events: events$b,
         exhibit: exhibit$5
     });
@@ -14295,6 +14246,8 @@
         components: spec.components,
         toggleClass: 'mce-active',
         dropdownBehaviours: derive$1([
+          DisablingConfigs.button(sharedBackstage.providers.isReadOnly),
+          receivingConfig(),
           Unselecting.config({}),
           Tabstopping.config({})
         ]),
@@ -14328,6 +14281,8 @@
           });
         },
         inputBehaviours: derive$1([
+          Disabling.config({ disabled: sharedBackstage.providers.isReadOnly }),
+          receivingConfig(),
           Tabstopping.config({}),
           Invalidating.config({
             invalidClass: 'tox-textbox-field-invalid',
@@ -14376,7 +14331,7 @@
                 return emit(colorBit, colorPickerCancelEvent);
               }, function (value) {
                 emitSwatchChange(colorBit, value);
-                Settings.addColor(value);
+                addColor(value);
               });
             }, '#ffffff');
           } else if (value === 'remove') {
@@ -14391,16 +14346,24 @@
           tag: 'span',
           attributes: { 'aria-label': sharedBackstage.providers.translate('Color swatch') }
         },
-        layouts: Option.some({
+        layouts: {
           onRtl: function () {
-            return [southeast$1];
+            return [
+              southwest$1,
+              southeast$1,
+              south$1
+            ];
           },
           onLtr: function () {
-            return [southwest$1];
+            return [
+              southeast$1,
+              southwest$1,
+              south$1
+            ];
           }
-        }),
+        },
         components: [],
-        fetch: ColorSwatch.getFetch(colorInputBackstage.getColors(), colorInputBackstage.hasCustomColors()),
+        fetch: getFetch(colorInputBackstage.getColors(), colorInputBackstage.hasCustomColors()),
         columns: colorInputBackstage.getColorCols(),
         presets: 'color',
         onItemAction: onItemAction
@@ -14433,8 +14396,8 @@
                 Composing.getCurrent(comp).each(Focusing.focus);
               });
             }),
-            run(colorPickerCancelEvent, function (comp, se) {
-              FormField.getField(comp).each(function (field) {
+            run(colorPickerCancelEvent, function (comp, _se) {
+              FormField.getField(comp).each(function (_field) {
                 Composing.getCurrent(comp).each(Focusing.focus);
               });
             })
@@ -14444,18 +14407,18 @@
 
     var hsvColour = function (hue, saturation, value) {
       return {
-        hue: constant(hue),
-        saturation: constant(saturation),
-        value: constant(value)
+        hue: hue,
+        saturation: saturation,
+        value: value
       };
     };
     var fromRgb = function (rgbaColour) {
       var h = 0;
       var s = 0;
       var v = 0;
-      var r = rgbaColour.red() / 255;
-      var g = rgbaColour.green() / 255;
-      var b = rgbaColour.blue() / 255;
+      var r = rgbaColour.red / 255;
+      var g = rgbaColour.green / 255;
+      var b = rgbaColour.blue / 255;
       var minRGB = Math.min(r, Math.min(g, b));
       var maxRGB = Math.max(r, Math.max(g, b));
       if (minRGB === maxRGB) {
@@ -14477,12 +14440,10 @@
       return fromRgba(rgb);
     };
 
-    var fieldsUpdate = constant(generate$1('rgb-hex-update'));
-    var sliderUpdate = constant(generate$1('slider-update'));
-    var paletteUpdate = constant(generate$1('palette-update'));
+    var fieldsUpdate = generate$1('rgb-hex-update');
+    var sliderUpdate = generate$1('slider-update');
+    var paletteUpdate = generate$1('palette-update');
 
-    var platform$1 = detect$3();
-    var isTouch = platform$1.deviceType.isTouch();
     var labelPart = optional({
       schema: [strict$1('dom')],
       name: 'label'
@@ -14495,16 +14456,21 @@
           return action.fold(function () {
             return {};
           }, function (a) {
-            var touchEvents = derive([runActionExtra(touchstart(), a, [detail])]);
-            var mouseEvents = derive([
-              runActionExtra(mousedown(), a, [detail]),
-              runActionExtra(mousemove(), function (l, det) {
-                if (det.mouseIsDown.get()) {
-                  a(l, det);
-                }
-              }, [detail])
-            ]);
-            return { events: isTouch ? touchEvents : mouseEvents };
+            return {
+              events: derive([
+                runActionExtra(touchstart(), function (comp, se, d) {
+                  return a(comp, d);
+                }, [detail]),
+                runActionExtra(mousedown(), function (comp, se, d) {
+                  return a(comp, d);
+                }, [detail]),
+                runActionExtra(mousemove(), function (comp, se, det) {
+                  if (det.mouseIsDown.get()) {
+                    a(comp, det);
+                  }
+                }, [detail])
+              ])
+            };
           });
         }
       });
@@ -14546,20 +14512,8 @@
             return model.setValueFrom(component, detail, value);
           });
         };
-        var touchEvents = derive([
-          run(touchstart(), setValueFrom),
-          run(touchmove(), setValueFrom)
-        ]);
-        var mouseEvents = derive([
-          run(mousedown(), setValueFrom),
-          run(mousemove(), function (spectrum, se) {
-            if (detail.mouseIsDown.get()) {
-              setValueFrom(spectrum, se);
-            }
-          })
-        ]);
         return {
-          behaviours: derive$1(isTouch ? [] : [
+          behaviours: derive$1([
             Keying.config({
               mode: 'special',
               onLeft: function (spectrum) {
@@ -14577,7 +14531,16 @@
             }),
             Focusing.config({})
           ]),
-          events: isTouch ? touchEvents : mouseEvents
+          events: derive([
+            run(touchstart(), setValueFrom),
+            run(touchmove(), setValueFrom),
+            run(mousedown(), setValueFrom),
+            run(mousemove(), function (spectrum, se) {
+              if (detail.mouseIsDown.get()) {
+                setValueFrom(spectrum, se);
+              }
+            })
+          ])
         };
       }
     });
@@ -14595,12 +14558,14 @@
       spectrumPart
     ];
 
-    var isTouch$1 = detect$3().deviceType.isTouch();
     var _sliderChangeEvent = 'slider.change.value';
     var sliderChangeEvent = constant(_sliderChangeEvent);
+    var isTouchEvent = function (evt) {
+      return evt.type.indexOf('touch') !== -1;
+    };
     var getEventSource = function (simulatedEvent) {
       var evt = simulatedEvent.event().raw();
-      if (isTouch$1) {
+      if (isTouchEvent(evt)) {
         var touchEvent = evt;
         return touchEvent.touches !== undefined && touchEvent.touches.length === 1 ? Option.some(touchEvent.touches[0]).map(function (t) {
           return Position(t.clientX, t.clientY);
@@ -14969,6 +14934,7 @@
     };
 
     var HorizontalModel = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         setValueFrom: setValueFrom,
         setToMin: setToMin,
         setToMax: setToMax,
@@ -15091,6 +15057,7 @@
     };
 
     var VerticalModel = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         setValueFrom: setValueFrom$1,
         setToMin: setToMin$1,
         setToMax: setToMax$1,
@@ -15173,6 +15140,7 @@
     };
 
     var TwoDModel = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         setValueFrom: setValueFrom$2,
         setToMin: setToMin$2,
         setToMax: setToMax$2,
@@ -15185,7 +15153,6 @@
         edgeActions: edgeActions$2
     });
 
-    var isTouch$2 = detect$3().deviceType.isTouch();
     var SliderSchema = [
       defaulted$1('stepSize', 1),
       defaulted$1('onChange', noop),
@@ -15233,13 +15200,14 @@
       field$1('sliderBehaviours', [
         Keying,
         Representing
-      ])
-    ].concat(!isTouch$2 ? [state$1('mouseIsDown', function () {
+      ]),
+      state$1('mouseIsDown', function () {
         return Cell(false);
-      })] : []);
+      })
+    ];
 
-    var isTouch$3 = detect$3().deviceType.isTouch();
     var sketch = function (detail, components, _spec, _externals) {
+      var _a;
       var getThumb = function (component) {
         return getPartOrDie(component, detail, 'thumb');
       };
@@ -15282,83 +15250,67 @@
       var resetToMax = function (slider) {
         model.setToMax(slider, detail);
       };
-      var touchEvents = [
-        run(touchstart(), function (slider, _simulatedEvent) {
-          detail.onDragStart(slider, getThumb(slider));
-        }),
-        run(touchend(), function (slider, _simulatedEvent) {
-          detail.onDragEnd(slider, getThumb(slider));
-        })
-      ];
-      var mouseEvents = [
-        run(mousedown(), function (slider, simulatedEvent) {
-          simulatedEvent.stop();
-          detail.onDragStart(slider, getThumb(slider));
-          detail.mouseIsDown.set(true);
-        }),
-        run(mouseup(), function (slider, _simulatedEvent) {
-          detail.onDragEnd(slider, getThumb(slider));
-        })
-      ];
-      var uiEventsArr = isTouch$3 ? touchEvents : mouseEvents;
+      var choose = function (slider) {
+        var fireOnChoose = function () {
+          getPart(slider, detail, 'thumb').each(function (thumb) {
+            var value = modelDetail.value.get();
+            detail.onChoose(slider, thumb, value);
+          });
+        };
+        var wasDown = detail.mouseIsDown.get();
+        detail.mouseIsDown.set(false);
+        if (wasDown) {
+          fireOnChoose();
+        }
+      };
+      var onDragStart = function (slider, simulatedEvent) {
+        simulatedEvent.stop();
+        detail.mouseIsDown.set(true);
+        detail.onDragStart(slider, getThumb(slider));
+      };
+      var onDragEnd = function (slider, simulatedEvent) {
+        simulatedEvent.stop();
+        detail.onDragEnd(slider, getThumb(slider));
+        choose(slider);
+      };
       return {
         uid: detail.uid,
         dom: detail.dom,
         components: components,
-        behaviours: augment(detail.sliderBehaviours, flatten([
-          !isTouch$3 ? [Keying.config({
-              mode: 'special',
-              focusIn: function (slider) {
-                return getPart(slider, detail, 'spectrum').map(Keying.focusIn).map(constant(true));
+        behaviours: augment(detail.sliderBehaviours, [
+          Keying.config({
+            mode: 'special',
+            focusIn: function (slider) {
+              return getPart(slider, detail, 'spectrum').map(Keying.focusIn).map(constant(true));
+            }
+          }),
+          Representing.config({
+            store: {
+              mode: 'manual',
+              getValue: function (_) {
+                return modelDetail.value.get();
               }
-            })] : [],
-          [
-            Representing.config({
-              store: {
-                mode: 'manual',
-                getValue: function (_) {
-                  return modelDetail.value.get();
-                }
-              }
-            }),
-            Receiving.config({
-              channels: {
-                'mouse.released': {
-                  onReceive: function (slider, se) {
-                    var fireOnChoose = function () {
-                      getPart(slider, detail, 'thumb').each(function (thumb) {
-                        var value = modelDetail.value.get();
-                        detail.onChoose(slider, thumb, value);
-                      });
-                    };
-                    if (isTouch$3) {
-                      fireOnChoose();
-                    } else {
-                      var wasDown = detail.mouseIsDown.get();
-                      detail.mouseIsDown.set(false);
-                      if (wasDown) {
-                        fireOnChoose();
-                      }
-                    }
-                  }
-                }
-              }
-            })
-          ]
-        ])),
+            }
+          }),
+          Receiving.config({ channels: (_a = {}, _a[mouseReleased()] = { onReceive: choose }, _a) })
+        ]),
         events: derive([
           run(sliderChangeEvent(), function (slider, simulatedEvent) {
             changeValue(slider, simulatedEvent.event().value());
           }),
-          runOnAttached(function (slider, simulatedEvent) {
+          runOnAttached(function (slider, _simulatedEvent) {
             var getInitial = modelDetail.getInitialValue();
             modelDetail.value.set(getInitial);
             var thumb = getThumb(slider);
             refresh(slider, thumb);
             var spectrum = getSpectrum(slider);
             detail.onInit(slider, thumb, spectrum, modelDetail.value.get());
-          })
-        ].concat(uiEventsArr)),
+          }),
+          run(touchstart(), onDragStart),
+          run(touchend(), onDragEnd),
+          run(mousedown(), onDragStart),
+          run(mouseup(), onDragEnd)
+        ]),
         apis: {
           resetToMin: resetToMin,
           resetToMax: resetToMax,
@@ -15419,11 +15371,10 @@
         ],
         sliderBehaviours: derive$1([Focusing.config({})]),
         onChange: function (slider, _thumb, value) {
-          emitWith(slider, sliderUpdate(), { value: value });
+          emitWith(slider, sliderUpdate, { value: value });
         }
       });
     };
-    var HueSlider = { sliderFactory: sliderFactory };
 
     var owner$3 = 'form';
     var schema$h = [field$1('formBehaviours', [Representing])];
@@ -15459,7 +15410,7 @@
         return Result.error(e);
       }, Result.value);
     };
-    var make$4 = function (detail, components, spec) {
+    var make$4 = function (detail, components) {
       return {
         uid: detail.uid,
         dom: detail.dom,
@@ -15472,7 +15423,7 @@
                 return map$1(resPs, function (resPThunk, pName) {
                   return resPThunk().bind(function (v) {
                     var opt = Composing.getCurrent(v);
-                    return toResult$1(opt, 'missing current');
+                    return toResult$1(opt, new Error('Cannot find a current component to extract the value from for form part \'' + pName + '\': ' + element(v.element())));
                   }).map(Representing.getValue);
                 });
               },
@@ -15579,15 +15530,15 @@
         var hex = fromRgba(rgba);
         Form.getField(form, 'hex').each(function (hexField) {
           if (!Focusing.isFocused(hexField)) {
-            Representing.setValue(form, { hex: hex.value() });
+            Representing.setValue(form, { hex: hex.value });
           }
         });
         return hex;
       };
       var copyRgbToForm = function (form, rgb) {
-        var red = rgb.red();
-        var green = rgb.green();
-        var blue = rgb.blue();
+        var red = rgb.red;
+        var green = rgb.green;
+        var blue = rgb.blue;
         Representing.setValue(form, {
           red: red,
           green: green,
@@ -15604,15 +15555,15 @@
       });
       var updatePreview = function (anyInSystem, hex) {
         memPreview.getOpt(anyInSystem).each(function (preview) {
-          set$2(preview.element(), 'background-color', '#' + hex.value());
+          set$2(preview.element(), 'background-color', '#' + hex.value);
         });
       };
       var factory = function () {
         var state = {
-          red: constant(Cell(Option.some(255))),
-          green: constant(Cell(Option.some(255))),
-          blue: constant(Cell(Option.some(255))),
-          hex: constant(Cell(Option.some('ffffff')))
+          red: Cell(Option.some(255)),
+          green: Cell(Option.some(255)),
+          blue: Cell(Option.some(255)),
+          hex: Cell(Option.some('ffffff'))
         };
         var copyHexToRgb = function (form, hex) {
           var rgb = fromHex(hex);
@@ -15620,10 +15571,10 @@
           setValueRgb(rgb);
         };
         var get = function (prop) {
-          return state[prop]().get();
+          return state[prop].get();
         };
         var set = function (prop, value) {
-          state[prop]().set(value);
+          state[prop].set(value);
         };
         var getValueRgb = function () {
           return get('red').bind(function (red) {
@@ -15635,9 +15586,9 @@
           });
         };
         var setValueRgb = function (rgb) {
-          var red = rgb.red();
-          var green = rgb.green();
-          var blue = rgb.blue();
+          var red = rgb.red;
+          var green = rgb.green;
+          var blue = rgb.blue;
           set('red', Option.some(red));
           set('green', Option.some(green));
           set('blue', Option.some(blue));
@@ -15657,7 +15608,7 @@
           var rgb = fromHex(hex);
           copyRgbToForm(form, rgb);
           setValueRgb(rgb);
-          emitWith(form, fieldsUpdate(), { hex: hex });
+          emitWith(form, fieldsUpdate, { hex: hex });
           updatePreview(form, hex);
         };
         var onValidRgb = function (form, prop, value) {
@@ -15715,7 +15666,7 @@
         }), {
           apis: {
             updateHex: function (form, hex) {
-              Representing.setValue(form, { hex: hex.value() });
+              Representing.setValue(form, { hex: hex.value });
               copyHexToRgb(form, hex);
               updatePreview(form, hex);
             }
@@ -15735,7 +15686,6 @@
       });
       return rgbFormSketcher;
     };
-    var RgbForm = { rgbFormFactory: rgbFormFactory };
 
     var paletteFactory = function (_translate, getClass) {
       var spectrumPart = Slider.parts().spectrum({
@@ -15782,10 +15732,10 @@
           y: constant(0)
         });
         var onChange = function (slider, _thumb, value) {
-          emitWith(slider, paletteUpdate(), { value: value });
+          emitWith(slider, paletteUpdate, { value: value });
         };
         var onInit = function (_slider, _thumb, spectrum, _value) {
-          setColour(spectrum.element().dom(), toString(redColour()));
+          setColour(spectrum.element().dom(), toString(red));
         };
         var sliderBehaviours = derive$1([
           Composing.config({ find: Option.some }),
@@ -15824,19 +15774,18 @@
       });
       return saturationBrightnessPaletteSketcher;
     };
-    var SaturationBrightnessPalette = { paletteFactory: paletteFactory };
 
     var makeFactory = function (translate, getClass) {
       var factory = function (detail) {
-        var rgbForm = RgbForm.rgbFormFactory(translate, getClass, detail.onValidHex, detail.onInvalidHex);
-        var sbPalette = SaturationBrightnessPalette.paletteFactory(translate, getClass);
-        var state = { paletteRgba: constant(Cell(redColour())) };
+        var rgbForm = rgbFormFactory(translate, getClass, detail.onValidHex, detail.onInvalidHex);
+        var sbPalette = paletteFactory(translate, getClass);
+        var state = { paletteRgba: Cell(red) };
         var memPalette = record(sbPalette.sketch({}));
         var memRgb = record(rgbForm.sketch({}));
         var updatePalette = function (anyInSystem, hex) {
           memPalette.getOpt(anyInSystem).each(function (palette) {
             var rgba = fromHex(hex);
-            state.paletteRgba().set(rgba);
+            state.paletteRgba.set(rgba);
             sbPalette.setRgba(palette, rgba);
           });
         };
@@ -15854,9 +15803,9 @@
           var updates = [updateFields];
           return function (form, simulatedEvent) {
             var value = simulatedEvent.event().value();
-            var oldRgb = state.paletteRgba().get();
+            var oldRgb = state.paletteRgba.get();
             var hsvColour$1 = fromRgb(oldRgb);
-            var newHsvColour = hsvColour(hsvColour$1.hue(), value.x(), 100 - value.y());
+            var newHsvColour = hsvColour(hsvColour$1.hue, value.x(), 100 - value.y());
             var rgb = fromHsv(newHsvColour);
             var nuHex = fromRgba(rgb);
             runUpdates(form, nuHex, updates);
@@ -15878,13 +15827,13 @@
           dom: detail.dom,
           components: [
             memPalette.asSpec(),
-            HueSlider.sliderFactory(translate, getClass),
+            sliderFactory(translate, getClass),
             memRgb.asSpec()
           ],
           behaviours: derive$1([
             config('colour-picker-events', [
-              run(paletteUpdate(), paletteUpdates()),
-              run(sliderUpdate(), sliderUpdates())
+              run(paletteUpdate, paletteUpdates()),
+              run(sliderUpdate, sliderUpdates())
             ]),
             Composing.config({
               find: function (comp) {
@@ -15906,7 +15855,6 @@
       });
       return colourPickerSketcher;
     };
-    var ColourPicker = { makeFactory: makeFactory };
 
     var self$1 = function () {
       return Composing.config({ find: Option.some });
@@ -15957,11 +15905,11 @@
     var translate$1 = function (key) {
       return getEnglishText(key);
     };
-    var renderColorPicker = function (spec) {
+    var renderColorPicker = function (_spec) {
       var getClass = function (key) {
         return 'tox-' + key;
       };
-      var colourPickerFactory = ColourPicker.makeFactory(translate$1, getClass);
+      var colourPickerFactory = makeFactory(translate$1, getClass);
       var onValidHex = function (form) {
         emitWith(form, formActionEvent, {
           name: 'hex-valid',
@@ -16179,7 +16127,10 @@
           },
           styles: { display: 'none' }
         },
-        behaviours: derive$1([config('input-file-events', [cutter(tapOrClick())])])
+        behaviours: derive$1([config('input-file-events', [
+            cutter(click()),
+            cutter(tap())
+          ])])
       });
       var renderField = function (s) {
         return {
@@ -16241,7 +16192,11 @@
                     var inputComp = memInput.get(comp);
                     inputComp.element().dom().click();
                   },
-                  buttonBehaviours: derive$1([Tabstopping.config({})])
+                  buttonBehaviours: derive$1([
+                    Tabstopping.config({}),
+                    DisablingConfigs.button(providersBackstage.isReadOnly),
+                    receivingConfig()
+                  ])
                 })
               ]
             }]
@@ -16323,17 +16278,12 @@
         '.' + afterObject
       ].join(','), constant(false));
     };
-    var NavigableObject = {
-      isPseudoStop: isPseudoStop,
-      onFocus: onFocus$1,
-      craft: craft
-    };
 
     var platformNeedsSandboxing = !(detect$3().browser.isIE() || detect$3().browser.isEdge());
     var getDynamicSource = function (isSandbox) {
       var cachedValue = Cell('');
       return {
-        getValue: function (frameComponent) {
+        getValue: function (_frameComponent) {
           return cachedValue.get();
         },
         setValue: function (frameComponent, html) {
@@ -16360,7 +16310,7 @@
         return renderLabel(label, providersBackstage);
       });
       var factory = function (newSpec) {
-        return NavigableObject.craft({
+        return craft({
           uid: newSpec.uid,
           dom: {
             tag: 'iframe',
@@ -16681,9 +16631,7 @@
       function toBlob() {
         return Promise$1.resolve(blob);
       }
-      function toDataURL() {
-        return uri;
-      }
+      var toDataURL = constant(uri);
       function toBase64() {
         return uri.split(',')[1];
       }
@@ -16731,7 +16679,7 @@
       return fromBlob(blob);
     };
 
-    function clamp(value, min, max) {
+    function clamp$1(value, min, max) {
       var parsedValue = typeof value === 'string' ? parseFloat(value) : value;
       if (parsedValue > max) {
         parsedValue = max;
@@ -16892,7 +16840,7 @@
     }
     function adjustContrast(matrix, value) {
       var x;
-      value = clamp(value, -1, 1);
+      value = clamp$1(value, -1, 1);
       value *= 100;
       if (value < 0) {
         x = 127 + value / 100 * 127;
@@ -16934,7 +16882,7 @@
       ]);
     }
     function adjustBrightness(matrix, value) {
-      value = clamp(255 * value, -255, 255);
+      value = clamp$1(255 * value, -255, 255);
       return multiply(matrix, [
         1,
         0,
@@ -16964,9 +16912,9 @@
       ]);
     }
     function adjustColors(matrix, adjustR, adjustG, adjustB) {
-      adjustR = clamp(adjustR, 0, 2);
-      adjustG = clamp(adjustG, 0, 2);
-      adjustB = clamp(adjustB, 0, 2);
+      adjustR = clamp$1(adjustR, 0, 2);
+      adjustG = clamp$1(adjustG, 0, 2);
+      adjustB = clamp$1(adjustB, 0, 2);
       return multiply(matrix, [
         adjustR,
         0,
@@ -17299,10 +17247,10 @@
       }, behaviours);
     };
     var renderIconFromPack = function (iconName, iconsProvider) {
-      return renderIcon$1(get$c(iconName, iconsProvider), {});
+      return renderIcon$1(get$d(iconName, iconsProvider), {});
     };
     var renderReplacableIconFromPack = function (iconName, iconsProvider) {
-      return renderIcon$1(get$c(iconName, iconsProvider), { behaviours: derive$1([Replacing.config({})]) });
+      return renderIcon$1(get$d(iconName, iconsProvider), { behaviours: derive$1([Replacing.config({})]) });
     };
     var renderLabel$1 = function (text, prefix, providersBackstage) {
       return {
@@ -17317,7 +17265,7 @@
 
     var internalToolbarButtonExecute = generate$1('toolbar.button.execute');
     var onToolbarButtonExecute = function (info) {
-      return runOnExecute(function (comp, simulatedEvent) {
+      return runOnExecute(function (comp, _simulatedEvent) {
         runWithApi(info, comp)(function (itemApi) {
           emitWith(comp, internalToolbarButtonExecute, { buttonApi: itemApi });
           info.onAction(itemApi);
@@ -17386,14 +17334,17 @@
             dom: {
               tag: 'div',
               classes: [prefix + '__select-chevron'],
-              innerHtml: get$c('chevron-down', sharedBackstage.providers.icons)
+              innerHtml: get$d('chevron-down', sharedBackstage.providers.icons)
             }
           })
         ]),
         matchWidth: true,
         useMinWidth: true,
         dropdownBehaviours: derive$1(__spreadArrays(spec.dropdownBehaviours, [
-          DisablingConfigs.button(spec.disabled),
+          DisablingConfigs.button(function () {
+            return spec.disabled || sharedBackstage.providers.isReadOnly();
+          }),
+          receivingConfig(),
           Unselecting.config({}),
           Replacing.config({}),
           config('dropdown-events', [
@@ -17493,7 +17444,7 @@
       if (isSeparator(item)) {
         return item;
       } else {
-        var itemValue = readOptFrom$1(item, 'value').getOrThunk(function () {
+        var itemValue = get(item, 'value').getOrThunk(function () {
           return generate$1('generated-menu-item');
         });
         return deepMerge({ value: itemValue }, item);
@@ -17575,6 +17526,9 @@
     var getFetch$1 = function (items, getButton, backstage) {
       var getMenuItemAction = function (item) {
         return function (api) {
+          var newValue = !api.isActive();
+          api.setActive(newValue);
+          item.storage.set(newValue);
           backstage.shared.getSink().each(function (sink) {
             getButton().getOpt(sink).each(function (orig) {
               focus$1(orig.element());
@@ -17584,9 +17538,6 @@
               });
             });
           });
-          var newValue = !api.isActive();
-          api.setActive(newValue);
-          item.storage.set(newValue);
         };
       };
       var getMenuItemSetup = function (item) {
@@ -17601,7 +17552,10 @@
           }, function (text) {
             return { text: text };
           });
-          return __assign(__assign({ type: item.type }, text), {
+          return __assign(__assign({
+            type: item.type,
+            active: false
+          }, text), {
             onAction: getMenuItemAction(item),
             onSetup: getMenuItemSetup(item)
           });
@@ -17609,7 +17563,7 @@
       };
     };
 
-    var renderCommonSpec = function (spec, actionOpt, extraBehaviours, dom, components) {
+    var renderCommonSpec = function (spec, actionOpt, extraBehaviours, dom, components, providersBackstage) {
       if (extraBehaviours === void 0) {
         extraBehaviours = [];
       }
@@ -17620,7 +17574,10 @@
       });
       var common = __assign({
         buttonBehaviours: derive$1([
-          DisablingConfigs.button(spec.disabled),
+          DisablingConfigs.button(function () {
+            return spec.disabled || providersBackstage.isReadOnly();
+          }),
+          receivingConfig(),
           Tabstopping.config({}),
           config('button press', [
             preventDefault('click'),
@@ -17660,7 +17617,7 @@
         return renderIconFromPack(iconName, providersBackstage.icons);
       });
       var components = componentRenderPipeline([icon]);
-      return renderCommonSpec(spec, action, extraBehaviours, dom, components);
+      return renderCommonSpec(spec, action, extraBehaviours, dom, components, providersBackstage);
     };
     var renderIconButton = function (spec, action, providersBackstage, extraBehaviours) {
       if (extraBehaviours === void 0) {
@@ -17690,7 +17647,7 @@
         tag: 'button',
         classes: classes
       }, innerHtml), { attributes: { title: translatedText } });
-      return renderCommonSpec(spec, action, extraBehaviours, dom, components);
+      return renderCommonSpec(spec, action, extraBehaviours, dom, components, providersBackstage);
     };
     var renderButton = function (spec, action, providersBackstage, extraBehaviours, extraClasses) {
       if (extraBehaviours === void 0) {
@@ -17730,7 +17687,13 @@
           return memButton_1;
         };
         var menuButtonSpec = spec;
-        var fixedSpec = __assign(__assign({}, spec), { fetch: getFetch$1(menuButtonSpec.items, getButton, backstage) });
+        var fixedSpec = __assign(__assign({}, spec), {
+          onSetup: function (api) {
+            api.setDisabled(spec.disabled);
+            return noop;
+          },
+          fetch: getFetch$1(menuButtonSpec.items, getButton, backstage)
+        });
         var memButton_1 = record(renderMenuButton(fixedSpec, 'tox-tbtn', backstage, Option.none()));
         return memButton_1.asSpec();
       } else if (isNormalFooterButtonSpec(spec, buttonType)) {
@@ -17801,7 +17764,7 @@
       })
     ]);
 
-    var factory$7 = function (detail, components, spec, externals) {
+    var factory$7 = function (detail, components, _spec, _externals) {
       return {
         uid: detail.uid,
         dom: detail.dom,
@@ -17824,10 +17787,10 @@
                   'field1',
                   'field2'
                 ]);
-                if (hasKey$1(value, detail.field1Name)) {
+                if (hasNonNullableKey(value, detail.field1Name)) {
                   Representing.setValue(parts.field1(), value[detail.field1Name]);
                 }
-                if (hasKey$1(value, detail.field2Name)) {
+                if (hasNonNullableKey(value, detail.field2Name)) {
                   Representing.setValue(parts.field2(), value[detail.field2Name]);
                 }
               }
@@ -17928,7 +17891,7 @@
         return Option.none();
       }
     };
-    var noSizeConversion = function (input) {
+    var noSizeConversion = function (_input) {
       return Option.none();
     };
     var ratioSizeConversion = function (scale, unit) {
@@ -17975,7 +17938,7 @@
                 'tox-icon',
                 'tox-lock-icon__lock'
               ],
-              innerHtml: get$c('lock', providersBackstage.icons)
+              innerHtml: get$d('lock', providersBackstage.icons)
             }
           },
           {
@@ -17985,12 +17948,17 @@
                 'tox-icon',
                 'tox-lock-icon__unlock'
               ],
-              innerHtml: get$c('unlock', providersBackstage.icons)
+              innerHtml: get$d('unlock', providersBackstage.icons)
             }
           }
         ],
         buttonBehaviours: derive$1([
-          DisablingConfigs.button(spec.disabled),
+          Disabling.config({
+            disabled: function () {
+              return spec.disabled || providersBackstage.isReadOnly();
+            }
+          }),
+          receivingConfig(),
           Tabstopping.config({})
         ])
       });
@@ -18008,13 +17976,18 @@
           factory: Input,
           inputClasses: ['tox-textfield'],
           inputBehaviours: derive$1([
-            Disabling.config({ disabled: spec.disabled }),
+            Disabling.config({
+              disabled: function () {
+                return spec.disabled || providersBackstage.isReadOnly();
+              }
+            }),
+            receivingConfig(),
             Tabstopping.config({}),
             config('size-input-events', [
-              run(focusin(), function (component, simulatedEvent) {
+              run(focusin(), function (component, _simulatedEvent) {
                 emitWith(component, ratioEvent, { isField1: isField1 });
               }),
-              run(change(), function (component, simulatedEvent) {
+              run(change(), function (component, _simulatedEvent) {
                 emitWith(component, formChangeEvent, { name: spec.name });
               })
             ])
@@ -18062,7 +18035,7 @@
         field2Name: 'height',
         locked: true,
         markers: { lockClass: 'tox-locked' },
-        onLockedChange: function (current, other, lock) {
+        onLockedChange: function (current, other, _lock) {
           parseSize(Representing.getValue(current)).each(function (size) {
             converter(size).each(function (newSize) {
               Representing.setValue(other, formatSize(newSize));
@@ -18071,7 +18044,9 @@
         },
         coupledFieldBehaviours: derive$1([
           Disabling.config({
-            disabled: spec.disabled,
+            disabled: function () {
+              return spec.disabled || providersBackstage.isReadOnly();
+            },
             onDisabled: function (comp) {
               FormCoupledInputs.getField1(comp).bind(FormField.getField).each(Disabling.disable);
               FormCoupledInputs.getField2(comp).bind(FormField.getField).each(Disabling.disable);
@@ -18083,6 +18058,7 @@
               FormCoupledInputs.getLock(comp).each(Disabling.enable);
             }
           }),
+          receivingConfig(),
           config('size-input-events2', [run(ratioEvent, function (component, simulatedEvent) {
               var isField1 = simulatedEvent.event().isField1();
               var optCurrent = isField1 ? FormCoupledInputs.getField1(component) : FormCoupledInputs.getField2(component);
@@ -18244,10 +18220,10 @@
           return mem.asSpec();
         }),
         containerBehaviours: derive$1([config('image-tools-crop-buttons-events', [
-            run(external$2.disable(), function (comp, se) {
+            run(external$2.disable(), function (comp, _se) {
               disableAllComponents(cropPanelComponents, comp);
             }),
-            run(external$2.enable(), function (comp, se) {
+            run(external$2.enable(), function (comp, _se) {
               enableAllComponents(cropPanelComponents, comp);
             })
           ])])
@@ -18284,10 +18260,10 @@
           return mem.asSpec();
         }),
         containerBehaviours: derive$1([config('image-tools-resize-buttons-events', [
-            run(external$2.disable(), function (comp, se) {
+            run(external$2.disable(), function (comp, _se) {
               disableAllComponents(resizePanelComponents, comp);
             }),
-            run(external$2.enable(), function (comp, se) {
+            run(external$2.enable(), function (comp, _se) {
               enableAllComponents(resizePanelComponents, comp);
             })
           ])])
@@ -18328,10 +18304,10 @@
           return mem.asSpec();
         }),
         containerBehaviours: derive$1([config('image-tools-fliprotate-buttons-events', [
-            run(external$2.disable(), function (comp, se) {
+            run(external$2.disable(), function (comp, _se) {
               disableAllComponents(flipRotateComponents, comp);
             }),
-            run(external$2.enable(), function (comp, se) {
+            run(external$2.enable(), function (comp, _se) {
               enableAllComponents(flipRotateComponents, comp);
             })
           ])])
@@ -18380,7 +18356,7 @@
         }));
       };
       var makeVariableSlider = function (label, transform, min, value, max) {
-        var onChoose = function (slider, thumb, value) {
+        var onChoose = function (slider, _thumb, value) {
           var valTransform = makeValueTransform(transform, value.x() / 100);
           emitTransform(slider, valTransform);
         };
@@ -18401,10 +18377,10 @@
             return mem.asSpec();
           }),
           containerBehaviours: derive$1([config('image-tools-filter-panel-buttons-events', [
-              run(external$2.disable(), function (comp, se) {
+              run(external$2.disable(), function (comp, _se) {
                 disableAllComponents(filterPanelComponents, comp);
               }),
-              run(external$2.enable(), function (comp, se) {
+              run(external$2.enable(), function (comp, _se) {
                 enableAllComponents(filterPanelComponents, comp);
               })
             ])])
@@ -18430,7 +18406,7 @@
         };
       };
       var makeColorSlider = function (label) {
-        var onChoose = function (slider, thumb, value) {
+        var onChoose = function (slider, _thumb, _value) {
           var redOpt = memRed.getOpt(slider);
           var blueOpt = memBlue.getOpt(slider);
           var greenOpt = memGreen.getOpt(slider);
@@ -19311,14 +19287,14 @@
       };
       var undo = function (anyInSystem, _simulatedEvent) {
         var url = state.undo();
-        updateSrc(anyInSystem, url).then(function (oImg) {
+        updateSrc(anyInSystem, url).then(function (_oImg) {
           unblock(anyInSystem);
           updateButtonUndoStates(anyInSystem);
         });
       };
       var redo = function (anyInSystem, _simulatedEvent) {
         var url = state.redo();
-        updateSrc(anyInSystem, url).then(function (oImg) {
+        updateSrc(anyInSystem, url).then(function (_oImg) {
           unblock(anyInSystem);
           updateButtonUndoStates(anyInSystem);
         });
@@ -19399,7 +19375,7 @@
       };
       var cancel = function (anyInSystem) {
         var currentUrl = destroyTempState(anyInSystem);
-        updateSrc(anyInSystem, currentUrl).then(function (oImg) {
+        updateSrc(anyInSystem, currentUrl).then(function (_oImg) {
           unblock(anyInSystem);
         });
       };
@@ -19466,7 +19442,7 @@
       };
     };
 
-    var factory$8 = function (detail, spec) {
+    var factory$8 = function (detail, _spec) {
       var options = map(detail.options, function (option) {
         return {
           dom: {
@@ -19539,7 +19515,11 @@
         options: translatedOptions,
         factory: HtmlSelect,
         selectBehaviours: derive$1([
-          Disabling.config({ disabled: spec.disabled }),
+          Disabling.config({
+            disabled: function () {
+              return spec.disabled || providersBackstage.isReadOnly();
+            }
+          }),
           Tabstopping.config({}),
           config('selectbox-change', [run(change(), function (component, _) {
               emitWith(component, formChangeEvent, { name: spec.name });
@@ -19550,7 +19530,7 @@
         dom: {
           tag: 'div',
           classes: ['tox-selectfield__icon-js'],
-          innerHtml: get$c('chevron-down', providersBackstage.icons)
+          innerHtml: get$d('chevron-down', providersBackstage.icons)
         }
       });
       var selectWrap = {
@@ -19572,15 +19552,20 @@
           pLabel.toArray(),
           [selectWrap]
         ]),
-        fieldBehaviours: derive$1([Disabling.config({
-            disabled: spec.disabled,
+        fieldBehaviours: derive$1([
+          Disabling.config({
+            disabled: function () {
+              return spec.disabled || providersBackstage.isReadOnly();
+            },
             onDisabled: function (comp) {
               FormField.getField(comp).each(Disabling.disable);
             },
             onEnabled: function (comp) {
               FormField.getField(comp).each(Disabling.enable);
             }
-          })])
+          }),
+          receivingConfig()
+        ])
       });
     };
 
@@ -19589,7 +19574,12 @@
         return renderLabel(label, providersBackstage);
       });
       var baseInputBehaviours = [
-        Disabling.config({ disabled: spec.disabled }),
+        Disabling.config({
+          disabled: function () {
+            return spec.disabled || providersBackstage.isReadOnly();
+          }
+        }),
+        receivingConfig(),
         Keying.config({
           mode: 'execution',
           useEnter: spec.multiline !== true,
@@ -19645,15 +19635,20 @@
       });
       var extraClasses = spec.flex ? ['tox-form__group--stretched'] : [];
       var extraClasses2 = extraClasses.concat(spec.maximized ? ['tox-form-group--maximize'] : []);
-      var extraBehaviours = [Disabling.config({
-          disabled: spec.disabled,
+      var extraBehaviours = [
+        Disabling.config({
+          disabled: function () {
+            return spec.disabled || providersBackstage.isReadOnly();
+          },
           onDisabled: function (comp) {
             FormField.getField(comp).each(Disabling.disable);
           },
           onEnabled: function (comp) {
             FormField.getField(comp).each(Disabling.enable);
           }
-        })];
+        }),
+        receivingConfig()
+      ];
       return renderFormFieldWith(pLabel, pField, extraClasses2, extraBehaviours);
     };
     var renderInput = function (spec, providersBackstage) {
@@ -19701,6 +19696,7 @@
     };
 
     var ActiveStreaming = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         events: events$c
     });
 
@@ -19729,6 +19725,7 @@
     };
 
     var StreamingState = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         throttle: throttle,
         init: init$6
     });
@@ -19872,7 +19869,7 @@
             delay: detail.responseTime,
             stopEvent: false
           },
-          onStream: function (component, simulatedEvent) {
+          onStream: function (component, _simulatedEvent) {
             var sandbox = Coupling.getCoupled(component, 'sandbox');
             var focusInInput = Focusing.isFocused(component);
             if (focusInInput) {
@@ -20291,7 +20288,7 @@
         getHotspot: function (comp) {
           return memUrlBox.getOpt(comp);
         },
-        onSetValue: function (comp, newValue) {
+        onSetValue: function (comp, _newValue) {
           if (comp.hasConfigured(Invalidating)) {
             Invalidating.run(comp).get(noop);
           }
@@ -20333,7 +20330,11 @@
             });
           }).toArray(),
           [
-            Disabling.config({ disabled: spec.disabled }),
+            Disabling.config({
+              disabled: function () {
+                return spec.disabled || providersBackstage.isReadOnly();
+              }
+            }),
             Tabstopping.config({}),
             config('urlinput-events', flatten([
               spec.filetype === 'file' ? [run(input(), function (comp) {
@@ -20392,7 +20393,7 @@
               'tox-icon',
               'tox-control-wrap__status-icon-' + name
             ],
-            innerHtml: get$c(icon, providersBackstage.icons),
+            innerHtml: get$d(icon, providersBackstage.icons),
             attributes: __assign({
               'title': providersBackstage.translate(label),
               'aria-live': 'polite'
@@ -20423,7 +20424,11 @@
           pField,
           memStatus.asSpec()
         ],
-        behaviours: derive$1([Disabling.config({ disabled: spec.disabled })])
+        behaviours: derive$1([Disabling.config({
+            disabled: function () {
+              return spec.disabled || providersBackstage.isReadOnly();
+            }
+          })])
       });
       var memUrlPickerButton = record(renderButton({
         name: spec.name,
@@ -20451,7 +20456,8 @@
       };
       var openUrlPicker = function (comp) {
         Composing.getCurrent(comp).each(function (field) {
-          var urlData = Representing.getValue(field);
+          var componentData = Representing.getValue(field);
+          var urlData = __assign({ fieldname: spec.name }, componentData);
           optUrlPicker.each(function (picker) {
             picker(urlData).get(function (chosenData) {
               Representing.setValue(field, chosenData);
@@ -20465,7 +20471,9 @@
         components: pLabel.toArray().concat([controlHWrapper()]),
         fieldBehaviours: derive$1([
           Disabling.config({
-            disabled: spec.disabled,
+            disabled: function () {
+              return spec.disabled || providersBackstage.isReadOnly();
+            },
             onDisabled: function (comp) {
               FormField.getField(comp).each(Disabling.disable);
               memUrlPickerButton.getOpt(comp).each(Disabling.disable);
@@ -20475,6 +20483,7 @@
               memUrlPickerButton.getOpt(comp).each(Disabling.enable);
             }
           }),
+          receivingConfig(),
           config('url-input-events', [run(browseUrlEvent, openUrlPicker)])
         ])
       });
@@ -20507,7 +20516,11 @@
         },
         behaviours: derive$1([
           ComposingConfigs.self(),
-          Disabling.config({ disabled: spec.disabled }),
+          Disabling.config({
+            disabled: function () {
+              return spec.disabled || providerBackstage.isReadOnly();
+            }
+          }),
           Tabstopping.config({}),
           Focusing.config({}),
           repBehaviour,
@@ -20539,7 +20552,7 @@
               'tox-icon',
               'tox-checkbox-icon__' + className
             ],
-            innerHtml: get$c(iconName, providerBackstage.icons)
+            innerHtml: get$d(iconName, providerBackstage.icons)
           }
         };
       };
@@ -20563,8 +20576,11 @@
           memIcons.asSpec(),
           pLabel
         ],
-        fieldBehaviours: derive$1([Disabling.config({
-            disabled: spec.disabled,
+        fieldBehaviours: derive$1([
+          Disabling.config({
+            disabled: function () {
+              return spec.disabled || providerBackstage.isReadOnly();
+            },
             disableClass: 'tox-checkbox--disabled',
             onDisabled: function (comp) {
               FormField.getField(comp).each(Disabling.disable);
@@ -20572,7 +20588,9 @@
             onEnabled: function (comp) {
               FormField.getField(comp).each(Disabling.enable);
             }
-          })])
+          }),
+          receivingConfig()
+        ])
       });
     };
 
@@ -20632,7 +20650,7 @@
       var runOnItem = function (f) {
         return function (comp, se) {
           closest$3(se.event().target(), '[data-collection-item-value]').each(function (target) {
-            f(comp, target, get$2(target, 'data-collection-item-value'));
+            f(comp, se, target, get$2(target, 'data-collection-item-value'));
           });
         };
       };
@@ -20655,7 +20673,8 @@
           var ariaLabel = itemText.replace(/\_| \- |\-/g, function (match) {
             return mapItemName[match];
           });
-          return '<div class="tox-collection__item" tabindex="-1" data-collection-item-value="' + escapeAttribute(item.value) + '" title="' + ariaLabel + '" aria-label="' + ariaLabel + '">' + iconContent + textContent + '</div>';
+          var readonlyClass = providersBackstage.isReadOnly() ? ' tox-collection__item--state-disabled' : '';
+          return '<div class="tox-collection__item' + readonlyClass + '" tabindex="-1" data-collection-item-value="' + escapeAttribute(item.value) + '" title="' + ariaLabel + '" aria-label="' + ariaLabel + '">' + iconContent + textContent + '</div>';
         });
         var chunks = spec.columns > 1 && spec.columns !== 'auto' ? chunk(htmlLines, spec.columns) : [htmlLines];
         var html = map(chunks, function (ch) {
@@ -20663,34 +20682,42 @@
         });
         set(comp.element(), html.join(''));
       };
-      var collectionEvents = [
-        run(mouseover(), runOnItem(function (comp, tgt) {
-          focus$1(tgt);
-        })),
-        run(tapOrClick(), runOnItem(function (comp, tgt, itemValue) {
+      var onClick = runOnItem(function (comp, se, tgt, itemValue) {
+        se.stop();
+        if (!providersBackstage.isReadOnly()) {
           emitWith(comp, formActionEvent, {
             name: spec.name,
             value: itemValue
           });
+        }
+      });
+      var collectionEvents = [
+        run(mouseover(), runOnItem(function (comp, se, tgt) {
+          focus$1(tgt);
         })),
-        run(focusin(), runOnItem(function (comp, tgt, itemValue) {
+        run(click(), onClick),
+        run(tap(), onClick),
+        run(focusin(), runOnItem(function (comp, se, tgt) {
           descendant$1(comp.element(), '.' + activeClass).each(function (currentActive) {
             remove$4(currentActive, activeClass);
           });
           add$2(tgt, activeClass);
         })),
-        run(focusout(), runOnItem(function (comp, tgt, itemValue) {
+        run(focusout(), runOnItem(function (comp) {
           descendant$1(comp.element(), '.' + activeClass).each(function (currentActive) {
             remove$4(currentActive, activeClass);
           });
         })),
-        runOnExecute(runOnItem(function (comp, tgt, itemValue) {
+        runOnExecute(runOnItem(function (comp, se, tgt, itemValue) {
           emitWith(comp, formActionEvent, {
             name: spec.name,
             value: itemValue
           });
         }))
       ];
+      var iterCollectionItems = function (comp, applyAttributes) {
+        return map(descendants(comp.element(), '.tox-collection__item'), applyAttributes);
+      };
       var pField = FormField.parts().field({
         dom: {
           tag: 'div',
@@ -20699,6 +20726,22 @@
         components: [],
         factory: { sketch: identity },
         behaviours: derive$1([
+          Disabling.config({
+            disabled: providersBackstage.isReadOnly,
+            onDisabled: function (comp) {
+              iterCollectionItems(comp, function (childElm) {
+                add$2(childElm, 'tox-collection__item--state-disabled');
+                set$1(childElm, 'aria-disabled', true);
+              });
+            },
+            onEnabled: function (comp) {
+              iterCollectionItems(comp, function (childElm) {
+                remove$4(childElm, 'tox-collection__item--state-disabled');
+                remove$1(childElm, 'aria-disabled');
+              });
+            }
+          }),
+          receivingConfig(),
           Replacing.config({}),
           Representing.config({
             store: {
@@ -20719,7 +20762,14 @@
           Tabstopping.config({}),
           Keying.config(deriveCollectionMovement(spec.columns, 'normal')),
           config('collection-events', collectionEvents)
-        ])
+        ]),
+        eventOrder: {
+          'alloy.execute': [
+            'disabling',
+            'alloy.base.behaviour',
+            'collection-events'
+          ]
+        }
       });
       var extraClasses = ['tox-form__group--collection'];
       return renderFormFieldWith(pLabel, pField, extraClasses, []);
@@ -20791,7 +20841,7 @@
 
     var make$6 = function (render) {
       return function (parts, spec, backstage) {
-        return readOptFrom$1(spec, 'name').fold(function () {
+        return get(spec, 'name').fold(function () {
           return render(spec, backstage);
         }, function (fieldName) {
           return parts.field(fieldName, render(spec, backstage));
@@ -20879,7 +20929,7 @@
       return interpretParts(parts, spec, newBackstage);
     };
     var interpretParts = function (parts, spec, backstage) {
-      return readOptFrom$1(factories, spec.type).fold(function () {
+      return get(factories, spec.type).fold(function () {
         domGlobals.console.error('Unknown factory type "' + spec.type + '", defaulting to container: ', spec);
         return spec;
       }, function (factory) {
@@ -20891,10 +20941,6 @@
       return interpretParts(parts, spec, backstage);
     };
 
-    var expandable$1 = constant(function (element, available) {
-      setMax$1(element, Math.floor(available));
-    });
-
     var bubbleAlignments = {
       valignCentre: [],
       alignCentre: [],
@@ -20905,29 +20951,31 @@
       bottom: [],
       top: []
     };
-    var getToolbarAnchor = function (bodyElement, lazyAnchorbar, useFixedToolbarContainer) {
-      var fixedToolbarAnchor = function () {
+    var getInlineDialogAnchor = function (contentAreaElement, lazyAnchorbar, lazyUseEditableAreaAnchor) {
+      var bubble = nu$8(-12, 12, bubbleAlignments);
+      var overrides = { maxHeightFunction: expandable() };
+      var editableAreaAnchor = function () {
         return {
           anchor: 'node',
-          root: bodyElement(),
-          node: Option.from(bodyElement()),
-          bubble: nu$8(-12, -12, bubbleAlignments),
+          root: getBody(owner(contentAreaElement())),
+          node: Option.from(contentAreaElement()),
+          bubble: bubble,
           layouts: {
             onRtl: function () {
-              return [northeast$3];
+              return [northwest$3];
             },
             onLtr: function () {
-              return [northwest$3];
+              return [northeast$3];
             }
           },
-          overrides: { maxHeightFunction: expandable() }
+          overrides: overrides
         };
       };
       var standardAnchor = function () {
         return {
           anchor: 'hotspot',
           hotspot: lazyAnchorbar(),
-          bubble: nu$8(-12, 12, bubbleAlignments),
+          bubble: bubble,
           layouts: {
             onRtl: function () {
               return [southeast$1];
@@ -20936,17 +20984,19 @@
               return [southwest$1];
             }
           },
-          overrides: { maxHeightFunction: expandable() }
+          overrides: overrides
         };
       };
-      return useFixedToolbarContainer ? fixedToolbarAnchor : standardAnchor;
+      return function () {
+        return lazyUseEditableAreaAnchor() ? editableAreaAnchor() : standardAnchor();
+      };
     };
-    var getBannerAnchor = function (bodyElement, lazyAnchorbar, useFixedToolbarContainer) {
-      var fixedToolbarAnchor = function () {
+    var getBannerAnchor = function (contentAreaElement, lazyAnchorbar, lazyUseEditableAreaAnchor) {
+      var editableAreaAnchor = function () {
         return {
           anchor: 'node',
-          root: bodyElement(),
-          node: Option.from(bodyElement()),
+          root: getBody(owner(contentAreaElement())),
+          node: Option.from(contentAreaElement()),
           layouts: {
             onRtl: function () {
               return [north$3];
@@ -20971,29 +21021,8 @@
           }
         };
       };
-      return useFixedToolbarContainer ? fixedToolbarAnchor : standardAnchor;
-    };
-    var getToolbarOverflowAnchor = function (lazyMoreButton) {
       return function () {
-        return {
-          anchor: 'hotspot',
-          hotspot: lazyMoreButton(),
-          overrides: { maxWidthFunction: expandable$1() },
-          layouts: {
-            onRtl: function () {
-              return [
-                southeast$1,
-                southwest$1
-              ];
-            },
-            onLtr: function () {
-              return [
-                southwest$1,
-                southeast$1
-              ];
-            }
-          }
-        };
+        return lazyUseEditableAreaAnchor() ? editableAreaAnchor() : standardAnchor();
       };
     };
     var getCursorAnchor = function (editor, bodyElement) {
@@ -21017,47 +21046,51 @@
         };
       };
     };
-    var getAnchors = function (editor, lazyAnchorbar, lazyMoreButton) {
+    var getAnchors = function (editor, lazyAnchorbar, isToolbarTop) {
       var useFixedToolbarContainer = useFixedContainer(editor);
       var bodyElement = function () {
         return Element.fromDom(editor.getBody());
       };
+      var contentAreaElement = function () {
+        return Element.fromDom(editor.getContentAreaContainer());
+      };
+      var lazyUseEditableAreaAnchor = function () {
+        return useFixedToolbarContainer || !isToolbarTop();
+      };
       return {
-        toolbar: getToolbarAnchor(bodyElement, lazyAnchorbar, useFixedToolbarContainer),
-        toolbarOverflow: getToolbarOverflowAnchor(lazyMoreButton),
-        banner: getBannerAnchor(bodyElement, lazyAnchorbar, useFixedToolbarContainer),
+        inlineDialog: getInlineDialogAnchor(contentAreaElement, lazyAnchorbar, lazyUseEditableAreaAnchor),
+        banner: getBannerAnchor(contentAreaElement, lazyAnchorbar, lazyUseEditableAreaAnchor),
         cursor: getCursorAnchor(editor, bodyElement),
         node: getNodeAnchor(bodyElement)
       };
     };
-    var Anchors = { getAnchors: getAnchors };
 
     var colorPicker = function (editor) {
       return function (callback, value) {
-        var dialog = ColorSwatch.colorPickerDialog(editor);
+        var dialog = colorPickerDialog(editor);
         dialog(callback, value);
       };
     };
     var hasCustomColors$1 = function (editor) {
       return function () {
-        return Settings.hasCustomColors(editor);
+        return hasCustomColors(editor);
       };
     };
-    var getColors$1 = function (editor) {
+    var getColors$2 = function (editor) {
       return function () {
-        return Settings.getColors(editor);
+        return getColors(editor);
       };
     };
     var getColorCols$2 = function (editor) {
       return function () {
-        return ColorSwatch.getColorCols(editor);
+        return getColorCols$1(editor);
       };
     };
     var ColorInputBackstage = function (editor) {
       return {
         colorPicker: colorPicker(editor),
         hasCustomColors: hasCustomColors$1(editor),
-        getColors: getColors$1(editor),
+        getColors: getColors$2(editor),
         getColorCols: getColorCols$2(editor)
       };
     };
@@ -21069,6 +21102,17 @@
     };
     var DialogBackstage = function (editor) {
       return { isDraggableModal: isDraggableModal$1(editor) };
+    };
+
+    var HeaderBackstage = function (editor) {
+      var mode = Cell(isToolbarLocationBottom(editor) ? 'bottom' : 'top');
+      return {
+        isPositionedAtTop: function () {
+          return mode.get() === 'top';
+        },
+        getDockingMode: mode.get,
+        setDockingMode: mode.set
+      };
     };
 
     var defaultStyleFormats = [
@@ -21106,37 +21150,30 @@
         items: [
           {
             title: 'Bold',
-            icon: 'bold',
             format: 'bold'
           },
           {
             title: 'Italic',
-            icon: 'italic',
             format: 'italic'
           },
           {
             title: 'Underline',
-            icon: 'underline',
             format: 'underline'
           },
           {
             title: 'Strikethrough',
-            icon: 'strike-through',
             format: 'strikethrough'
           },
           {
             title: 'Superscript',
-            icon: 'superscript',
             format: 'superscript'
           },
           {
             title: 'Subscript',
-            icon: 'subscript',
             format: 'subscript'
           },
           {
             title: 'Code',
-            icon: 'code',
             format: 'code'
           }
         ]
@@ -21167,22 +21204,18 @@
         items: [
           {
             title: 'Left',
-            icon: 'align-left',
             format: 'alignleft'
           },
           {
             title: 'Center',
-            icon: 'align-center',
             format: 'aligncenter'
           },
           {
             title: 'Right',
-            icon: 'align-right',
             format: 'alignright'
           },
           {
             title: 'Justify',
-            icon: 'align-justify',
             format: 'alignjustify'
           }
         ]
@@ -21270,13 +21303,7 @@
         return processBasic(item, isSelectedFor, getPreviewFor);
       };
       var enrichMenu = function (item) {
-        var submenuSpec = {
-          type: 'submenu',
-          isSelected: constant(false),
-          getStylePreview: function () {
-            return Option.none();
-          }
-        };
+        var submenuSpec = { type: 'submenu' };
         return deepMerge(item, submenuSpec);
       };
       var enrichCustom = function (item) {
@@ -21294,14 +21321,14 @@
       var doEnrich = function (items) {
         return map(items, function (item) {
           var keys$1 = keys(item);
-          if (hasKey$1(item, 'items')) {
+          if (hasNonNullableKey(item, 'items')) {
             var newItems_1 = doEnrich(item.items);
             return deepMerge(enrichMenu(item), {
               getStyleItems: function () {
                 return newItems_1;
               }
             });
-          } else if (hasKey$1(item, 'format')) {
+          } else if (hasNonNullableKey(item, 'format')) {
             return enrichSupported(item);
           } else if (keys$1.length === 1 && contains(keys$1, 'title')) {
             return deepMerge(item, { type: 'separator' });
@@ -21324,7 +21351,7 @@
           var fmt = editor.formatter.get(format);
           return fmt !== undefined ? Option.some({
             tag: fmt.length > 0 ? fmt[0].inline || fmt[0].block || 'div' : 'div',
-            styleAttr: editor.formatter.getCssText(format)
+            styles: editor.dom.parseStyle(editor.formatter.getCssText(format))
           }) : Option.none();
         };
       };
@@ -21337,7 +21364,7 @@
       var eventsFormats = Cell([]);
       var eventsFlattenedFormats = Cell([]);
       var replaceSettings = Cell(false);
-      editor.on('init', function () {
+      editor.on('PreInit', function (_e) {
         var formats = getStyleFormats(editor);
         var enriched = register$3(editor, formats, isSelectedFor, getPreviewFor);
         settingsFormats.set(enriched);
@@ -21473,7 +21500,7 @@
       }).isNone();
     };
     var getAllHistory = function () {
-      var unparsedHistory = domGlobals.localStorage.getItem(STORAGE_KEY);
+      var unparsedHistory = global$9.getItem(STORAGE_KEY);
       if (unparsedHistory === null) {
         return {};
       }
@@ -21497,7 +21524,7 @@
       if (!isRecordOfUrlArray(history)) {
         throw new Error('Bad format for history:\n' + JSON.stringify(history));
       }
-      domGlobals.localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+      global$9.setItem(STORAGE_KEY, JSON.stringify(history));
     };
     var getHistory = function (fileType) {
       var history = getAllHistory();
@@ -21523,11 +21550,11 @@
     var makeMap = function (value) {
       return map$1(global$e.makeMap(value, /[, ]/), isTruthy);
     };
-    var getOpt = function (obj, key) {
+    var getOpt$1 = function (obj, key) {
       return hasOwnProperty$2.call(obj, key) ? Option.some(obj[key]) : Option.none();
     };
     var getTextSetting = function (settings, name, defaultValue) {
-      var value = getOpt(settings, name).getOr(defaultValue);
+      var value = getOpt$1(settings, name).getOr(defaultValue);
       return isString(value) ? Option.some(value) : Option.none();
     };
     var getPicker = function (settings) {
@@ -21572,7 +21599,10 @@
               };
               completer(r);
             };
-            var meta = global$e.extend({ filetype: filetype }, Option.from(entry.meta).getOr({}));
+            var meta = __assign({
+              filetype: filetype,
+              fieldname: entry.fieldname
+            }, Option.from(entry.meta).getOr({}));
             picker.call(editor, handler, entry.value, meta);
           });
         };
@@ -21610,8 +21640,9 @@
       };
     };
 
-    var init$8 = function (sink, editor, lazyAnchorbar, lazyMoreButton) {
+    var init$8 = function (sink, editor, lazyAnchorbar) {
       var contextMenuState = Cell(false);
+      var toolbar = HeaderBackstage(editor);
       var backstage = {
         shared: {
           providers: {
@@ -21621,12 +21652,16 @@
             menuItems: function () {
               return editor.ui.registry.getAll().menuItems;
             },
-            translate: global$5.translate
+            translate: global$5.translate,
+            isReadOnly: function () {
+              return editor.mode.isReadOnly();
+            }
           },
           interpreter: function (s) {
             return interpretWithoutForm(s, backstage);
           },
-          anchors: Anchors.getAnchors(editor, lazyAnchorbar, lazyMoreButton),
+          anchors: getAnchors(editor, lazyAnchorbar, toolbar.isPositionedAtTop),
+          header: toolbar,
           getSink: function () {
             return Result.value(sink);
           }
@@ -21645,23 +21680,56 @@
       return backstage;
     };
 
+    var expandable$1 = constant(function (element, available) {
+      setMax$1(element, Math.floor(available));
+    });
+
     var showContextToolbarEvent = 'contexttoolbar-show';
     var hideContextToolbarEvent = 'contexttoolbar-hide';
 
     var schema$k = constant([
+      strict$1('items'),
+      markers(['itemSelector']),
+      field$1('tgroupBehaviours', [Keying])
+    ]);
+    var parts$7 = constant([group({
+        name: 'items',
+        unit: 'item'
+      })]);
+
+    var factory$9 = function (detail, components, _spec, _externals) {
+      return {
+        uid: detail.uid,
+        dom: detail.dom,
+        components: components,
+        behaviours: augment(detail.tgroupBehaviours, [Keying.config({
+            mode: 'flow',
+            selector: detail.markers.itemSelector
+          })]),
+        domModification: { attributes: { role: 'toolbar' } }
+      };
+    };
+    var ToolbarGroup = composite$1({
+      name: 'ToolbarGroup',
+      configFields: schema$k(),
+      partFields: parts$7(),
+      factory: factory$9
+    });
+
+    var schema$l = constant([
       strict$1('dom'),
       defaulted$1('shell', true),
       field$1('toolbarBehaviours', [Replacing])
     ]);
-    var enhanceGroups = function (detail) {
+    var enhanceGroups = function () {
       return { behaviours: derive$1([Replacing.config({})]) };
     };
-    var parts$7 = constant([optional({
+    var parts$8 = constant([optional({
         name: 'groups',
         overrides: enhanceGroups
       })]);
 
-    var factory$9 = function (detail, components, spec, _externals) {
+    var factory$a = function (detail, components, _spec, _externals) {
       var setGroups = function (toolbar, groups) {
         getGroupContainer(toolbar).fold(function () {
           domGlobals.console.error('Toolbar was defined to not be a shell, but no groups container was specified in components');
@@ -21691,9 +21759,9 @@
     };
     var Toolbar = composite$1({
       name: 'Toolbar',
-      configFields: schema$k(),
-      partFields: parts$7(),
-      factory: factory$9,
+      configFields: schema$l(),
+      partFields: parts$8(),
+      factory: factory$a,
       apis: {
         setGroups: function (apis, toolbar, groups) {
           apis.setGroups(toolbar, groups);
@@ -21718,7 +21786,13 @@
       return r.list;
     };
 
-    var output$1 = Immutable('within', 'extra', 'withinWidth');
+    var output$1 = function (within, extra, withinWidth) {
+      return {
+        within: constant(within),
+        extra: constant(extra),
+        withinWidth: constant(withinWidth)
+      };
+    };
     var apportion = function (units, total, len) {
       var parray = generate$6(units, function (unit, current) {
         var width = len(unit);
@@ -21778,85 +21852,42 @@
       }
     };
 
-    var setStoredGroups = function (toolbar, storedGroups) {
+    var setGroups = function (toolbar, storedGroups) {
       var bGroups = map(storedGroups, function (g) {
         return premade$1(g);
       });
       Toolbar.setGroups(toolbar, bGroups);
     };
-    var findFocusedComp = function (overflow, overflowButton) {
-      return overflow.bind(function (overf) {
-        return search(overf.element()).bind(function (focusedElm) {
-          return overf.getSystem().getByDom(focusedElm).toOption();
+    var findFocusedComp = function (comps) {
+      return findMap(comps, function (comp) {
+        return search(comp.element()).bind(function (focusedElm) {
+          return comp.getSystem().getByDom(focusedElm).toOption();
         });
-      }).orThunk(function () {
-        return overflowButton.filter(Focusing.isFocused);
       });
     };
-    var refresh = function (toolbar, detail, overflow, isOpen) {
+    var refresh = function (toolbar, detail, setOverflow) {
       var primary = getPartOrDie(toolbar, detail, 'primary');
-      var overflowButton = getPart(toolbar, detail, 'overflow-button');
       var overflowGroup = Coupling.getCoupled(toolbar, 'overflowGroup');
       set$2(primary.element(), 'visibility', 'hidden');
-      var focusedComp = findFocusedComp(overflow, overflowButton);
-      overflow.each(function (overf) {
-        Toolbar.setGroups(overf, []);
-      });
-      var groups = detail.builtGroups.get();
-      setStoredGroups(primary, groups.concat([overflowGroup]));
-      var total = get$7(primary.element());
-      var overflows = partition$3(total, groups, function (comp) {
+      var groups = detail.builtGroups.get().concat([overflowGroup]);
+      var focusedComp = findFocusedComp(groups);
+      setOverflow([]);
+      setGroups(primary, groups);
+      var availableWidth = get$7(primary.element());
+      var overflows = partition$3(availableWidth, detail.builtGroups.get(), function (comp) {
         return get$7(comp.element());
       }, overflowGroup);
       if (overflows.extra().length === 0) {
         Replacing.remove(primary, overflowGroup);
-        overflow.each(function (overf) {
-          Toolbar.setGroups(overf, []);
-        });
+        setOverflow([]);
       } else {
-        setStoredGroups(primary, overflows.within());
-        overflow.each(function (overf) {
-          setStoredGroups(overf, overflows.extra());
-        });
+        setGroups(primary, overflows.within());
+        setOverflow(overflows.extra());
       }
       remove$6(primary.element(), 'visibility');
       reflow(primary.element());
-      overflow.each(function (overf) {
-        overflowButton.each(function (button) {
-          return Toggling.set(button, isOpen(overf));
-        });
-        focusedComp.each(Focusing.focus);
-      });
+      focusedComp.each(Focusing.focus);
     };
-
-    var schema$l = constant([
-      strict$1('items'),
-      markers(['itemSelector']),
-      field$1('tgroupBehaviours', [Keying])
-    ]);
-    var parts$8 = constant([group({
-        name: 'items',
-        unit: 'item'
-      })]);
-
-    var factory$a = function (detail, components, spec, _externals) {
-      return {
-        uid: detail.uid,
-        dom: detail.dom,
-        components: components,
-        behaviours: augment(detail.tgroupBehaviours, [Keying.config({
-            mode: 'flow',
-            selector: detail.markers.itemSelector
-          })]),
-        domModification: { attributes: { role: 'toolbar' } }
-      };
-    };
-    var ToolbarGroup = composite$1({
-      name: 'ToolbarGroup',
-      configFields: schema$l(),
-      partFields: parts$8(),
-      factory: factory$a
-    });
 
     var schema$m = constant([
       field$1('splitToolbarBehaviours', [Coupling]),
@@ -21864,148 +21895,112 @@
         return Cell([]);
       })
     ]);
-    var spec = function (detail, components, spec, externals, extras) {
-      var toolbarToggleEvent = 'alloy.toolbar.toggle';
-      var doSetGroups = function (toolbar, groups) {
-        var built = map(groups, toolbar.getSystem().build);
-        detail.builtGroups.set(built);
-      };
-      var setGroups = function (toolbar, groups) {
-        doSetGroups(toolbar, groups);
-        extras.apis.refresh(toolbar);
-      };
-      var getMoreButton = function (toolbar) {
-        return getPart(toolbar, detail, 'overflow-button');
-      };
-      return {
-        uid: detail.uid,
-        dom: detail.dom,
-        components: components,
-        behaviours: augment(detail.splitToolbarBehaviours, [
-          Coupling.config({
-            others: __assign(__assign({}, extras.coupling), {
-              overflowGroup: function (toolbar) {
-                return ToolbarGroup.sketch(__assign(__assign({}, externals['overflow-group']()), {
-                  items: [Button.sketch(__assign(__assign({}, externals['overflow-button']()), {
-                      action: function (_button) {
-                        emit(toolbar, toolbarToggleEvent);
-                      }
-                    }))]
-                }));
-              }
-            })
-          }),
-          config('toolbar-toggle-events', [run(toolbarToggleEvent, function (toolbar) {
-              extras.apis.toggle(toolbar);
-            })])
-        ]),
-        apis: __assign({
-          setGroups: setGroups,
-          getMoreButton: function (toolbar) {
-            return getMoreButton(toolbar);
-          }
-        }, extras.apis),
-        domModification: { attributes: { role: 'group' } }
-      };
-    };
 
     var schema$n = constant([
       markers(['overflowToggledClass']),
-      strict$1('getAnchor'),
       optionFunction('getOverflowBounds'),
-      strict$1('lazySink')
+      strict$1('lazySink'),
+      state$1('overflowGroups', function () {
+        return Cell([]);
+      })
     ].concat(schema$m()));
     var parts$9 = constant([
       required({
         factory: Toolbar,
-        schema: schema$k(),
+        schema: schema$l(),
         name: 'primary'
       }),
       external$1({
-        factory: Toolbar,
-        schema: schema$k(),
-        name: 'overflow',
-        overrides: function (detail) {
-          return {
-            toolbarBehaviours: derive$1([Keying.config({
-                mode: 'cyclic',
-                onEscape: function (comp) {
-                  getPart(comp, detail, 'overflow-button').each(Focusing.focus);
-                  return Option.none();
-                }
-              })])
-          };
-        }
+        schema: schema$l(),
+        name: 'overflow'
       }),
+      external$1({ name: 'overflow-button' }),
+      external$1({ name: 'overflow-group' })
+    ]);
+
+    var schema$o = constant([
+      markers(['toggledClass']),
+      strict$1('lazySink'),
+      strictFunction('fetch'),
+      optionFunction('getBounds'),
+      optionObjOf('fireDismissalEventInstead', [defaulted$1('event', dismissRequested())]),
+      schema$1()
+    ]);
+    var parts$a = constant([
       external$1({
-        name: 'overflow-button',
+        name: 'button',
         overrides: function (detail) {
           return {
             dom: { attributes: { 'aria-haspopup': 'true' } },
             buttonBehaviours: derive$1([Toggling.config({
-                toggleClass: detail.markers.overflowToggledClass,
+                toggleClass: detail.markers.toggledClass,
                 aria: { mode: 'expanded' },
                 toggleOnExecute: false
               })])
           };
         }
       }),
-      external$1({ name: 'overflow-group' })
+      external$1({
+        factory: Toolbar,
+        schema: schema$l(),
+        name: 'toolbar',
+        overrides: function (detail) {
+          return {
+            toolbarBehaviours: derive$1([Keying.config({
+                mode: 'cyclic',
+                onEscape: function (comp) {
+                  getPart(comp, detail, 'button').each(Focusing.focus);
+                  return Option.none();
+                }
+              })])
+          };
+        }
+      })
     ]);
 
-    var toggleToolbar = function (toolbar, detail, externals) {
-      var sandbox = Coupling.getCoupled(toolbar, 'sandbox');
-      if (Sandboxing.isOpen(sandbox)) {
-        Sandboxing.close(sandbox);
+    var toggle$2 = function (button, externals) {
+      var toolbarSandbox = Coupling.getCoupled(button, 'toolbarSandbox');
+      if (Sandboxing.isOpen(toolbarSandbox)) {
+        Sandboxing.close(toolbarSandbox);
       } else {
-        Sandboxing.open(sandbox, externals.overflow());
+        Sandboxing.open(toolbarSandbox, externals.toolbar());
       }
     };
-    var isOpen$1 = function (over) {
-      return over.getSystem().isConnected();
-    };
-    var position$2 = function (toolbar, detail, overf) {
-      var sink = detail.lazySink(toolbar).getOrDie();
-      var anchor = detail.getAnchor(toolbar);
-      var bounds = detail.getOverflowBounds.map(function (bounder) {
+    var position$2 = function (button, toolbar, detail, layouts) {
+      var bounds = detail.getBounds.map(function (bounder) {
         return bounder();
       });
-      Positioning.positionWithinBounds(sink, anchor, overf, bounds);
+      var sink = detail.lazySink(button).getOrDie();
+      Positioning.positionWithinBounds(sink, {
+        anchor: 'hotspot',
+        hotspot: button,
+        layouts: layouts,
+        overrides: { maxWidthFunction: expandable$1() }
+      }, toolbar, bounds);
     };
-    var refresh$1 = function (toolbar, detail) {
-      var overflow = Sandboxing.getState(Coupling.getCoupled(toolbar, 'sandbox'));
-      refresh(toolbar, detail, overflow, isOpen$1);
-      overflow.each(function (overf) {
-        return position$2(toolbar, detail, overf);
-      });
+    var setGroups$1 = function (button, toolbar, detail, layouts, groups) {
+      Toolbar.setGroups(toolbar, groups);
+      position$2(button, toolbar, detail, layouts);
+      Toggling.on(button);
     };
-    var reposition$1 = function (toolbar, detail) {
-      var overflow = Sandboxing.getState(Coupling.getCoupled(toolbar, 'sandbox'));
-      overflow.each(function (overf) {
-        return position$2(toolbar, detail, overf);
-      });
-    };
-    var makeSandbox$1 = function (toolbar, detail) {
+    var makeSandbox$1 = function (button, spec, detail) {
       var ariaOwner = manager();
-      var onOpen = function (sandbox, overf) {
-        refresh$1(toolbar, detail);
-        getPart(toolbar, detail, 'overflow-button').each(function (button) {
-          Toggling.on(button);
+      var onOpen = function (sandbox, toolbar) {
+        detail.fetch().get(function (groups) {
+          setGroups$1(button, toolbar, detail, spec.layouts, groups);
           ariaOwner.link(button.element());
+          Keying.focusIn(toolbar);
         });
-        Keying.focusIn(overf);
       };
       var onClose = function () {
-        getPart(toolbar, detail, 'overflow-button').each(function (button) {
-          Toggling.off(button);
-          Focusing.focus(button);
-          ariaOwner.unlink(button.element());
-        });
+        Toggling.off(button);
+        Focusing.focus(button);
+        ariaOwner.unlink(button.element());
       };
       return {
         dom: {
           tag: 'div',
-          attributes: { id: ariaOwner.id() }
+          attributes: { id: ariaOwner.id }
         },
         behaviours: derive$1([
           Keying.config({
@@ -22019,51 +22014,178 @@
             onOpen: onOpen,
             onClose: onClose,
             isPartOf: function (container, data, queryElem) {
-              return isPartOf(data, queryElem) || isPartOf(toolbar, queryElem);
+              return isPartOf(data, queryElem) || isPartOf(button, queryElem);
             },
             getAttachPoint: function () {
-              return detail.lazySink(toolbar).getOrDie();
+              return detail.lazySink(button).getOrDie();
             }
           }),
           Receiving.config({
-            channels: __assign({}, receivingChannel$1({
-              isExtraPart: constant(false),
+            channels: __assign(__assign({}, receivingChannel(__assign({ isExtraPart: never }, detail.fireDismissalEventInstead.map(function (fe) {
+              return { fireEventInstead: { event: fe.event } };
+            }).getOr({})))), receivingChannel$1({
               doReposition: function () {
-                return reposition$1(toolbar, detail);
+                Sandboxing.getState(Coupling.getCoupled(button, 'toolbarSandbox')).each(function (toolbar) {
+                  position$2(button, toolbar, detail, spec.layouts);
+                });
               }
             }))
           })
         ])
       };
     };
-    var factory$b = function (detail, components, spec$1, externals) {
-      return spec(detail, components, spec$1, externals, {
-        coupling: {
-          sandbox: function (toolbar) {
-            return makeSandbox$1(toolbar, detail);
-          }
+    var factory$b = function (detail, components, spec, externals) {
+      return __assign(__assign({}, Button.sketch(__assign(__assign({}, externals.button()), {
+        action: function (button) {
+          toggle$2(button, externals);
         },
+        buttonBehaviours: SketchBehaviours.augment({ dump: externals.button().buttonBehaviours }, [Coupling.config({
+            others: {
+              toolbarSandbox: function (button) {
+                return makeSandbox$1(button, spec, detail);
+              }
+            }
+          })])
+      }))), {
         apis: {
-          refresh: function (toolbar) {
-            return refresh$1(toolbar, detail);
+          setGroups: function (button, groups) {
+            Sandboxing.getState(Coupling.getCoupled(button, 'toolbarSandbox')).each(function (toolbar) {
+              setGroups$1(button, toolbar, detail, spec.layouts, groups);
+            });
           },
-          toggle: function (toolbar) {
-            return toggleToolbar(toolbar, detail, externals);
+          reposition: function (button) {
+            Sandboxing.getState(Coupling.getCoupled(button, 'toolbarSandbox')).each(function (toolbar) {
+              position$2(button, toolbar, detail, spec.layouts);
+            });
           },
-          getOverflow: function (toolbar) {
-            return Sandboxing.getState(Coupling.getCoupled(toolbar, 'sandbox'));
+          toggle: function (button) {
+            toggle$2(button, externals);
           },
-          reposition: function (toolbar) {
-            return reposition$1(toolbar, detail);
+          getToolbar: function (button) {
+            return Sandboxing.getState(Coupling.getCoupled(button, 'toolbarSandbox'));
           }
         }
       });
+    };
+    var FloatingToolbarButton = composite$1({
+      name: 'FloatingToolbarButton',
+      factory: factory$b,
+      configFields: schema$o(),
+      partFields: parts$a(),
+      apis: {
+        setGroups: function (apis, button, groups) {
+          apis.setGroups(button, groups);
+        },
+        reposition: function (apis, button) {
+          apis.reposition(button);
+        },
+        toggle: function (apis, button) {
+          apis.toggle(button);
+        },
+        getToolbar: function (apis, button) {
+          return apis.getToolbar(button);
+        }
+      }
+    });
+
+    var buildGroups = function (comps) {
+      return map(comps, function (g) {
+        return premade$1(g);
+      });
+    };
+    var refresh$1 = function (toolbar, memFloatingToolbarButton, detail) {
+      refresh(toolbar, detail, function (overflowGroups) {
+        detail.overflowGroups.set(overflowGroups);
+        memFloatingToolbarButton.getOpt(toolbar).each(function (floatingToolbarButton) {
+          FloatingToolbarButton.setGroups(floatingToolbarButton, buildGroups(overflowGroups));
+        });
+      });
+    };
+    var factory$c = function (detail, components, spec, externals) {
+      var memFloatingToolbarButton = record(FloatingToolbarButton.sketch({
+        fetch: function () {
+          return Future.nu(function (resolve) {
+            resolve(buildGroups(detail.overflowGroups.get()));
+          });
+        },
+        layouts: {
+          onLtr: function () {
+            return [
+              southwest$1,
+              southeast$1
+            ];
+          },
+          onRtl: function () {
+            return [
+              southeast$1,
+              southwest$1
+            ];
+          },
+          onBottomLtr: function () {
+            return [
+              northwest$1,
+              northeast$1
+            ];
+          },
+          onBottomRtl: function () {
+            return [
+              northeast$1,
+              northwest$1
+            ];
+          }
+        },
+        getBounds: spec.getOverflowBounds,
+        lazySink: detail.lazySink,
+        fireDismissalEventInstead: {},
+        markers: { toggledClass: detail.markers.overflowToggledClass },
+        parts: {
+          button: externals['overflow-button'](),
+          toolbar: externals.overflow()
+        }
+      }));
+      return {
+        uid: detail.uid,
+        dom: detail.dom,
+        components: components,
+        behaviours: augment(detail.splitToolbarBehaviours, [Coupling.config({
+            others: {
+              overflowGroup: function () {
+                return ToolbarGroup.sketch(__assign(__assign({}, externals['overflow-group']()), { items: [memFloatingToolbarButton.asSpec()] }));
+              }
+            }
+          })]),
+        apis: {
+          setGroups: function (toolbar, groups) {
+            detail.builtGroups.set(map(groups, toolbar.getSystem().build));
+            refresh$1(toolbar, memFloatingToolbarButton, detail);
+          },
+          refresh: function (toolbar) {
+            return refresh$1(toolbar, memFloatingToolbarButton, detail);
+          },
+          toggle: function (toolbar) {
+            memFloatingToolbarButton.getOpt(toolbar).each(function (floatingToolbarButton) {
+              FloatingToolbarButton.toggle(floatingToolbarButton);
+            });
+          },
+          reposition: function (toolbar) {
+            memFloatingToolbarButton.getOpt(toolbar).each(function (floatingToolbarButton) {
+              FloatingToolbarButton.reposition(floatingToolbarButton);
+            });
+          },
+          getOverflow: function (toolbar) {
+            return memFloatingToolbarButton.getOpt(toolbar).bind(function (floatingToolbarButton) {
+              return FloatingToolbarButton.getToolbar(floatingToolbarButton);
+            });
+          }
+        },
+        domModification: { attributes: { role: 'group' } }
+      };
     };
     var SplitFloatingToolbar = composite$1({
       name: 'SplitFloatingToolbar',
       configFields: schema$n(),
       partFields: parts$9(),
-      factory: factory$b,
+      factory: factory$c,
       apis: {
         setGroups: function (apis, toolbar, groups) {
           apis.setGroups(toolbar, groups);
@@ -22074,14 +22196,11 @@
         reposition: function (apis, toolbar) {
           apis.reposition(toolbar);
         },
-        getMoreButton: function (apis, toolbar) {
-          return apis.getMoreButton(toolbar);
+        toggle: function (apis, toolbar) {
+          apis.toggle(toolbar);
         },
         getOverflow: function (apis, toolbar) {
           return apis.getOverflow(toolbar);
-        },
-        toggle: function (apis, toolbar) {
-          apis.toggle(toolbar);
         }
       }
     });
@@ -22186,7 +22305,7 @@
     };
     var immediateShrink = function (component, slideConfig, slideState) {
       if (slideState.isExpanded()) {
-        doImmediateShrink(component, slideConfig, slideState);
+        doImmediateShrink(component, slideConfig, slideState, Option.none());
       }
     };
     var hasGrown = function (component, slideConfig, slideState) {
@@ -22195,11 +22314,11 @@
     var hasShrunk = function (component, slideConfig, slideState) {
       return slideState.isCollapsed();
     };
-    var isGrowing = function (component, slideConfig, slideState) {
+    var isGrowing = function (component, slideConfig, _slideState) {
       var root = getAnimationRoot(component, slideConfig);
       return has$2(root, slideConfig.growingClass) === true;
     };
-    var isShrinking = function (component, slideConfig, slideState) {
+    var isShrinking = function (component, slideConfig, _slideState) {
       var root = getAnimationRoot(component, slideConfig);
       return has$2(root, slideConfig.shrinkingClass) === true;
     };
@@ -22212,6 +22331,7 @@
     };
 
     var SlidingApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         refresh: refresh$2,
         grow: grow,
         shrink: shrink,
@@ -22225,7 +22345,7 @@
         disableTransitions: disableTransitions
     });
 
-    var exhibit$6 = function (base, slideConfig) {
+    var exhibit$6 = function (base, slideConfig, _slideState) {
       var expanded = slideConfig.expanded;
       return expanded ? nu$6({
         classes: [slideConfig.openClass],
@@ -22250,6 +22370,7 @@
     };
 
     var ActiveSliding = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         exhibit: exhibit$6,
         events: events$d
     });
@@ -22300,6 +22421,7 @@
     };
 
     var SlidingState = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         init: init$9
     });
 
@@ -22311,7 +22433,7 @@
       state: SlidingState
     });
 
-    var schema$o = constant([
+    var schema$p = constant([
       markers([
         'closedClass',
         'openClass',
@@ -22322,15 +22444,15 @@
       onHandler('onOpened'),
       onHandler('onClosed')
     ].concat(schema$m()));
-    var parts$a = constant([
+    var parts$b = constant([
       required({
         factory: Toolbar,
-        schema: schema$k(),
+        schema: schema$l(),
         name: 'primary'
       }),
       required({
         factory: Toolbar,
-        schema: schema$k(),
+        schema: schema$l(),
         name: 'overflow',
         overrides: function (detail) {
           return {
@@ -22382,41 +22504,79 @@
       external$1({ name: 'overflow-group' })
     ]);
 
-    var toggleToolbar$1 = function (toolbar, detail) {
+    var toggleToolbar = function (toolbar, detail) {
       getPart(toolbar, detail, 'overflow').each(function (overf) {
         refresh$3(toolbar, detail);
         Sliding.toggleGrow(overf);
       });
     };
-    var isOpen$2 = function (overf) {
-      return Sliding.hasGrown(overf);
-    };
     var refresh$3 = function (toolbar, detail) {
-      var overflow = getPart(toolbar, detail, 'overflow');
-      refresh(toolbar, detail, overflow, isOpen$2);
-      overflow.each(Sliding.refresh);
+      getPart(toolbar, detail, 'overflow').each(function (overflow) {
+        refresh(toolbar, detail, function (groups) {
+          var builtGroups = map(groups, function (g) {
+            return premade$1(g);
+          });
+          Toolbar.setGroups(overflow, builtGroups);
+        });
+        getPart(toolbar, detail, 'overflow-button').each(function (button) {
+          if (Sliding.hasGrown(overflow)) {
+            Toggling.on(button);
+          }
+        });
+        Sliding.refresh(overflow);
+      });
     };
-    var factory$c = function (detail, components, spec$1, externals) {
-      return spec(detail, components, spec$1, externals, {
-        coupling: {},
+    var factory$d = function (detail, components, spec, externals) {
+      var toolbarToggleEvent = 'alloy.toolbar.toggle';
+      var doSetGroups = function (toolbar, groups) {
+        var built = map(groups, toolbar.getSystem().build);
+        detail.builtGroups.set(built);
+      };
+      return {
+        uid: detail.uid,
+        dom: detail.dom,
+        components: components,
+        behaviours: augment(detail.splitToolbarBehaviours, [
+          Coupling.config({
+            others: {
+              overflowGroup: function (toolbar) {
+                return ToolbarGroup.sketch(__assign(__assign({}, externals['overflow-group']()), {
+                  items: [Button.sketch(__assign(__assign({}, externals['overflow-button']()), {
+                      action: function (_button) {
+                        emit(toolbar, toolbarToggleEvent);
+                      }
+                    }))]
+                }));
+              }
+            }
+          }),
+          config('toolbar-toggle-events', [run(toolbarToggleEvent, function (toolbar) {
+              getPart(toolbar, detail, 'overflow').each(function (overf) {
+                refresh$3(toolbar, detail);
+                Sliding.toggleGrow(overf);
+              });
+            })])
+        ]),
         apis: {
+          setGroups: function (toolbar, groups) {
+            doSetGroups(toolbar, groups);
+            refresh$3(toolbar, detail);
+          },
           refresh: function (toolbar) {
             return refresh$3(toolbar, detail);
           },
           toggle: function (toolbar) {
-            return toggleToolbar$1(toolbar, detail);
-          },
-          getOverflow: function (toolbar) {
-            return getPart(toolbar, detail, 'overflow');
+            return toggleToolbar(toolbar, detail);
           }
-        }
-      });
+        },
+        domModification: { attributes: { role: 'group' } }
+      };
     };
     var SplitSlidingToolbar = composite$1({
       name: 'SplitSlidingToolbar',
-      configFields: schema$o(),
-      partFields: parts$a(),
-      factory: factory$c,
+      configFields: schema$p(),
+      partFields: parts$b(),
+      factory: factory$d,
       apis: {
         setGroups: function (apis, toolbar, groups) {
           apis.setGroups(toolbar, groups);
@@ -22424,76 +22584,11 @@
         refresh: function (apis, toolbar) {
           apis.refresh(toolbar);
         },
-        getMoreButton: function (apis, toolbar) {
-          return apis.getMoreButton(toolbar);
-        },
-        getOverflow: function (apis, toolbar) {
-          return apis.getOverflow(toolbar);
-        },
         toggle: function (apis, toolbar) {
           apis.toggle(toolbar);
         }
       }
     });
-
-    var ReadOnlyChannel = 'silver.readonly';
-    var ReadOnlyDataSchema = objOf([strictBoolean('readonly')]);
-    var setDisabledAll = function (element, state) {
-      all('*', element.element()).forEach(function (elm) {
-        element.getSystem().getByDom(elm).each(function (comp) {
-          if (comp.hasConfigured(Disabling)) {
-            Disabling.set(comp, state);
-          }
-        });
-      });
-    };
-    var broadcastReadonly = function (uiComponents, readonly) {
-      var outerContainer = uiComponents.outerContainer;
-      var target = outerContainer.element();
-      if (readonly) {
-        uiComponents.mothership.broadcastOn([dismissPopups()], { target: target });
-        uiComponents.uiMothership.broadcastOn([dismissPopups()], { target: target });
-      }
-      uiComponents.mothership.broadcastOn([ReadOnlyChannel], { readonly: readonly });
-      uiComponents.uiMothership.broadcastOn([ReadOnlyChannel], { readonly: readonly });
-    };
-    var toggleToReadOnly = function (uiComponents, readonly) {
-      var outerContainer = uiComponents.outerContainer;
-      broadcastReadonly(uiComponents, readonly);
-      all('*', outerContainer.element()).forEach(function (elm) {
-        outerContainer.getSystem().getByDom(elm).each(function (comp) {
-          if (comp.hasConfigured(Disabling)) {
-            Disabling.set(comp, readonly);
-          }
-        });
-      });
-    };
-    var setupReadonlyModeSwitch = function (editor, uiComponents) {
-      editor.on('init', function () {
-        if (editor.readonly) {
-          toggleToReadOnly(uiComponents, true);
-        }
-      });
-      editor.on('SwitchMode', function () {
-        return toggleToReadOnly(uiComponents, editor.readonly);
-      });
-      if (isReadOnly(editor)) {
-        editor.setMode('readonly');
-      }
-    };
-    var createReadonlyReceivingForOverflow = function (getOverflow) {
-      var _a;
-      return Receiving.config({
-        channels: (_a = {}, _a[ReadOnlyChannel] = {
-          schema: ReadOnlyDataSchema,
-          onReceive: function (comp, data) {
-            getOverflow(comp).each(function (toolbar) {
-              setDisabledAll(toolbar, data.readonly);
-            });
-          }
-        }, _a)
-      });
-    };
 
     var toolbarHeightChange = constant(generate$1('toolbar-height-change'));
 
@@ -22510,7 +22605,7 @@
         }, attributes),
         components: [ToolbarGroup.parts().items({})],
         items: toolbarGroup.items,
-        markers: { itemSelector: '*:not(.tox-split-button) > .tox-tbtn:not([disabled]), .tox-split-button:not([disabled]), .tox-toolbar-nav-js:not([disabled])' },
+        markers: { itemSelector: '*:not(.tox-split-button) > .tox-tbtn:not([disabled]), ' + '.tox-split-button:not([disabled]), ' + '.tox-toolbar-nav-js:not([disabled])' },
         tgroupBehaviours: derive$1([
           Tabstopping.config({}),
           Focusing.config({})
@@ -22520,22 +22615,23 @@
     var renderToolbarGroup = function (toolbarGroup) {
       return ToolbarGroup.sketch(renderToolbarGroupCommon(toolbarGroup));
     };
-    var getToolbarbehaviours = function (toolbarSpec, modeName, getOverflow) {
+    var getToolbarbehaviours = function (toolbarSpec, modeName) {
       var onAttached = runOnAttached(function (component) {
         var groups = map(toolbarSpec.initGroups, renderToolbarGroup);
         Toolbar.setGroups(component, groups);
       });
       return derive$1([
+        DisablingConfigs.toolbarButton(toolbarSpec.providers.isReadOnly),
+        receivingConfig(),
         Keying.config({
           mode: modeName,
           onEscape: toolbarSpec.onEscape,
           selector: '.tox-toolbar__group'
         }),
-        config('toolbar-events', [onAttached]),
-        createReadonlyReceivingForOverflow(getOverflow)
+        config('toolbar-events', [onAttached])
       ]);
     };
-    var renderMoreToolbarCommon = function (toolbarSpec, getOverflow) {
+    var renderMoreToolbarCommon = function (toolbarSpec) {
       var modeName = toolbarSpec.cyclicKeying ? 'cyclic' : 'acyclic';
       return {
         uid: toolbarSpec.uid,
@@ -22555,13 +22651,13 @@
             tooltip: Option.some('More...'),
             primary: false,
             borderless: false
-          }, Option.none(), toolbarSpec.backstage.shared.providers)
+          }, Option.none(), toolbarSpec.providers)
         },
-        splitToolbarBehaviours: getToolbarbehaviours(toolbarSpec, modeName, getOverflow)
+        splitToolbarBehaviours: getToolbarbehaviours(toolbarSpec, modeName)
       };
     };
     var renderFloatingMoreToolbar = function (toolbarSpec) {
-      var baseSpec = renderMoreToolbarCommon(toolbarSpec, SplitFloatingToolbar.getOverflow);
+      var baseSpec = renderMoreToolbarCommon(toolbarSpec);
       var overflowXOffset = 4;
       var primary = SplitFloatingToolbar.parts().primary({
         dom: {
@@ -22571,21 +22667,20 @@
       });
       return SplitFloatingToolbar.sketch(__assign(__assign({}, baseSpec), {
         lazySink: toolbarSpec.getSink,
-        getAnchor: function () {
-          return toolbarSpec.backstage.shared.anchors.toolbarOverflow();
-        },
         getOverflowBounds: function () {
           var headerElem = toolbarSpec.moreDrawerData.lazyHeader().element();
           var headerBounds = absolute$1(headerElem);
           var docElem = documentElement(headerElem);
           var docBounds = absolute$1(docElem);
-          return bounds$1(headerBounds.x() + overflowXOffset, docBounds.y(), headerBounds.width() - overflowXOffset * 2, docBounds.height());
+          var height = Math.max(docElem.dom().scrollHeight, docBounds.height);
+          return bounds$1(headerBounds.x + overflowXOffset, docBounds.y, headerBounds.width - overflowXOffset * 2, height);
         },
         parts: __assign(__assign({}, baseSpec.parts), {
           overflow: {
             dom: {
               tag: 'div',
-              classes: ['tox-toolbar__overflow']
+              classes: ['tox-toolbar__overflow'],
+              attributes: toolbarSpec.attributes
             }
           }
         }),
@@ -22606,7 +22701,7 @@
           classes: ['tox-toolbar__overflow']
         }
       });
-      var baseSpec = renderMoreToolbarCommon(toolbarSpec, SplitSlidingToolbar.getOverflow);
+      var baseSpec = renderMoreToolbarCommon(toolbarSpec);
       return SplitSlidingToolbar.sketch(__assign(__assign({}, baseSpec), {
         components: [
           primary,
@@ -22633,10 +22728,10 @@
         uid: toolbarSpec.uid,
         dom: {
           tag: 'div',
-          classes: ['tox-toolbar']
+          classes: ['tox-toolbar'].concat(toolbarSpec.type === ToolbarMode.scrolling ? ['tox-toolbar--scrolling'] : [])
         },
         components: [Toolbar.parts().groups({})],
-        toolbarBehaviours: getToolbarbehaviours(toolbarSpec, modeName, constant(Option.none()))
+        toolbarBehaviours: getToolbarbehaviours(toolbarSpec, modeName)
       });
     };
 
@@ -22704,6 +22799,20 @@
       return asRaw('ToggleButton', toggleButtonSchema, spec);
     };
 
+    var groupToolbarButtonSchema = objOf([
+      strictString('type'),
+      strictOf('items', oneOf([
+        arrOfObj$1([
+          strictString('name'),
+          strictArrayOf('items', string)
+        ]),
+        string
+      ]))
+    ].concat(baseToolbarButtonFields));
+    var createGroupToolbarButton = function (spec) {
+      return asRaw('GroupToolbarButton', groupToolbarButtonSchema, spec);
+    };
+
     var contextBarFields = [
       defaultedFunction('predicate', function () {
         return false;
@@ -22764,6 +22873,7 @@
     };
 
     var ReflectingApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         getState: getState$2
     });
 
@@ -22781,12 +22891,13 @@
       };
       return derive([
         run(receive(), function (component, message) {
+          var receivingData = message;
           var channel = reflectingConfig.channel;
-          if (contains(message.channels(), channel)) {
-            update(component, message.data());
+          if (contains(receivingData.channels(), channel)) {
+            update(component, receivingData.data());
           }
         }),
-        runOnAttached(function (comp, se) {
+        runOnAttached(function (comp, _se) {
           reflectingConfig.initialData.each(function (rawData) {
             update(comp, rawData);
           });
@@ -22795,10 +22906,11 @@
     };
 
     var ActiveReflecting = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         events: events$e
     });
 
-    var init$a = function (spec) {
+    var init$a = function () {
       var cell = Cell(Option.none());
       var set = function (optS) {
         return cell.set(optS);
@@ -22825,6 +22937,7 @@
     };
 
     var ReflectingState = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         init: init$a
     });
 
@@ -22843,13 +22956,13 @@
       state: ReflectingState
     });
 
-    var schema$p = constant([
+    var schema$q = constant([
       strict$1('toggleClass'),
       strict$1('fetch'),
       onStrictHandler('onExecute'),
       defaulted$1('getHotspot', Option.some),
       defaulted$1('getAnchorOverrides', constant({})),
-      defaulted$1('layouts', Option.none()),
+      schema$1(),
       onStrictHandler('onItemExecute'),
       option('lazySink'),
       strict$1('dom'),
@@ -22868,7 +22981,7 @@
       factory: Button,
       schema: [strict$1('dom')],
       name: 'arrow',
-      defaults: function (detail) {
+      defaults: function () {
         return { buttonBehaviours: derive$1([Focusing.revoke()]) };
       },
       overrides: function (detail) {
@@ -22891,7 +23004,7 @@
       factory: Button,
       schema: [strict$1('dom')],
       name: 'button',
-      defaults: function (detail) {
+      defaults: function () {
         return { buttonBehaviours: derive$1([Focusing.revoke()]) };
       },
       overrides: function (detail) {
@@ -22908,7 +23021,7 @@
         };
       }
     });
-    var parts$b = constant([
+    var parts$c = constant([
       arrowPart,
       buttonPart,
       optional({
@@ -22944,7 +23057,7 @@
       partType()
     ]);
 
-    var factory$d = function (detail, components, spec, externals) {
+    var factory$e = function (detail, components, spec, externals) {
       var switchToMenu = function (sandbox) {
         Composing.getCurrent(sandbox).each(function (current) {
           Highlighting.highlightFirst(current);
@@ -22966,14 +23079,14 @@
         emitExecute(button);
         return Option.some(true);
       };
-      var buttonEvents = merge(derive([runOnAttached(function (component, simulatedEvent) {
+      var buttonEvents = __assign(__assign({}, derive([runOnAttached(function (component, _simulatedEvent) {
           var ariaDescriptor = getPart(component, detail, 'aria-descriptor');
           ariaDescriptor.each(function (descriptor) {
             var descriptorId = generate$1('aria');
             set$1(descriptor.element(), 'id', descriptorId);
             set$1(component.element(), 'aria-describedby', descriptorId);
           });
-        })]), events$7(Option.some(action)));
+        })])), events$7(Option.some(action)));
       var apis = {
         repositionMenus: function (comp) {
           if (Toggling.isOn(comp)) {
@@ -23035,9 +23148,9 @@
     };
     var SplitDropdown = composite$1({
       name: 'SplitDropdown',
-      configFields: schema$p(),
-      partFields: parts$b(),
-      factory: factory$d,
+      configFields: schema$q(),
+      partFields: parts$c(),
+      factory: factory$e,
       apis: {
         repositionMenus: function (apis, comp) {
           return apis.repositionMenus(comp);
@@ -23092,7 +23205,7 @@
       'unordered-list'
     ];
     var renderCommonStructure = function (icon, text, tooltip, receiver, behaviours, providersBackstage) {
-      var _a;
+      var _d;
       var getIconName = function (iconName) {
         return global$5.isRtl() && contains(rtlIcon$1, iconName) ? iconName + '-rtl' : iconName;
       };
@@ -23113,15 +23226,19 @@
             return renderLabel$1(text, 'tox-tbtn', providersBackstage);
           })
         ]),
-        eventOrder: (_a = {}, _a[mousedown()] = [
+        eventOrder: (_d = {}, _d[mousedown()] = [
           'focusing',
           'alloy.base.behaviour',
           'common-button-display-events'
-        ], _a),
-        buttonBehaviours: derive$1([config('common-button-display-events', [run(mousedown(), function (button, se) {
+        ], _d),
+        buttonBehaviours: derive$1([
+          DisablingConfigs.toolbarButton(providersBackstage.isReadOnly),
+          receivingConfig(),
+          config('common-button-display-events', [run(mousedown(), function (button, se) {
               se.event().prevent();
               emit(button, focusButtonEvent);
-            })])].concat(receiver.map(function (r) {
+            })])
+        ].concat(receiver.map(function (r) {
           return Reflecting.config({
             channel: r,
             initialData: {
@@ -23142,6 +23259,28 @@
         }).toArray()).concat(behaviours.getOr([])))
       };
     };
+    var renderFloatingToolbarButton = function (spec, backstage, identifyButtons, attributes) {
+      var sharedBackstage = backstage.shared;
+      return FloatingToolbarButton.sketch({
+        lazySink: sharedBackstage.getSink,
+        fetch: function () {
+          return Future.nu(function (resolve) {
+            resolve(map(identifyButtons(spec.items), renderToolbarGroup));
+          });
+        },
+        markers: { toggledClass: 'tox-tbtn--enabled' },
+        parts: {
+          button: renderCommonStructure(spec.icon, spec.text, spec.tooltip, Option.none(), Option.none(), sharedBackstage.providers),
+          toolbar: {
+            dom: {
+              tag: 'div',
+              classes: ['tox-toolbar__overflow'],
+              attributes: attributes
+            }
+          }
+        }
+      });
+    };
     var renderCommonToolbarButton = function (spec, specialisation, providersBackstage) {
       var editorOffCell = Cell(noop);
       var structure = renderCommonStructure(spec.icon, spec.text, spec.tooltip, Option.none(), Option.none(), providersBackstage);
@@ -23158,7 +23297,10 @@
             onControlAttached(specialisation, editorOffCell),
             onControlDetached(specialisation, editorOffCell)
           ]),
-          DisablingConfigs.toolbarButton(spec.disabled)
+          DisablingConfigs.toolbarButton(function () {
+            return spec.disabled || providersBackstage.isReadOnly();
+          }),
+          receivingConfig()
         ].concat(specialisation.toolbarButtonBehaviours))
       });
     };
@@ -23200,9 +23342,9 @@
             return false;
           }), providersBackstage), {
             movement: deriveMenuMovement(spec.columns, spec.presets),
-            menuBehaviours: SimpleBehaviours.unnamedEvents(spec.columns !== 'auto' ? [] : [runOnAttached(function (comp, se) {
-                detectSize(comp, 4, classForPreset(spec.presets)).each(function (_a) {
-                  var numRows = _a.numRows, numColumns = _a.numColumns;
+            menuBehaviours: SimpleBehaviours.unnamedEvents(spec.columns !== 'auto' ? [] : [runOnAttached(function (comp, _se) {
+                detectSize(comp, 4, classForPreset(spec.presets)).each(function (_d) {
+                  var numRows = _d.numRows, numColumns = _d.numColumns;
                   Keying.setGridSize(comp, numRows, numColumns);
                 });
               })])
@@ -23211,7 +23353,7 @@
       };
     };
     var renderSplitButton = function (spec, sharedBackstage) {
-      var _a;
+      var _d;
       var displayChannel = generate$1('channel-update-split-dropdown-display');
       var getApi = function (comp) {
         return {
@@ -23255,15 +23397,16 @@
         dom: {
           tag: 'div',
           classes: ['tox-split-button'],
-          attributes: merge({ 'aria-pressed': false }, getTooltipAttributes(spec.tooltip, sharedBackstage.providers))
+          attributes: __assign({ 'aria-pressed': false }, getTooltipAttributes(spec.tooltip, sharedBackstage.providers))
         },
         onExecute: function (button) {
           spec.onAction(getApi(button));
         },
-        onItemExecute: function (a, b, c) {
+        onItemExecute: function (_a, _b, _c) {
         },
         splitDropdownBehaviours: derive$1([
-          DisablingConfigs.splitButton(false),
+          DisablingConfigs.splitButton(sharedBackstage.providers.isReadOnly),
+          receivingConfig(),
           config('split-dropdown-events', [
             run(focusButtonEvent, Focusing.focus),
             onControlAttached(specialisation, editorOffCell),
@@ -23271,10 +23414,10 @@
           ]),
           Unselecting.config({})
         ]),
-        eventOrder: (_a = {}, _a[attachedToDom()] = [
+        eventOrder: (_d = {}, _d[attachedToDom()] = [
           'alloy.base.behaviour',
           'split-dropdown-events'
-        ], _a),
+        ], _d),
         toggleClass: 'tox-tbtn--enabled',
         lazySink: sharedBackstage.getSink,
         fetch: fetchChoices(getApi, spec, sharedBackstage.providers),
@@ -23291,8 +23434,12 @@
                 'tox-tbtn',
                 'tox-split-button__chevron'
               ],
-              innerHtml: get$c('chevron-down', sharedBackstage.providers.icons)
-            }
+              innerHtml: get$d('chevron-down', sharedBackstage.providers.icons)
+            },
+            buttonBehaviours: derive$1([
+              DisablingConfigs.splitButton(sharedBackstage.providers.isReadOnly),
+              receivingConfig()
+            ])
           }),
           SplitDropdown.parts()['aria-descriptor']({ text: sharedBackstage.providers.translate('To open the popup, press Shift+Enter') })
         ]
@@ -23368,7 +23515,7 @@
       };
     };
 
-    var renderContextForm = function (ctx, backstage) {
+    var buildInitGroups = function (ctx, providers) {
       var inputAttributes = ctx.label.fold(function () {
         return {};
       }, function (label) {
@@ -23400,122 +23547,210 @@
             }
           })])
       }));
-      var commands = generate$7(memInput, ctx.commands, backstage.shared.providers);
+      var commands = generate$7(memInput, ctx.commands, providers);
+      return [
+        {
+          title: Option.none(),
+          items: [memInput.asSpec()]
+        },
+        {
+          title: Option.none(),
+          items: commands.asSpecs()
+        }
+      ];
+    };
+    var renderContextForm = function (toolbarType, ctx, providers) {
       return renderToolbar({
+        type: toolbarType,
         uid: generate$1('context-toolbar'),
-        initGroups: [
-          {
-            title: Option.none(),
-            items: [memInput.asSpec()]
-          },
-          {
-            title: Option.none(),
-            items: commands.asSpecs()
-          }
-        ],
+        initGroups: buildInitGroups(ctx, providers),
         onEscape: Option.none,
         cyclicKeying: true,
-        backstage: backstage,
-        getSink: function () {
-          return Result.error('');
-        }
+        providers: providers
       });
     };
-    var ContextForm = { renderContextForm: renderContextForm };
+    var ContextForm = {
+      renderContextForm: renderContextForm,
+      buildInitGroups: buildInitGroups
+    };
 
     var getHorizontalBounds = function (contentAreaBox, viewportBounds) {
-      var x = Math.max(viewportBounds.x(), contentAreaBox.x());
-      var contentBoxWidth = contentAreaBox.right() - x;
-      var maxViewportWidth = viewportBounds.width() - (x - viewportBounds.x());
+      var x = Math.max(viewportBounds.x, contentAreaBox.x);
+      var contentBoxWidth = contentAreaBox.right - x;
+      var maxViewportWidth = viewportBounds.width - (x - viewportBounds.x);
       var width = Math.min(contentBoxWidth, maxViewportWidth);
       return {
         x: x,
         width: width
       };
     };
-    var getIframeBounds = function (editor, contentAreaBox, viewportBounds) {
-      var _a = getHorizontalBounds(contentAreaBox, viewportBounds), x = _a.x, width = _a.width;
-      var container = Element.fromDom(editor.getContainer());
-      var header = descendant$1(container, '.tox-editor-header').getOr(container);
-      var containerBox = box(container);
-      var headerBox = box(header);
-      var y = Math.max(viewportBounds.y(), contentAreaBox.y(), headerBox.bottom());
-      var contentBoxHeight = containerBox.bottom() - y;
-      var maxViewportHeight = viewportBounds.height() - (y - viewportBounds.y());
-      var height = Math.min(contentBoxHeight, maxViewportHeight);
-      return bounds$1(x, y, width, height);
-    };
-    var getInlineBounds = function (editor, contentAreaBox, viewportBounds) {
-      var _a = getHorizontalBounds(contentAreaBox, viewportBounds), x = _a.x, width = _a.width;
+    var getVerticalBounds = function (editor, contentAreaBox, viewportBounds, isToolbarLocationTop) {
       var container = Element.fromDom(editor.getContainer());
       var header = descendant$1(container, '.tox-editor-header').getOr(container);
       var headerBox = box(header);
-      var vpHeight = viewportBounds.height();
-      var vpTop = viewportBounds.y();
-      if (headerBox.y() >= contentAreaBox.bottom()) {
-        var bottom = Math.min(vpHeight + vpTop, headerBox.y());
-        var height = bottom - vpTop;
-        return bounds$1(x, vpTop, width, height);
-      } else {
-        var y = Math.max(vpTop, headerBox.bottom());
-        var height = vpHeight - (y - vpTop);
-        return bounds$1(x, y, width, height);
+      var isToolbarBelowContentArea = headerBox.y >= contentAreaBox.bottom;
+      var isToolbarAbove = isToolbarLocationTop && !isToolbarBelowContentArea;
+      if (editor.inline && isToolbarAbove) {
+        return {
+          y: Math.max(headerBox.bottom, viewportBounds.y),
+          bottom: viewportBounds.bottom
+        };
       }
+      if (editor.inline && !isToolbarAbove) {
+        return {
+          y: viewportBounds.y,
+          bottom: Math.min(headerBox.y, viewportBounds.bottom)
+        };
+      }
+      var containerBounds = box(container);
+      if (isToolbarAbove) {
+        return {
+          y: Math.max(headerBox.bottom, viewportBounds.y),
+          bottom: Math.min(containerBounds.bottom, viewportBounds.bottom)
+        };
+      }
+      return {
+        y: Math.max(containerBounds.y, viewportBounds.y),
+        bottom: Math.min(headerBox.y, viewportBounds.bottom)
+      };
     };
-    var getDistractionFreeBounds = function (_editor, contentAreaBox, viewportBounds) {
-      var _a = getHorizontalBounds(contentAreaBox, viewportBounds), x = _a.x, width = _a.width;
-      return bounds$1(x, viewportBounds.y(), width, viewportBounds.height());
-    };
-    var getBounds$2 = function (editor, toolbarOrMenubarEnabled) {
+    var getContextToolbarBounds = function (editor, sharedBackstage) {
       var viewportBounds = getBounds(domGlobals.window);
       var contentAreaBox = box(Element.fromDom(editor.getContentAreaContainer()));
+      var toolbarOrMenubarEnabled = isMenubarEnabled(editor) || isToolbarEnabled(editor) || isMultipleToolbars(editor);
+      var _a = getHorizontalBounds(contentAreaBox, viewportBounds), x = _a.x, width = _a.width;
       if (editor.inline && !toolbarOrMenubarEnabled) {
-        return Option.some(getDistractionFreeBounds(editor, contentAreaBox, viewportBounds));
-      } else if (editor.inline) {
-        return Option.some(getInlineBounds(editor, contentAreaBox, viewportBounds));
+        return bounds$1(x, viewportBounds.y, width, viewportBounds.height);
       } else {
-        return Option.some(getIframeBounds(editor, contentAreaBox, viewportBounds));
+        var isToolbarTop = sharedBackstage.header.isPositionedAtTop();
+        var _b = getVerticalBounds(editor, contentAreaBox, viewportBounds, isToolbarTop), y = _b.y, bottom = _b.bottom;
+        return bounds$1(x, y, width, bottom - y);
       }
     };
 
-    var ancestor$2 = function (scope, transform, isRoot) {
-      var element = scope.dom();
-      var stop = isFunction(isRoot) ? isRoot : constant(false);
-      while (element.parentNode) {
-        element = element.parentNode;
-        var el = Element.fromDom(element);
-        var transformed = transform(el);
-        if (transformed.isSome()) {
-          return transformed;
-        } else if (stop(el)) {
-          break;
+    var matchTargetWith = function (elem, candidates) {
+      var ctxs = filter(candidates, function (toolbarApi) {
+        return toolbarApi.predicate(elem.dom());
+      });
+      var _a = partition(ctxs, function (t) {
+          return t.type === 'contexttoolbar';
+        }), pass = _a.pass, fail = _a.fail;
+      return {
+        contextToolbars: pass,
+        contextForms: fail
+      };
+    };
+    var filterByPositionForStartNode = function (toolbars) {
+      if (toolbars.length <= 1) {
+        return toolbars;
+      } else {
+        var doesPositionExist = function (value) {
+          return exists(toolbars, function (t) {
+            return t.position === value;
+          });
+        };
+        var filterToolbarsByPosition = function (value) {
+          return filter(toolbars, function (t) {
+            return t.position === value;
+          });
+        };
+        var hasSelectionToolbars = doesPositionExist('selection');
+        var hasNodeToolbars = doesPositionExist('node');
+        if (hasSelectionToolbars || hasNodeToolbars) {
+          if (hasNodeToolbars && hasSelectionToolbars) {
+            var nodeToolbars = filterToolbarsByPosition('node');
+            var selectionToolbars = map(filterToolbarsByPosition('selection'), function (t) {
+              return __assign(__assign({}, t), { position: 'node' });
+            });
+            return nodeToolbars.concat(selectionToolbars);
+          } else {
+            return hasSelectionToolbars ? filterToolbarsByPosition('selection') : filterToolbarsByPosition('node');
+          }
+        } else {
+          return filterToolbarsByPosition('line');
         }
       }
-      return Option.none();
     };
-
-    var matchTargetWith = function (elem, toolbars) {
-      return findMap(toolbars, function (toolbarApi) {
-        return toolbarApi.predicate(elem.dom()) ? Option.some({
-          toolbarApi: toolbarApi,
-          elem: elem
-        }) : Option.none();
-      });
+    var filterByPositionForAncestorNode = function (toolbars) {
+      if (toolbars.length <= 1) {
+        return toolbars;
+      } else {
+        var findPosition_1 = function (value) {
+          return find(toolbars, function (t) {
+            return t.position === value;
+          });
+        };
+        var basePosition = findPosition_1('selection').orThunk(function () {
+          return findPosition_1('node');
+        }).orThunk(function () {
+          return findPosition_1('line');
+        }).map(function (t) {
+          return t.position;
+        });
+        return basePosition.fold(function () {
+          return [];
+        }, function (pos) {
+          return filter(toolbars, function (t) {
+            return t.position === pos;
+          });
+        });
+      }
+    };
+    var matchStartNode = function (elem, nodeCandidates, editorCandidates) {
+      var nodeMatches = matchTargetWith(elem, nodeCandidates);
+      if (nodeMatches.contextForms.length > 0) {
+        return Option.some({
+          elem: elem,
+          toolbars: [nodeMatches.contextForms[0]]
+        });
+      } else {
+        var editorMatches = matchTargetWith(elem, editorCandidates);
+        if (editorMatches.contextForms.length > 0) {
+          return Option.some({
+            elem: elem,
+            toolbars: [editorMatches.contextForms[0]]
+          });
+        } else if (nodeMatches.contextToolbars.length > 0 || editorMatches.contextToolbars.length > 0) {
+          var toolbars = filterByPositionForStartNode(nodeMatches.contextToolbars.concat(editorMatches.contextToolbars));
+          return Option.some({
+            elem: elem,
+            toolbars: toolbars
+          });
+        } else {
+          return Option.none();
+        }
+      }
+    };
+    var matchAncestor = function (isRoot, startNode, scopes) {
+      if (isRoot(startNode)) {
+        return Option.none();
+      } else {
+        return ancestor(startNode, function (ancestorElem) {
+          var _a = matchTargetWith(ancestorElem, scopes.inNodeScope), contextToolbars = _a.contextToolbars, contextForms = _a.contextForms;
+          var toolbars = contextForms.length > 0 ? contextForms : filterByPositionForAncestorNode(contextToolbars);
+          return toolbars.length > 0 ? Option.some({
+            elem: ancestorElem,
+            toolbars: toolbars
+          }) : Option.none();
+        }, isRoot);
+      }
     };
     var lookup$1 = function (scopes, editor) {
+      var rootElem = Element.fromDom(editor.getBody());
       var isRoot = function (elem) {
-        return elem.dom() === editor.getBody();
+        return eq$1(elem, rootElem);
+      };
+      var isOutsideRoot = function (startNode) {
+        return !isRoot(startNode) && !contains$2(rootElem, startNode);
       };
       var startNode = Element.fromDom(editor.selection.getNode());
-      return matchTargetWith(startNode, scopes.inNodeScope).orThunk(function () {
-        return matchTargetWith(startNode, scopes.inEditorScope).orThunk(function () {
-          return ancestor$2(startNode, function (elem) {
-            return matchTargetWith(elem, scopes.inNodeScope);
-          }, isRoot);
-        });
+      if (isOutsideRoot(startNode)) {
+        return Option.none();
+      }
+      return matchStartNode(startNode, scopes.inNodeScope, scopes.inEditorScope).orThunk(function () {
+        return matchAncestor(isRoot, startNode, scopes);
       });
     };
-    var ToolbarLookup = { lookup: lookup$1 };
 
     var categorise = function (contextToolbars, navigate) {
       var forms = {};
@@ -23568,7 +23803,6 @@
         formNavigators: formNavigators
       };
     };
-    var ToolbarScopes = { categorise: categorise };
 
     var forwardSlideEvent = generate$1('forward-slide');
     var backSlideEvent = generate$1('backward-slide');
@@ -23592,9 +23826,7 @@
         },
         inlineBehaviours: derive$1([
           config('context-toolbar-events', [
-            runOnSource(transitionend(), function (comp, se) {
-              InlineView.getContent(comp).each(function (c) {
-              });
+            runOnSource(transitionend(), function (comp, _se) {
               remove$4(comp.element(), resizingClass);
               remove$6(comp.element(), 'width');
             }),
@@ -23630,7 +23862,7 @@
                 focus: Option.none()
               });
             }),
-            run(backSlideEvent, function (comp, se) {
+            run(backSlideEvent, function (comp, _se) {
               last(stack.get()).each(function (last) {
                 stack.set(stack.get().slice(0, stack.get().length - 1));
                 emitWith(comp, changeSlideEvent, {
@@ -23656,33 +23888,6 @@
           return Result.value(spec.sink);
         }
       });
-    };
-
-    var onSetupFormatToggle = function (editor, name) {
-      return function (api) {
-        var unbindCell = Cell(Option.none());
-        var init = function () {
-          api.setActive(editor.formatter.match(name));
-          var unbind = editor.formatter.formatChanged(name, api.setActive).unbind;
-          unbindCell.set(Option.some(unbind));
-        };
-        editor.initialized ? init() : editor.on('init', init);
-        return function () {
-          return unbindCell.get().each(function (unbind) {
-            return unbind();
-          });
-        };
-      };
-    };
-    var onActionToggleFormat = function (editor) {
-      return function (rawItem) {
-        return function () {
-          editor.undoManager.transact(function () {
-            editor.focus();
-            editor.execCommand('mceToggleFormat', false, rawItem.format);
-          });
-        };
-      };
     };
 
     var generateSelectItems = function (_editor, backstage, spec) {
@@ -23715,6 +23920,7 @@
           return Option.some(__assign({
             type: 'togglemenuitem',
             text: translatedText,
+            icon: rawItem.icon,
             active: rawItem.isSelected(value),
             disabled: disabled,
             onAction: spec.onAction(rawItem)
@@ -23834,7 +24040,7 @@
       }
     };
     var buildBasicSettingsDataset = function (editor, settingName, defaults, delimiter) {
-      var rawFormats = readOptFrom$1(editor.settings, settingName).getOr(defaults);
+      var rawFormats = get(editor.settings, settingName).getOr(defaults);
       var data = process(split(rawFormats, delimiter));
       return {
         type: 'basic',
@@ -23846,22 +24052,26 @@
       {
         title: 'Left',
         icon: 'align-left',
-        format: 'alignleft'
+        format: 'alignleft',
+        command: 'JustifyLeft'
       },
       {
         title: 'Center',
         icon: 'align-center',
-        format: 'aligncenter'
+        format: 'aligncenter',
+        command: 'JustifyCenter'
       },
       {
         title: 'Right',
         icon: 'align-right',
-        format: 'alignright'
+        format: 'alignright',
+        command: 'JustifyRight'
       },
       {
         title: 'Justify',
         icon: 'align-justify',
-        format: 'alignjustify'
+        format: 'alignjustify',
+        command: 'JustifyFull'
       }
     ];
     var getSpec = function (editor) {
@@ -23898,13 +24108,22 @@
         return updateSelectMenuIcon(comp);
       });
       var dataset = buildBasicStaticDataset(alignMenuItems);
+      var onAction = function (rawItem) {
+        return function () {
+          return find(alignMenuItems, function (item) {
+            return item.format === rawItem.format;
+          }).each(function (item) {
+            return editor.execCommand(item.command);
+          });
+        };
+      };
       return {
         tooltip: 'Align',
         icon: Option.some('align-left'),
         isSelectedFor: isSelectedFor,
         getCurrentValue: constant(Option.none()),
         getPreviewFor: getPreviewFor,
-        onAction: onActionToggleFormat(editor),
+        onAction: onAction,
         setInitialValue: setInitialValue,
         nodeChangeHandler: nodeChangeHandler,
         dataset: dataset,
@@ -23991,7 +24210,7 @@
         return function () {
           return Option.some({
             tag: 'div',
-            styleAttr: item.indexOf('dings') === -1 ? 'font-family:' + item : ''
+            styles: item.indexOf('dings') === -1 ? { 'font-family': item } : {}
           });
         };
       };
@@ -24077,13 +24296,13 @@
       var getMatchingValue = function () {
         var matchOpt = Option.none();
         var items = dataset.data;
-        var px = editor.queryCommandValue('FontSize');
-        if (px) {
+        var fontSize = editor.queryCommandValue('FontSize');
+        if (fontSize) {
           var _loop_1 = function (precision) {
-            var pt = toPt(px, precision);
+            var pt = toPt(fontSize, precision);
             var legacy = toLegacy(pt);
             matchOpt = find(items, function (item) {
-              return item.format === px || item.format === pt || item.format === legacy;
+              return item.format === fontSize || item.format === pt || item.format === legacy;
             });
           };
           for (var precision = 3; matchOpt.isNone() && precision >= 0; precision--) {
@@ -24092,7 +24311,7 @@
         }
         return {
           matchOpt: matchOpt,
-          px: px
+          size: fontSize
         };
       };
       var isSelectedFor = function (item) {
@@ -24116,9 +24335,9 @@
         };
       };
       var updateSelectMenuText = function (comp) {
-        var _a = getMatchingValue(), matchOpt = _a.matchOpt, px = _a.px;
+        var _a = getMatchingValue(), matchOpt = _a.matchOpt, size = _a.size;
         var text = matchOpt.fold(function () {
-          return px;
+          return size;
         }, function (match) {
           return match.title;
         });
@@ -24185,6 +24404,33 @@
       }, editor.getBody());
     };
 
+    var onSetupFormatToggle = function (editor, name) {
+      return function (api) {
+        var unbindCell = Cell(Option.none());
+        var init = function () {
+          api.setActive(editor.formatter.match(name));
+          var unbind = editor.formatter.formatChanged(name, api.setActive).unbind;
+          unbindCell.set(Option.some(unbind));
+        };
+        editor.initialized ? init() : editor.on('init', init);
+        return function () {
+          return unbindCell.get().each(function (unbind) {
+            return unbind();
+          });
+        };
+      };
+    };
+    var onActionToggleFormat = function (editor) {
+      return function (rawItem) {
+        return function () {
+          editor.undoManager.transact(function () {
+            editor.focus();
+            editor.execCommand('mceToggleFormat', false, rawItem.format);
+          });
+        };
+      };
+    };
+
     var defaultBlocks = 'Paragraph=p;' + 'Heading 1=h1;' + 'Heading 2=h2;' + 'Heading 3=h3;' + 'Heading 4=h4;' + 'Heading 5=h5;' + 'Heading 6=h6;' + 'Preformatted=pre';
     var getSpec$3 = function (editor) {
       var getMatchingValue = function (nodeChangeEvent) {
@@ -24202,7 +24448,7 @@
           var fmt = editor.formatter.get(format);
           return Option.some({
             tag: fmt.length > 0 ? fmt[0].inline || fmt[0].block || 'div' : 'div',
-            styleAttr: editor.formatter.getCssText(format)
+            styles: editor.dom.parseStyle(editor.formatter.getCssText(format))
           });
         };
       };
@@ -24265,7 +24511,7 @@
           var fmt = editor.formatter.get(format);
           return fmt !== undefined ? Option.some({
             tag: fmt.length > 0 ? fmt[0].inline || fmt[0].block || 'div' : 'div',
-            styleAttr: editor.formatter.getCssText(format)
+            styles: editor.dom.parseStyle(editor.formatter.getCssText(format))
           }) : Option.none();
         };
       };
@@ -24373,11 +24619,11 @@
       }
     ];
     var renderFromBridge = function (bridgeBuilder, render) {
-      return function (spec, extras) {
+      return function (spec, extras, editor) {
         var internal = bridgeBuilder(spec).mapError(function (errInfo) {
           return formatError(errInfo);
         }).getOrDie();
-        return render(internal, extras);
+        return render(internal, extras, editor);
       };
     };
     var types = {
@@ -24392,6 +24638,24 @@
       }),
       splitbutton: renderFromBridge(createSplitButton, function (s, extras) {
         return renderSplitButton(s, extras.backstage.shared);
+      }),
+      grouptoolbarbutton: renderFromBridge(createGroupToolbarButton, function (s, extras, editor) {
+        var _a;
+        var buttons = editor.ui.registry.getAll().buttons;
+        var identify = function (toolbar) {
+          return identifyButtons(editor, {
+            buttons: buttons,
+            toolbar: toolbar,
+            allowToolbarGroups: false
+          }, extras, Option.none());
+        };
+        var attributes = (_a = {}, _a[Attribute] = extras.backstage.shared.header.isPositionedAtTop() ? AttributeValue.TopToBottom : AttributeValue.BottomToTop, _a);
+        switch (getToolbarMode(editor)) {
+        case ToolbarMode.floating:
+          return renderFloatingToolbarButton(s, extras.backstage, identify, attributes);
+        default:
+          throw new Error('Toolbar groups are only supported when using floating toolbar mode');
+        }
       }),
       styleSelectButton: function (editor, extras) {
         return createStyleSelect(editor, extras.backstage);
@@ -24409,12 +24673,12 @@
         return createAlignSelect(editor, extras.backstage);
       }
     };
-    var extractFrom = function (spec, extras) {
+    var extractFrom = function (spec, extras, editor) {
       return get(types, spec.type).fold(function () {
         domGlobals.console.error('skipping button defined by', spec);
         return Option.none();
       }, function (render) {
-        return Option.some(render(spec, extras));
+        return Option.some(render(spec, extras, editor));
       });
     };
     var bespokeButtons = {
@@ -24465,7 +24729,7 @@
         return [];
       }
     };
-    var lookupButton = function (editor, buttons, toolbarItem, extras, prefixes) {
+    var lookupButton = function (editor, buttons, toolbarItem, allowToolbarGroups, extras, prefixes) {
       return get(buttons, toolbarItem.toLowerCase()).orThunk(function () {
         return prefixes.bind(function (ps) {
           return findMap(ps, function (prefix) {
@@ -24479,14 +24743,19 @@
           return Option.none();
         });
       }, function (spec) {
-        return extractFrom(spec, extras);
+        if (spec.type === 'grouptoolbarbutton' && !allowToolbarGroups) {
+          domGlobals.console.warn('Ignoring the \'' + toolbarItem + '\' toolbar button. Group toolbar buttons are only supported when using floating toolbar mode and cannot be nested.');
+          return Option.none();
+        } else {
+          return extractFrom(spec, extras, editor);
+        }
       });
     };
     var identifyButtons = function (editor, toolbarConfig, extras, prefixes) {
       var toolbarGroups = createToolbar(toolbarConfig);
       var groups = map(toolbarGroups, function (group) {
         var items = bind(group.items, function (toolbarItem) {
-          return toolbarItem.trim().length === 0 ? [] : lookupButton(editor, toolbarConfig.buttons, toolbarItem, extras, prefixes).toArray();
+          return toolbarItem.trim().length === 0 ? [] : lookupButton(editor, toolbarConfig.buttons, toolbarItem, toolbarConfig.allowToolbarGroups, extras, prefixes).toArray();
         });
         return {
           title: Option.from(editor.translate(group.name)),
@@ -24612,40 +24881,31 @@
           return Option.some(true);
         }
       }));
-      var toolbarOrMenubarEnabled = isMenubarEnabled(editor) || isToolbarEnabled(editor) || isMultipleToolbars(editor);
       var getBounds = function () {
-        return getBounds$2(editor, toolbarOrMenubarEnabled);
+        return getContextToolbarBounds(editor, extras.backstage.shared);
       };
-      var isCompletelyBehindHeader = function (nodeBounds) {
-        var headerEle = descendant$1(Element.fromDom(editor.getContainer()), '.tox-editor-header').getOrDie();
-        var isHeaderDocked = get$4(headerEle, 'position') === 'fixed';
-        if (toolbarOrMenubarEnabled && isHeaderDocked) {
-          var headerBounds = headerEle.dom().getBoundingClientRect();
-          if (editor.inline) {
-            return nodeBounds.bottom < headerBounds.bottom;
-          } else {
-            var scroll = get$8();
-            var bodyBounds = absolute$1(Element.fromDom(editor.getBody()));
-            var nodeBottom = nodeBounds.bottom + (bodyBounds.y() - scroll.top());
-            return nodeBottom < headerBounds.bottom;
-          }
-        } else {
-          return false;
-        }
+      var isRangeOverlapping = function (aTop, aBottom, bTop, bBottom) {
+        return Math.max(aTop, bTop) <= Math.min(aBottom, bBottom);
       };
-      var shouldContextToolbarHide = function () {
-        if (isTouch() && extras.backstage.isContextMenuOpen()) {
-          return true;
-        }
+      var getLastElementVerticalBound = function () {
         var nodeBounds = lastElement.get().map(function (ele) {
           return ele.getBoundingClientRect();
         }).getOrThunk(function () {
           return editor.selection.getRng().getBoundingClientRect();
         });
-        var viewportHeight = defaultView(Element.fromDom(editor.getBody())).dom().innerHeight;
-        var aboveViewport = nodeBounds.bottom < 0;
-        var belowViewport = nodeBounds.top > viewportHeight;
-        return aboveViewport || belowViewport || isCompletelyBehindHeader(nodeBounds);
+        var diffTop = editor.inline ? get$8().top() : absolute$1(Element.fromDom(editor.getBody())).y;
+        return {
+          y: nodeBounds.top + diffTop,
+          bottom: nodeBounds.bottom + diffTop
+        };
+      };
+      var shouldContextToolbarHide = function () {
+        if (isTouch() && extras.backstage.isContextMenuOpen()) {
+          return true;
+        }
+        var lastElementBounds = getLastElementVerticalBound();
+        var contextToolbarBounds = getBounds();
+        return !isRangeOverlapping(lastElementBounds.y, lastElementBounds.bottom, contextToolbarBounds.y, contextToolbarBounds.bottom);
       };
       var forceHide = function () {
         InlineView.hide(contextbar);
@@ -24657,7 +24917,7 @@
           if (shouldContextToolbarHide()) {
             set$2(contextBarEle, 'display', 'none');
           } else {
-            Positioning.positionWithinBounds(sink, anchor, contextbar, getBounds());
+            Positioning.positionWithinBounds(sink, anchor, contextbar, Option.some(getBounds()));
           }
         });
       };
@@ -24679,7 +24939,7 @@
                   return Keying.focusIn(comp);
                 });
               }),
-              runOnDetached(function (comp) {
+              runOnDetached(function (_comp) {
                 editor.shortcuts.remove('ctrl+F9');
               })
             ])
@@ -24687,38 +24947,42 @@
         };
       };
       var getScopes = cached(function () {
-        return ToolbarScopes.categorise(registryContextToolbars, function (toolbarApi) {
-          var alloySpec = buildToolbar(toolbarApi);
+        return categorise(registryContextToolbars, function (toolbarApi) {
+          var alloySpec = buildToolbar([toolbarApi]);
           emitWith(contextbar, forwardSlideEvent, { forwardContents: wrapInPopDialog(alloySpec) });
         });
       });
-      var buildToolbar = function (ctx) {
+      var buildContextToolbarGroups = function (allButtons, ctx) {
+        return identifyButtons(editor, {
+          buttons: allButtons,
+          toolbar: ctx.items,
+          allowToolbarGroups: false
+        }, extras, Option.some(['form:']));
+      };
+      var buildContextMenuGroups = function (ctx, providers) {
+        return ContextForm.buildInitGroups(ctx, providers);
+      };
+      var buildToolbar = function (toolbars) {
         var buttons = editor.ui.registry.getAll().buttons;
         var scopes = getScopes();
-        return ctx.type === 'contexttoolbar' ? function () {
-          var allButtons = merge(buttons, scopes.formNavigators);
-          var initGroups = identifyButtons(editor, {
-            buttons: allButtons,
-            toolbar: ctx.items
-          }, extras, Option.some(['form:']));
-          return renderToolbar({
-            uid: generate$1('context-toolbar'),
-            initGroups: initGroups,
-            onEscape: Option.none,
-            cyclicKeying: true,
-            backstage: extras.backstage,
-            getSink: function () {
-              return Result.error('');
-            }
-          });
-        }() : function () {
-          return ContextForm.renderContextForm(ctx, extras.backstage);
-        }();
+        var allButtons = __assign(__assign({}, buttons), scopes.formNavigators);
+        var toolbarType = getToolbarMode(editor) === ToolbarMode.scrolling ? ToolbarMode.scrolling : ToolbarMode.default;
+        var initGroups = flatten(map(toolbars, function (ctx) {
+          return ctx.type === 'contexttoolbar' ? buildContextToolbarGroups(allButtons, ctx) : buildContextMenuGroups(ctx, extras.backstage.shared.providers);
+        }));
+        return renderToolbar({
+          type: toolbarType,
+          uid: generate$1('context-toolbar'),
+          initGroups: initGroups,
+          onEscape: Option.none,
+          cyclicKeying: true,
+          providers: extras.backstage.shared.providers
+        });
       };
       editor.on(showContextToolbarEvent, function (e) {
         var scopes = getScopes();
-        readOptFrom$1(scopes.lookupTable, e.toolbarKey).each(function (ctx) {
-          launchContext(ctx, e.target === editor ? Option.none() : Option.some(e));
+        get(scopes.lookupTable, e.toolbarKey).each(function (ctx) {
+          launchContext([ctx], e.target === editor ? Option.none() : Option.some(e));
           InlineView.getContent(contextbar).each(Keying.focusIn);
         });
       });
@@ -24733,23 +24997,28 @@
         }
         var toolbarSpec = buildToolbar(toolbarApi);
         var sElem = elem.map(Element.fromDom);
-        var anchor = getAnchor(toolbarApi.position, sElem);
+        var anchor = getAnchor(toolbarApi[0].position, sElem);
         lastAnchor.set(Option.some(anchor));
         lastElement.set(elem);
         var contextBarEle = contextbar.element();
         remove$6(contextBarEle, 'display');
-        InlineView.showWithinBounds(contextbar, anchor, wrapInPopDialog(toolbarSpec), getBounds);
+        InlineView.showWithinBounds(contextbar, anchor, wrapInPopDialog(toolbarSpec), function () {
+          return Option.some(getBounds());
+        });
         if (shouldContextToolbarHide()) {
           set$2(contextBarEle, 'display', 'none');
         }
       };
       var launchContextToolbar = function () {
+        if (!editor.hasFocus()) {
+          return;
+        }
         var scopes = getScopes();
-        ToolbarLookup.lookup(scopes, editor).fold(function () {
+        lookup$1(scopes, editor).fold(function () {
           lastAnchor.set(Option.none());
           InlineView.hide(contextbar);
         }, function (info) {
-          launchContext(info.toolbarApi, Option.some(info.elem.dom()));
+          launchContext(info.toolbars, Option.some(info.elem.dom()));
         });
       };
       var clearTimer = function () {
@@ -24766,10 +25035,10 @@
       editor.on('init', function () {
         editor.on(hideContextToolbarEvent, forceHide);
         editor.on('ScrollContent ScrollWindow longpress', hideOrRepositionIfNecessary);
-        editor.on('click keyup SetContent ObjectResized ResizeEditor', function (e) {
+        editor.on('click keyup focus SetContent ObjectResized ResizeEditor', function () {
           resetTimer(global$2.setEditorTimeout(editor, launchContextToolbar, 0));
         });
-        editor.on('focusout', function (e) {
+        editor.on('focusout', function (_e) {
           global$2.setEditorTimeout(editor, function () {
             if (search(sink.element()).isNone() && search(contextbar.element()).isNone()) {
               lastAnchor.set(Option.none());
@@ -24778,12 +25047,12 @@
           }, 0);
         });
         editor.on('SwitchMode', function () {
-          if (editor.readonly) {
+          if (editor.mode.isReadOnly()) {
             lastAnchor.set(Option.none());
             InlineView.hide(contextbar);
           }
         });
-        editor.on('NodeChange', function (e) {
+        editor.on('NodeChange', function (_e) {
           search(contextbar.element()).fold(function () {
             resetTimer(global$2.setEditorTimeout(editor, launchContextToolbar, 0));
           }, function (_) {
@@ -24791,107 +25060,69 @@
         });
       });
     };
-    var ContextToolbar = { register: register$4 };
 
     var setup$3 = function (editor, mothership, uiMothership) {
-      var onMousedown = bind$3(Element.fromDom(domGlobals.document), 'mousedown', function (evt) {
+      var broadcastEvent = function (name, evt) {
         each([
           mothership,
           uiMothership
         ], function (ship) {
-          ship.broadcastOn([dismissPopups()], { target: evt.target() });
+          ship.broadcastEvent(name, evt);
         });
-      });
-      var onTouchstart = bind$3(Element.fromDom(domGlobals.document), 'touchstart', function (evt) {
+      };
+      var broadcastOn = function (channel, message) {
         each([
           mothership,
           uiMothership
         ], function (ship) {
-          ship.broadcastOn([dismissPopups()], { target: evt.target() });
+          ship.broadcastOn([channel], message);
         });
-      });
+      };
+      var fireDismissPopups = function (evt) {
+        return broadcastOn(dismissPopups(), { target: evt.target() });
+      };
+      var onTouchstart = bind$3(Element.fromDom(domGlobals.document), 'touchstart', fireDismissPopups);
       var onTouchmove = bind$3(Element.fromDom(domGlobals.document), 'touchmove', function (evt) {
-        each([
-          mothership,
-          uiMothership
-        ], function (ship) {
-          ship.broadcastEvent(documentTouchmove(), evt);
-        });
+        return broadcastEvent(documentTouchmove(), evt);
       });
       var onTouchend = bind$3(Element.fromDom(domGlobals.document), 'touchend', function (evt) {
-        each([
-          mothership,
-          uiMothership
-        ], function (ship) {
-          ship.broadcastEvent(documentTouchend(), evt);
-        });
+        return broadcastEvent(documentTouchend(), evt);
       });
+      var onMousedown = bind$3(Element.fromDom(domGlobals.document), 'mousedown', fireDismissPopups);
       var onMouseup = bind$3(Element.fromDom(domGlobals.document), 'mouseup', function (evt) {
         if (evt.raw().button === 0) {
-          each([
-            mothership,
-            uiMothership
-          ], function (ship) {
-            ship.broadcastOn([mouseReleased()], { target: evt.target() });
-          });
+          broadcastOn(mouseReleased(), { target: evt.target() });
         }
       });
-      var onContentMousedown = function (raw) {
-        each([
-          mothership,
-          uiMothership
-        ], function (ship) {
-          ship.broadcastOn([dismissPopups()], { target: Element.fromDom(raw.target) });
-        });
+      var onContentClick = function (raw) {
+        return broadcastOn(dismissPopups(), { target: Element.fromDom(raw.target) });
       };
       var onContentMouseup = function (raw) {
         if (raw.button === 0) {
-          each([
-            mothership,
-            uiMothership
-          ], function (ship) {
-            ship.broadcastOn([mouseReleased()], { target: Element.fromDom(raw.target) });
-          });
+          broadcastOn(mouseReleased(), { target: Element.fromDom(raw.target) });
         }
       };
       var onWindowScroll = function (evt) {
-        var sugarEvent = fromRawEvent$1(evt);
-        each([
-          mothership,
-          uiMothership
-        ], function (ship) {
-          ship.broadcastEvent(windowScroll(), sugarEvent);
-        });
+        return broadcastEvent(windowScroll(), fromRawEvent$1(evt));
       };
       var onWindowResize = function (evt) {
-        var sugarEvent = fromRawEvent$1(evt);
-        each([
-          mothership,
-          uiMothership
-        ], function (ship) {
-          ship.broadcastOn([repositionPopups()], {});
-          ship.broadcastEvent(windowResize(), sugarEvent);
-        });
+        broadcastOn(repositionPopups(), {});
+        broadcastEvent(windowResize(), fromRawEvent$1(evt));
       };
       var onEditorResize = function () {
-        each([
-          mothership,
-          uiMothership
-        ], function (ship) {
-          ship.broadcastOn([repositionPopups()], {});
-        });
+        return broadcastOn(repositionPopups(), {});
       };
       editor.on('PostRender', function () {
-        editor.on('mousedown', onContentMousedown);
-        editor.on('touchstart', onContentMousedown);
+        editor.on('click', onContentClick);
+        editor.on('tap', onContentClick);
         editor.on('mouseup', onContentMouseup);
         editor.on('ScrollWindow', onWindowScroll);
         editor.on('ResizeWindow', onWindowResize);
         editor.on('ResizeEditor', onEditorResize);
       });
       editor.on('remove', function () {
-        editor.off('mousedown', onContentMousedown);
-        editor.off('touchstart', onContentMousedown);
+        editor.off('click', onContentClick);
+        editor.off('tap', onContentClick);
         editor.off('mouseup', onContentMouseup);
         editor.off('ScrollWindow', onWindowScroll);
         editor.off('ResizeWindow', onWindowResize);
@@ -24909,25 +25140,27 @@
         uiMothership.destroy();
       });
     };
-    var Events$1 = { setup: setup$3 };
 
-    var schema$q = constant([
+    var parts$d = AlloyParts;
+    var partType$1 = PartType;
+
+    var schema$r = constant([
       defaulted$1('shell', false),
       strict$1('makeItem'),
       defaulted$1('setupItem', noop),
       SketchBehaviours.field('listBehaviours', [Replacing])
     ]);
-    var customListDetail = function (detail) {
+    var customListDetail = function () {
       return { behaviours: derive$1([Replacing.config({})]) };
     };
     var itemsPart = optional({
       name: 'items',
       overrides: customListDetail
     });
-    var parts$c = constant([itemsPart]);
+    var parts$e = constant([itemsPart]);
     var name$2 = constant('CustomList');
 
-    var factory$e = function (detail, components, spec, external) {
+    var factory$f = function (detail, components, _spec, _external) {
       var setItems = function (list, items) {
         getListContainer(list).fold(function () {
           domGlobals.console.error('Custom List was defined to not be a shell, but no item container was specified in components');
@@ -24972,9 +25205,9 @@
     };
     var CustomList = composite$1({
       name: name$2(),
-      configFields: schema$q(),
-      partFields: parts$c(),
-      factory: factory$e,
+      configFields: schema$r(),
+      partFields: parts$e(),
+      factory: factory$f,
       apis: {
         setItems: function (apis, list, items) {
           apis.setItems(list, items);
@@ -24982,144 +25215,29 @@
       }
     });
 
-    var parts$d = AlloyParts;
-    var partType$1 = PartType;
-
-    var getOrigin = function (element) {
+    var getOffsetParent = function (element) {
       var isFixed = getRaw(element, 'position').is('fixed');
       var offsetParent$1 = isFixed ? Option.none() : offsetParent(element);
       return offsetParent$1.orThunk(function () {
         var marker = Element.fromTag('span');
-        before(element, marker);
-        var offsetParent$1 = offsetParent(marker);
-        remove(marker);
-        return offsetParent$1;
-      }).map(absolute).getOrThunk(function () {
+        return parent(element).bind(function (parent) {
+          append(parent, marker);
+          var offsetParent$1 = offsetParent(marker);
+          remove(marker);
+          return offsetParent$1;
+        });
+      });
+    };
+    var getOrigin = function (element) {
+      return getOffsetParent(element).map(absolute).getOrThunk(function () {
         return Position(0, 0);
       });
     };
 
-    var adt$c = Adt.generate([
-      {
-        offset: [
-          'x',
-          'y'
-        ]
-      },
-      {
-        absolute: [
-          'x',
-          'y'
-        ]
-      },
-      {
-        fixed: [
-          'x',
-          'y'
-        ]
-      }
-    ]);
-    var subtract = function (change) {
-      return function (point) {
-        return point.translate(-change.left(), -change.top());
-      };
-    };
-    var add$4 = function (change) {
-      return function (point) {
-        return point.translate(change.left(), change.top());
-      };
-    };
-    var transform$1 = function (changes) {
-      return function (x, y) {
-        return foldl(changes, function (rest, f) {
-          return f(rest);
-        }, Position(x, y));
-      };
-    };
-    var asFixed = function (coord, scroll, origin) {
-      return coord.fold(transform$1([
-        add$4(origin),
-        subtract(scroll)
-      ]), transform$1([subtract(scroll)]), transform$1([]));
-    };
-    var asAbsolute = function (coord, scroll, origin) {
-      return coord.fold(transform$1([add$4(origin)]), transform$1([]), transform$1([add$4(scroll)]));
-    };
-    var asOffset = function (coord, scroll, origin) {
-      return coord.fold(transform$1([]), transform$1([subtract(origin)]), transform$1([
-        add$4(scroll),
-        subtract(origin)
-      ]));
-    };
-    var withinRange = function (coord1, coord2, xRange, yRange, scroll, origin) {
-      var a1 = asAbsolute(coord1, scroll, origin);
-      var a2 = asAbsolute(coord2, scroll, origin);
-      return Math.abs(a1.left() - a2.left()) <= xRange && Math.abs(a1.top() - a2.top()) <= yRange;
-    };
-    var getDeltas = function (coord1, coord2, xRange, yRange, scroll, origin) {
-      var a1 = asAbsolute(coord1, scroll, origin);
-      var a2 = asAbsolute(coord2, scroll, origin);
-      var left = Math.abs(a1.left() - a2.left());
-      var top = Math.abs(a1.top() - a2.top());
-      return Position(left, top);
-    };
-    var toStyles = function (coord, scroll, origin) {
-      return coord.fold(function (x, y) {
-        return {
-          position: 'absolute',
-          left: x + 'px',
-          top: y + 'px'
-        };
-      }, function (x, y) {
-        return {
-          position: 'absolute',
-          left: x - origin.left() + 'px',
-          top: y - origin.top() + 'px'
-        };
-      }, function (x, y) {
-        return {
-          position: 'fixed',
-          left: x + 'px',
-          top: y + 'px'
-        };
-      });
-    };
-    var translate$2 = function (coord, deltaX, deltaY) {
-      return coord.fold(function (x, y) {
-        return adt$c.offset(x + deltaX, y + deltaY);
-      }, function (x, y) {
-        return adt$c.absolute(x + deltaX, y + deltaY);
-      }, function (x, y) {
-        return adt$c.fixed(x + deltaX, y + deltaY);
-      });
-    };
-    var absorb = function (partialCoord, originalCoord, scroll, origin) {
-      var absorbOne = function (stencil, nu) {
-        return function (optX, optY) {
-          var original = stencil(originalCoord, scroll, origin);
-          return nu(optX.getOr(original.left()), optY.getOr(original.top()));
-        };
-      };
-      return partialCoord.fold(absorbOne(asOffset, adt$c.offset), absorbOne(asAbsolute, adt$c.absolute), absorbOne(asFixed, adt$c.fixed));
-    };
-    var offset = adt$c.offset;
-    var absolute$3 = adt$c.absolute;
-    var fixed$1 = adt$c.fixed;
-
     var morphAdt = Adt.generate([
       { static: [] },
-      {
-        absolute: [
-          'x',
-          'y'
-        ]
-      },
-      {
-        fixed: [
-          'x',
-          'y'
-        ]
-      }
+      { absolute: ['positionCss'] },
+      { fixed: ['positionCss'] }
     ]);
     var appear = function (component, contextualInfo) {
       var elem = component.element();
@@ -25136,13 +25254,13 @@
       contextualInfo.onHide(component);
     };
     var isPartiallyVisible = function (box, viewport) {
-      return box.y() < viewport.bottom() && box.bottom() > viewport.y();
+      return box.y < viewport.bottom && box.bottom > viewport.y;
     };
     var isTopCompletelyVisible = function (box, viewport) {
-      return box.y() >= viewport.y();
+      return box.y >= viewport.y;
     };
     var isBottomCompletelyVisible = function (box, viewport) {
-      return box.bottom() <= viewport.bottom();
+      return box.bottom <= viewport.bottom;
     };
     var isVisibleForModes = function (modes, box, viewport) {
       return forall(modes, function (mode) {
@@ -25154,88 +25272,90 @@
         }
       });
     };
-    var getAttr = function (elem, attr) {
-      return has$1(elem, attr) ? Option.some(parseInt(get$2(elem, attr), 10)) : Option.none();
-    };
-    var getPrior = function (elem, dockInfo) {
-      return getAttr(elem, dockInfo.leftAttr).bind(function (left) {
-        return getAttr(elem, dockInfo.topAttr).map(function (top) {
-          var w = get$7(elem);
-          var h = get$6(elem);
-          return bounds$1(left, top, w, h);
-        });
+    var getPrior = function (elem, state) {
+      return state.getInitialPosition().map(function (pos) {
+        return bounds$1(pos.bounds.x, pos.bounds.y, get$7(elem), get$6(elem));
       });
     };
-    var setPrior = function (elem, dockInfo, absLeft, absTop, position) {
-      set$1(elem, dockInfo.leftAttr, absLeft);
-      set$1(elem, dockInfo.topAttr, absTop);
-      set$1(elem, dockInfo.positionAttr, position);
+    var storePrior = function (elem, box, state) {
+      state.setInitialPosition(Option.some({
+        style: getAllRaw(elem),
+        position: get$4(elem, 'position') || 'static',
+        bounds: box
+      }));
     };
-    var clearPrior = function (elem, dockInfo) {
-      remove$1(elem, dockInfo.leftAttr);
-      remove$1(elem, dockInfo.topAttr);
-      remove$1(elem, dockInfo.positionAttr);
+    var revertToOriginal = function (elem, box$1, state) {
+      return state.getInitialPosition().bind(function (position) {
+        state.setInitialPosition(Option.none());
+        switch (position.position) {
+        case 'static':
+          return Option.some(morphAdt.static());
+        case 'absolute':
+          var offsetBox_1 = getOffsetParent(elem).map(box).getOrThunk(function () {
+            return box(body());
+          });
+          return Option.some(morphAdt.absolute(NuPositionCss('absolute', get(position.style, 'left').map(function (_left) {
+            return box$1.x - offsetBox_1.x;
+          }), get(position.style, 'top').map(function (_top) {
+            return box$1.y - offsetBox_1.y;
+          }), get(position.style, 'right').map(function (_right) {
+            return offsetBox_1.right - box$1.right;
+          }), get(position.style, 'bottom').map(function (_bottom) {
+            return offsetBox_1.bottom - box$1.bottom;
+          }))));
+        default:
+          return Option.none();
+        }
+      });
     };
-    var revertToOriginal = function (elem, dockInfo, box) {
-      var position = get$2(elem, dockInfo.positionAttr);
-      clearPrior(elem, dockInfo);
-      switch (position) {
-      case 'static':
-        return Option.some(morphAdt.static());
-      case 'absolute':
-        return Option.some(morphAdt.absolute(box.x(), box.y()));
-      default:
-        return Option.none();
-      }
-    };
-    var morphToOriginal = function (elem, dockInfo, viewport) {
-      return getPrior(elem, dockInfo).filter(function (box) {
-        return isVisibleForModes(dockInfo.modes, box, viewport);
+    var morphToOriginal = function (elem, viewport, state) {
+      return getPrior(elem, state).filter(function (box) {
+        return isVisibleForModes(state.getModes(), box, viewport);
       }).bind(function (box) {
-        return revertToOriginal(elem, dockInfo, box);
+        return revertToOriginal(elem, box, state);
       });
     };
-    var morphToFixed = function (elem, dockInfo, viewport, scroll, origin) {
+    var morphToFixed = function (elem, viewport, state) {
       var box$1 = box(elem);
-      if (!isVisibleForModes(dockInfo.modes, box$1, viewport)) {
-        var position = get$4(elem, 'position');
-        setPrior(elem, dockInfo, box$1.x(), box$1.y(), position);
-        var coord = absolute$3(box$1.x(), box$1.y());
-        var asFixed$1 = asFixed(coord, scroll, origin);
-        var viewportPt = absolute$3(viewport.x(), viewport.y());
-        var fixedViewport = asFixed(viewportPt, scroll, origin);
-        var fixedY = box$1.y() <= viewport.y() ? fixedViewport.top() : fixedViewport.top() + viewport.height() - box$1.height();
-        return Option.some(morphAdt.fixed(asFixed$1.left(), fixedY));
+      if (!isVisibleForModes(state.getModes(), box$1, viewport)) {
+        storePrior(elem, box$1, state);
+        var winBox = win();
+        var left = box$1.x - winBox.x;
+        var top = viewport.y - winBox.y;
+        var bottom = winBox.bottom - viewport.bottom;
+        var isTop = box$1.y <= viewport.y;
+        return Option.some(morphAdt.fixed(NuPositionCss('fixed', Option.some(left), isTop ? Option.some(top) : Option.none(), Option.none(), !isTop ? Option.some(bottom) : Option.none())));
       } else {
         return Option.none();
       }
     };
-    var getMorph = function (component, dockInfo, viewport, scroll, origin) {
+    var getMorph = function (component, viewport, state) {
       var elem = component.element();
       var isDocked = getRaw(elem, 'position').is('fixed');
-      return isDocked ? morphToOriginal(elem, dockInfo, viewport) : morphToFixed(elem, dockInfo, viewport, scroll, origin);
+      return isDocked ? morphToOriginal(elem, viewport, state) : morphToFixed(elem, viewport, state);
     };
-    var getMorphToOriginal = function (component, dockInfo) {
+    var getMorphToOriginal = function (component, state) {
       var elem = component.element();
-      return getPrior(elem, dockInfo).bind(function (box) {
-        return revertToOriginal(elem, dockInfo, box);
+      return getPrior(elem, state).bind(function (box) {
+        return revertToOriginal(elem, box, state);
       });
     };
 
     var morphToStatic = function (component, config) {
       each([
         'left',
+        'right',
         'top',
+        'bottom',
         'position'
       ], function (prop) {
         return remove$6(component.element(), prop);
       });
       config.onUndocked(component);
     };
-    var morphToCoord = function (component, config, scroll, origin, morph) {
-      var styles = toStyles(morph, scroll, origin);
-      setAll$1(component.element(), styles);
-      var method = styles.position === 'fixed' ? config.onDocked : config.onUndocked;
+    var morphToCoord = function (component, config, position) {
+      applyPositionCss(component.element(), position);
+      var method = position.position() === 'fixed' ? config.onDocked : config.onUndocked;
       method(component);
     };
     var updateVisibility = function (component, config, state, viewport, morphToDocked) {
@@ -25260,37 +25380,30 @@
     };
     var refreshInternal = function (component, config, state) {
       var viewport = config.lazyViewport(component);
-      var elem = component.element();
-      var doc = owner(elem);
-      var scroll = get$8(doc);
-      var origin = getOrigin(elem);
       var isDocked = state.isDocked();
       if (isDocked) {
         updateVisibility(component, config, state, viewport);
       }
-      getMorph(component, config, viewport, scroll, origin).each(function (morph) {
+      getMorph(component, viewport, state).each(function (morph) {
         state.setDocked(!isDocked);
         morph.fold(function () {
           return morphToStatic(component, config);
-        }, function (x, y) {
-          return morphToCoord(component, config, scroll, origin, absolute$3(x, y));
-        }, function (x, y) {
+        }, function (position) {
+          return morphToCoord(component, config, position);
+        }, function (position) {
           updateVisibility(component, config, state, viewport, true);
-          morphToCoord(component, config, scroll, origin, fixed$1(x, y));
+          morphToCoord(component, config, position);
         });
       });
     };
     var resetInternal = function (component, config, state) {
       var elem = component.element();
       state.setDocked(false);
-      getMorphToOriginal(component, config).each(function (morph) {
+      getMorphToOriginal(component, state).each(function (morph) {
         morph.fold(function () {
           return morphToStatic(component, config);
-        }, function (x, y) {
-          var doc = owner(elem);
-          var scroll = get$8(doc);
-          var origin = getOrigin(elem);
-          morphToCoord(component, config, scroll, origin, absolute$3(x, y));
+        }, function (position) {
+          return morphToCoord(component, config, position);
         }, noop);
       });
       state.setVisible(true);
@@ -25317,11 +25430,20 @@
     var isDocked = function (component, config, state) {
       return state.isDocked();
     };
+    var setModes = function (component, config, state, modes) {
+      return state.setModes(modes);
+    };
+    var getModes = function (component, config, state) {
+      return state.getModes();
+    };
 
     var DockingApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         refresh: refresh$4,
         reset: reset,
-        isDocked: isDocked
+        isDocked: isDocked,
+        getModes: getModes,
+        setModes: setModes
     });
 
     var events$f = function (dockInfo, dockState) {
@@ -25349,6 +25471,7 @@
     };
 
     var ActiveDocking = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         events: events$f
     });
 
@@ -25364,9 +25487,6 @@
         onHandler('onHidden')
       ]),
       defaultedFunction('lazyViewport', win),
-      strictString('leftAttr'),
-      strictString('topAttr'),
-      strictString('positionAttr'),
       defaultedArrayOf('modes', [
         'top',
         'bottom'
@@ -25375,30 +25495,29 @@
       onHandler('onUndocked')
     ];
 
-    var init$b = function () {
+    var init$b = function (spec) {
       var docked = Cell(false);
       var visible = Cell(true);
+      var initialBounds = Cell(Option.none());
+      var modes = Cell(spec.modes);
       var readState = function () {
-        return 'docked:  ' + docked.get() + ', visible: ' + visible.get();
+        return 'docked:  ' + docked.get() + ', visible: ' + visible.get() + ', modes: ' + modes.get().join(',');
       };
       return nu$5({
-        isDocked: function () {
-          return docked.get();
-        },
-        setDocked: function (state) {
-          return docked.set(state);
-        },
-        isVisible: function () {
-          return visible.get();
-        },
-        setVisible: function (state) {
-          return visible.set(state);
-        },
+        isDocked: docked.get,
+        setDocked: docked.set,
+        getInitialPosition: initialBounds.get,
+        setInitialPosition: initialBounds.set,
+        isVisible: visible.get,
+        setVisible: visible.set,
+        getModes: modes.get,
+        setModes: modes.set,
         readState: readState
       });
     };
 
     var DockingState = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         init: init$b
     });
 
@@ -25417,17 +25536,45 @@
     };
     var editorStickyOnClass = 'tox-tinymce--toolbar-sticky-on';
     var editorStickyOffClass = 'tox-tinymce--toolbar-sticky-off';
-    var updateContentFlow = function (header) {
+    var scrollFromBehindHeader = function (e, containerHeader) {
+      var doc = owner(containerHeader);
+      var viewHeight = doc.dom().defaultView.innerHeight;
+      var scrollPos = get$8(doc);
+      var markerElement = Element.fromDom(e.elm);
+      var markerPos = absolute$1(markerElement);
+      var markerHeight = get$6(markerElement);
+      var markerTop = markerPos.y;
+      var markerBottom = markerTop + markerHeight;
+      var editorHeaderPos = absolute(containerHeader);
+      var editorHeaderHeight = get$6(containerHeader);
+      var editorHeaderTop = editorHeaderPos.top();
+      var editorHeaderBottom = editorHeaderTop + editorHeaderHeight;
+      var editorHeaderDockedAtTop = Math.abs(editorHeaderTop - scrollPos.top()) < 2;
+      var editorHeaderDockedAtBottom = Math.abs(editorHeaderBottom - (scrollPos.top() + viewHeight)) < 2;
+      if (editorHeaderDockedAtTop && markerTop < editorHeaderBottom) {
+        to(scrollPos.left(), markerTop - editorHeaderHeight, doc);
+      } else if (editorHeaderDockedAtBottom && markerBottom > editorHeaderTop) {
+        var y = markerTop - viewHeight + markerHeight + editorHeaderHeight;
+        to(scrollPos.left(), y, doc);
+      }
+    };
+    var isDockedMode = function (header, mode) {
+      return contains(Docking.getModes(header), mode);
+    };
+    var updateIframeContentFlow = function (header) {
+      var getOccupiedHeight = function (elm) {
+        return getOuter$1(elm) + (parseInt(get$4(elm, 'margin-top'), 10) || 0) + (parseInt(get$4(elm, 'margin-bottom'), 10) || 0);
+      };
       var elm = header.element();
       parent(elm).each(function (parentElem) {
+        var padding = 'padding-' + Docking.getModes(header)[0];
         if (Docking.isDocked(header)) {
           var parentWidth = get$7(parentElem);
           set$2(elm, 'width', parentWidth + 'px');
-          var headerHeight = getOuter$1(elm);
-          set$2(parentElem, 'padding-top', headerHeight + 'px');
+          set$2(parentElem, padding, getOccupiedHeight(elm) + 'px');
         } else {
           remove$6(elm, 'width');
-          remove$6(parentElem, 'padding-top');
+          remove$6(parentElem, padding);
         }
       });
     };
@@ -25459,9 +25606,9 @@
     var restoreFocus = function (headerElem, focusedElem) {
       var ownerDoc = owner(focusedElem);
       active(ownerDoc).filter(function (activeElm) {
-        return !eq(focusedElem, activeElm);
+        return !eq$1(focusedElem, activeElm);
       }).filter(function (activeElm) {
-        return eq(activeElm, Element.fromDom(ownerDoc.dom().body)) || contains$2(headerElem, activeElm);
+        return eq$1(activeElm, Element.fromDom(ownerDoc.dom().body)) || contains$2(headerElem, activeElm);
       }).each(function () {
         return focus$1(focusedElem);
       });
@@ -25473,15 +25620,34 @@
         });
       });
     };
-    var setup$4 = function (editor, lazyHeader) {
+    var setup$4 = function (editor, sharedBackstage, lazyHeader) {
       if (!editor.inline) {
-        editor.on('ResizeWindow ResizeEditor ResizeContent', function () {
-          lazyHeader().each(updateContentFlow);
+        if (!sharedBackstage.header.isPositionedAtTop()) {
+          editor.on('ResizeEditor', function () {
+            lazyHeader().each(Docking.reset);
+          });
+        }
+        editor.on('ResizeWindow ResizeEditor', function () {
+          lazyHeader().each(updateIframeContentFlow);
         });
         editor.on('SkinLoaded', function () {
+          lazyHeader().each(function (comp) {
+            Docking.isDocked(comp) ? Docking.reset(comp) : Docking.refresh(comp);
+          });
+        });
+        editor.on('FullscreenStateChanged', function () {
           lazyHeader().each(Docking.reset);
         });
       }
+      editor.on('AfterScrollIntoView', function (e) {
+        lazyHeader().each(function (header) {
+          Docking.refresh(header);
+          var headerElem = header.element();
+          if (isVisible(headerElem)) {
+            scrollFromBehindHeader(e, headerElem);
+          }
+        });
+      });
       editor.on('PostRender', function () {
         updateEditorClasses(editor, false);
       });
@@ -25489,9 +25655,13 @@
     var isDocked$1 = function (lazyHeader) {
       return lazyHeader().map(Docking.isDocked).getOr(false);
     };
-    var getBehaviours$2 = function (editor, lazySink) {
+    var getIframeBehaviours = function () {
       var _a;
+      return [Receiving.config({ channels: (_a = {}, _a[toolbarHeightChange()] = { onReceive: updateIframeContentFlow }, _a) })];
+    };
+    var getBehaviours$2 = function (editor, sharedBackstage) {
       var focusedElm = Cell(Option.none());
+      var lazySink = sharedBackstage.getSink;
       var runOnSinkElement = function (f) {
         lazySink().each(function (sink) {
           return f(sink.element());
@@ -25499,7 +25669,7 @@
       };
       var onDockingSwitch = function (comp) {
         if (!editor.inline) {
-          updateContentFlow(comp);
+          updateIframeContentFlow(comp);
         }
         updateEditorClasses(editor, Docking.isDocked(comp));
         comp.getSystem().broadcastOn([repositionPopups()], {});
@@ -25507,18 +25677,18 @@
           return sink.getSystem().broadcastOn([repositionPopups()], {});
         });
       };
-      return [
+      var additionalBehaviours = editor.inline ? [] : getIframeBehaviours();
+      return __spreadArrays([
+        Focusing.config({}),
         Docking.config({
-          leftAttr: 'data-dock-left',
-          topAttr: 'data-dock-top',
-          positionAttr: 'data-dock-pos',
           contextual: __assign({
             lazyContext: function (comp) {
               var headerHeight = getOuter$1(comp.element());
               var container = editor.inline ? editor.getContentAreaContainer() : editor.getContainer();
               var box$1 = box(Element.fromDom(container));
-              var boxHeight = box$1.height() - headerHeight;
-              return Option.some(bounds$1(box$1.x(), box$1.y(), box$1.width(), boxHeight));
+              var boxHeight = box$1.height - headerHeight;
+              var topBound = box$1.y + (isDockedMode(comp, 'top') ? 0 : headerHeight);
+              return Option.some(bounds$1(box$1.x, topBound, box$1.width, boxHeight));
             },
             onShow: function () {
               runOnSinkElement(function (elem) {
@@ -25549,22 +25719,15 @@
               });
             }
           }, visibility),
-          modes: ['top'],
+          modes: [sharedBackstage.header.getDockingMode()],
           onDocked: onDockingSwitch,
           onUndocked: onDockingSwitch
-        }),
-        Focusing.config({}),
-        Receiving.config({
-          channels: (_a = {}, _a[toolbarHeightChange()] = {
-            onReceive: function (comp) {
-              updateContentFlow(comp);
-            }
-          }, _a)
         })
-      ];
+      ], additionalBehaviours);
     };
 
     var StickyHeader = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         setup: setup$4,
         isDocked: isDocked$1,
         getBehaviours: getBehaviours$2
@@ -25575,6 +25738,7 @@
     var getBehaviours$3 = constant([]);
 
     var StaticHeader = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         setup: setup$5,
         isDocked: isDocked$2,
         getBehaviours: getBehaviours$3
@@ -25587,11 +25751,11 @@
         uid: spec.uid,
         dom: spec.dom,
         components: spec.components,
-        behaviours: derive$1(getBehaviours(editor, spec.getSink))
+        behaviours: derive$1(getBehaviours(editor, spec.sharedBackstage))
       };
     };
 
-    var factory$f = function (detail, spec) {
+    var factory$g = function (detail, spec) {
       var setMenus = function (comp, menus) {
         var newMenus = map(menus, function (m) {
           var buttonSpec = {
@@ -25625,7 +25789,7 @@
             run(mouseover(), function (comp, se) {
               descendant$1(comp.element(), '.' + 'tox-mbtn--active').each(function (activeButton) {
                 closest$3(se.event().target(), '.' + 'tox-mbtn').each(function (hoveredButton) {
-                  if (!eq(activeButton, hoveredButton)) {
+                  if (!eq$1(activeButton, hoveredButton)) {
                     comp.getSystem().getByDom(activeButton).each(function (activeComp) {
                       comp.getSystem().getByDom(hoveredButton).each(function (hoveredComp) {
                         Dropdown.expand(hoveredComp);
@@ -25667,7 +25831,7 @@
       };
     };
     var SilverMenubar = single$2({
-      factory: factory$f,
+      factory: factory$g,
       name: 'silver.Menubar',
       configFields: [
         strict$1('dom'),
@@ -25687,7 +25851,7 @@
     });
 
     var owner$4 = 'container';
-    var schema$r = [field$1('slotBehaviours', [])];
+    var schema$s = [field$1('slotBehaviours', [])];
     var getPartName$1 = function (name) {
       return '<alloy.field.' + name + '>';
     };
@@ -25713,9 +25877,9 @@
           pname: getPartName$1(n)
         });
       });
-      return composite(owner$4, schema$r, fieldParts, make$7, spec);
+      return composite(owner$4, schema$s, fieldParts, make$7, spec);
     };
-    var make$7 = function (detail, components, spec) {
+    var make$7 = function (detail, components) {
       var getSlotNames = function (_) {
         return getAllPartNames(detail);
       };
@@ -25723,9 +25887,6 @@
         return getPart(container, detail, key);
       };
       var onSlot = function (f, def) {
-        if (def === void 0) {
-          def = undefined;
-        }
         return function (container, key) {
           return getPart(container, detail, key).map(function (slot) {
             return f(slot, key);
@@ -25739,7 +25900,7 @@
           });
         };
       };
-      var doShowing = function (comp, key) {
+      var doShowing = function (comp, _key) {
         return get$2(comp.element(), 'aria-hidden') !== 'true';
       };
       var doShow = function (comp, key) {
@@ -25783,7 +25944,7 @@
         uid: detail.uid,
         dom: detail.dom,
         components: components,
-        behaviours: get$b(detail.slotBehaviours),
+        behaviours: get$c(detail.slotBehaviours),
         apis: apis
       };
     };
@@ -25806,7 +25967,9 @@
       showSlot: function (apis, c, key) {
         return apis.showSlot(c, key);
       }
-    }, makeApi);
+    }, function (value) {
+      return makeApi(value);
+    });
     var SlotContainer = __assign(__assign({}, slotApis), { sketch: sketch$2 });
 
     var sidebarSchema = objOf([
@@ -26002,12 +26165,39 @@
             run(fixSize, function (comp, se) {
               set$2(comp.element(), 'width', se.event().width());
             }),
-            run(autoSize, function (comp, se) {
+            run(autoSize, function (comp, _se) {
               remove$6(comp.element(), 'width');
             })
           ])
         ])
       };
+    };
+
+    var getAttrs = function (elem) {
+      var attributes = elem.dom().attributes !== undefined ? elem.dom().attributes : [];
+      return foldl(attributes, function (b, attr) {
+        var _a;
+        if (attr.name === 'class') {
+          return b;
+        } else {
+          return __assign(__assign({}, b), (_a = {}, _a[attr.name] = attr.value, _a));
+        }
+      }, {});
+    };
+    var getClasses = function (elem) {
+      return Array.prototype.slice.call(elem.dom().classList, 0);
+    };
+    var fromHtml$2 = function (html) {
+      var elem = Element.fromHtml(html);
+      var children$1 = children(elem);
+      var attrs = getAttrs(elem);
+      var classes = getClasses(elem);
+      var contents = children$1.length === 0 ? {} : { innerHtml: get$1(elem) };
+      return __assign({
+        tag: name(elem),
+        classes: classes,
+        attributes: attrs
+      }, contents);
     };
 
     var renderSpinner = function (providerBackstage) {
@@ -26080,7 +26270,7 @@
       });
     };
 
-    var factory$g = function (detail, components, spec) {
+    var factory$h = function (detail, components, _spec) {
       var apis = {
         getSocket: function (comp) {
           return parts$d.getPart(comp, detail, 'socket');
@@ -26120,12 +26310,6 @@
             return toolbar.getApis().refresh(toolbar);
           });
         },
-        getMoreButton: function (comp) {
-          var toolbar = parts$d.getPart(comp, detail, 'toolbar');
-          return toolbar.bind(function (toolbar) {
-            return toolbar.getApis().getMoreButton(toolbar);
-          });
-        },
         getThrobber: function (comp) {
           return parts$d.getPart(comp, detail, 'throbber');
         },
@@ -26162,9 +26346,9 @@
       schema: [strict$1('backstage')]
     });
     var toolbarFactory = function (spec) {
-      if (spec.split === ToolbarDrawer.sliding) {
+      if (spec.type === ToolbarMode.sliding) {
         return renderSlidingMoreToolbar;
-      } else if (spec.split === ToolbarDrawer.floating) {
+      } else if (spec.type === ToolbarMode.floating) {
         return renderFloatingMoreToolbar;
       } else {
         return renderToolbar;
@@ -26182,17 +26366,17 @@
               })]),
             makeItem: function () {
               return renderToolbar({
+                type: spec.type,
                 uid: generate$1('multiple-toolbar-item'),
-                backstage: spec.backstage,
                 cyclicKeying: false,
-                getSink: spec.getSink,
                 initGroups: [],
+                providers: spec.providers,
                 onEscape: function () {
                   return Option.none();
                 }
               });
             },
-            setupItem: function (mToolbar, tc, data, index) {
+            setupItem: function (_mToolbar, tc, data, _index) {
               Toolbar.setGroups(tc, data);
             },
             shell: true
@@ -26210,6 +26394,7 @@
         sketch: function (spec) {
           var renderer = toolbarFactory(spec);
           var toolbarSpec = {
+            type: spec.type,
             uid: spec.uid,
             onEscape: function () {
               spec.onEscape();
@@ -26218,12 +26403,13 @@
             cyclicKeying: false,
             initGroups: [],
             getSink: spec.getSink,
-            backstage: spec.backstage,
+            providers: spec.providers,
             moreDrawerData: {
               lazyToolbar: spec.lazyToolbar,
               lazyMoreButton: spec.lazyMoreButton,
               lazyHeader: spec.lazyHeader
-            }
+            },
+            attributes: spec.attributes
           };
           return renderer(toolbarSpec);
         }
@@ -26256,7 +26442,7 @@
     });
     var OuterContainer = composite$1({
       name: 'OuterContainer',
-      factory: factory$g,
+      factory: factory$h,
       configFields: [
         strict$1('dom'),
         strict$1('behaviours')
@@ -26300,9 +26486,6 @@
             return map(g, renderToolbarGroup);
           });
           apis.setToolbars(comp, renderedToolbars);
-        },
-        getMoreButton: function (apis, comp) {
-          return apis.getMoreButton(comp);
         },
         refreshToolbar: function (apis, comp) {
           return apis.refreshToolbar(comp);
@@ -26350,7 +26533,7 @@
       },
       table: {
         title: 'Table',
-        items: 'inserttable tableprops deletetable row column cell'
+        items: 'inserttable | cell row column | advtablesort | tableprops deletetable'
       },
       help: {
         title: 'Help',
@@ -26388,7 +26571,7 @@
       return items;
     };
     var identifyMenus = function (editor, registry) {
-      var rawMenuData = merge(defaultMenus, registry.menus);
+      var rawMenuData = __assign(__assign({}, defaultMenus), registry.menus);
       var userDefinedMenus = keys(registry.menus).length > 0;
       var menubar = registry.menubar === undefined || registry.menubar === true ? parseItemsString(defaultMenubar) : parseItemsString(registry.menubar === false ? '' : registry.menubar);
       var validMenus = filter(menubar, function (menuName) {
@@ -26412,7 +26595,7 @@
     var fireSkinLoaded$1 = function (editor) {
       var done = function () {
         editor._skinLoaded = true;
-        Events.fireSkinLoaded(editor);
+        fireSkinLoaded(editor);
       };
       return function () {
         if (editor.initialized) {
@@ -26422,7 +26605,11 @@
         }
       };
     };
-    var SkinLoaded = { fireSkinLoaded: fireSkinLoaded$1 };
+    var fireSkinLoadError$1 = function (editor, err) {
+      return function () {
+        return fireSkinLoadError(editor, { message: err });
+      };
+    };
 
     var loadSkin = function (isInline, editor) {
       var skinUrl = getSkinUrl(editor);
@@ -26432,9 +26619,9 @@
         editor.contentCSS.push(skinUrl + (isInline ? '/content.inline' : '/content') + '.min.css');
       }
       if (isSkinDisabled(editor) === false && skinUiCss) {
-        global$7.DOM.styleSheetLoader.load(skinUiCss, SkinLoaded.fireSkinLoaded(editor));
+        global$7.DOM.styleSheetLoader.load(skinUiCss, fireSkinLoaded$1(editor), fireSkinLoadError$1(editor, 'Skin could not be loaded'));
       } else {
-        SkinLoaded.fireSkinLoaded(editor)();
+        fireSkinLoaded$1(editor)();
       }
     };
     var iframe = curry(loadSkin, false);
@@ -26448,7 +26635,8 @@
         var toolbars = toolbarConfig.map(function (t) {
           var config = {
             toolbar: t,
-            buttons: toolbarButtonsConfig
+            buttons: toolbarButtonsConfig,
+            allowToolbarGroups: rawUiConfig.allowToolbarGroups
           };
           return identifyButtons(editor, config, { backstage: backstage }, Option.none());
         });
@@ -26466,27 +26654,31 @@
       var initialDocEle = editor.getDoc().documentElement;
       var lastWindowDimensions = Cell(Position(contentWindow.innerWidth, contentWindow.innerHeight));
       var lastDocumentDimensions = Cell(Position(initialDocEle.offsetWidth, initialDocEle.offsetHeight));
-      var resize = function (e) {
-        var docEle = editor.getDoc().documentElement;
+      var resizeWindow = function (e) {
         var outer = lastWindowDimensions.get();
-        var inner = lastDocumentDimensions.get();
         if (outer.left() !== contentWindow.innerWidth || outer.top() !== contentWindow.innerHeight) {
           lastWindowDimensions.set(Position(contentWindow.innerWidth, contentWindow.innerHeight));
-          Events.fireResizeContent(editor, e);
-        } else if (inner.left() !== docEle.offsetWidth || inner.top() !== docEle.offsetHeight) {
+          fireResizeContent(editor, e);
+        }
+      };
+      var resizeDocument = function (e) {
+        var docEle = editor.getDoc().documentElement;
+        var inner = lastDocumentDimensions.get();
+        if (inner.left() !== docEle.offsetWidth || inner.top() !== docEle.offsetHeight) {
           lastDocumentDimensions.set(Position(docEle.offsetWidth, docEle.offsetHeight));
-          Events.fireResizeContent(editor, e);
+          fireResizeContent(editor, e);
         }
       };
       var scroll = function (e) {
-        return Events.fireScrollContent(editor, e);
+        return fireScrollContent(editor, e);
       };
-      DOM.bind(contentWindow, 'resize', resize);
+      DOM.bind(contentWindow, 'resize', resizeWindow);
       DOM.bind(contentWindow, 'scroll', scroll);
-      var elementLoad = capture$1(Element.fromDom(editor.getBody()), 'load', resize);
+      var elementLoad = capture$1(Element.fromDom(editor.getBody()), 'load', resizeDocument);
+      editor.on('NodeChange', resizeDocument);
       editor.on('remove', function () {
         elementLoad.unbind();
-        DOM.unbind(contentWindow, 'resize', resize);
+        DOM.unbind(contentWindow, 'resize', resizeWindow);
         DOM.unbind(contentWindow, 'scroll', scroll);
       });
     };
@@ -26508,7 +26700,7 @@
           'overflow': 'scroll',
           '-webkit-overflow-scrolling': 'touch'
         });
-        var limit = first$1(function () {
+        var limit = first(function () {
           editor.fire('ScrollContent');
         }, 20);
         bind$3(socket.element(), 'scroll', limit.throttle);
@@ -26521,11 +26713,11 @@
       editor.addQueryValueHandler('ToggleSidebar', function () {
         return OuterContainer.whichSidebar(uiComponents.outerContainer);
       });
-      var drawer = getToolbarDrawer(editor);
+      var toolbarMode = getToolbarMode(editor);
       var refreshDrawer = function () {
         OuterContainer.refreshToolbar(uiComponents.outerContainer);
       };
-      if (drawer === ToolbarDrawer.sliding || drawer === ToolbarDrawer.floating) {
+      if (toolbarMode === ToolbarMode.sliding || toolbarMode === ToolbarMode.floating) {
         editor.on('ResizeWindow ResizeEditor ResizeContent', function () {
           var width = editor.getWin().innerWidth;
           if (width !== lastToolbarWidth.get()) {
@@ -26539,91 +26731,333 @@
         editorContainer: uiComponents.outerContainer.element().dom()
       };
     };
-    var Iframe = { render: render };
 
-    var render$1 = function (editor, uiComponents, rawUiConfig, backstage, args) {
-      var floatContainer;
+    var Iframe = /*#__PURE__*/Object.freeze({
+        __proto__: null,
+        render: render
+    });
+
+    var revocable = function (doRevoke) {
+      var subject = Cell(Option.none());
+      var revoke = function () {
+        subject.get().each(doRevoke);
+      };
+      var clear = function () {
+        revoke();
+        subject.set(Option.none());
+      };
+      var set = function (s) {
+        revoke();
+        subject.set(Option.some(s));
+      };
+      var isSet = function () {
+        return subject.get().isSome();
+      };
+      return {
+        clear: clear,
+        isSet: isSet,
+        set: set
+      };
+    };
+    var unbindable = function () {
+      return revocable(function (s) {
+        s.unbind();
+      });
+    };
+    var value$3 = function () {
+      var subject = Cell(Option.none());
+      var clear = function () {
+        subject.set(Option.none());
+      };
+      var set = function (s) {
+        subject.set(Option.some(s));
+      };
+      var on = function (f) {
+        subject.get().each(f);
+      };
+      var isSet = function () {
+        return subject.get().isSome();
+      };
+      return {
+        clear: clear,
+        set: set,
+        isSet: isSet,
+        on: on
+      };
+    };
+
+    var parseToInt = function (val) {
+      var re = /^[0-9\.]+(|px)$/i;
+      if (re.test('' + val)) {
+        return Option.some(parseInt('' + val, 10));
+      }
+      return Option.none();
+    };
+    var numToPx = function (val) {
+      return isNumber(val) ? val + 'px' : val;
+    };
+    var calcCappedSize = function (size, minSize, maxSize) {
+      var minOverride = minSize.filter(function (min) {
+        return size < min;
+      });
+      var maxOverride = maxSize.filter(function (max) {
+        return size > max;
+      });
+      return minOverride.or(maxOverride).getOr(size);
+    };
+
+    var getHeight$1 = function (editor) {
+      var baseHeight = getHeightSetting(editor);
+      var minHeight = getMinHeightSetting(editor);
+      var maxHeight = getMaxHeightSetting(editor);
+      return parseToInt(baseHeight).map(function (height) {
+        return calcCappedSize(height, minHeight, maxHeight);
+      });
+    };
+    var getHeightWithFallback = function (editor) {
+      var height = getHeight$1(editor);
+      return height.getOr(getHeightSetting(editor));
+    };
+    var getWidth$1 = function (editor) {
+      var baseWidth = getWidthSetting(editor);
+      var minWidth = getMinWidthSetting(editor);
+      var maxWidth = getMaxWidthSetting(editor);
+      return parseToInt(baseWidth).map(function (width) {
+        return calcCappedSize(width, minWidth, maxWidth);
+      });
+    };
+    var getWidthWithFallback = function (editor) {
+      var width = getWidth$1(editor);
+      return width.getOr(getWidthSetting(editor));
+    };
+
+    var InlineHeader = function (editor, targetElm, uiComponents, backstage, floatContainer) {
+      var uiMothership = uiComponents.uiMothership, outerContainer = uiComponents.outerContainer;
       var DOM = global$7.DOM;
       var useFixedToolbarContainer = useFixedContainer(editor);
       var isSticky = isStickyToolbar(editor);
-      var targetElm = Element.fromDom(args.targetNode);
-      var splitSetting = getToolbarDrawer(editor);
-      var split = splitSetting === ToolbarDrawer.sliding || splitSetting === ToolbarDrawer.floating;
-      inline(editor);
-      var updateChromePosition = function (toolbar) {
-        var offset = split ? toolbar.fold(function () {
+      var editorMaxWidthOpt = getMaxWidthSetting(editor).or(getWidth$1(editor));
+      var headerBackstage = backstage.shared.header;
+      var isPositionedAtTop = headerBackstage.isPositionedAtTop;
+      var toolbarMode = getToolbarMode(editor);
+      var isSplitToolbar = toolbarMode === ToolbarMode.sliding || toolbarMode === ToolbarMode.floating;
+      var visible = Cell(false);
+      var isVisible = function () {
+        return visible.get() && !editor.removed;
+      };
+      var calcToolbarOffset = function (toolbar) {
+        return isSplitToolbar ? toolbar.fold(function () {
           return 0;
         }, function (tbar) {
           return tbar.components().length > 1 ? get$6(tbar.components()[1].element()) : 0;
         }) : 0;
-        var location = absolute(targetElm);
-        var top = location.top() - get$6(floatContainer.element()) + offset;
-        setAll$1(uiComponents.outerContainer.element(), {
+      };
+      var calcMode = function (container) {
+        switch (getToolbarLocation(editor)) {
+        case ToolbarLocation.auto:
+          var toolbar_1 = OuterContainer.getToolbar(outerContainer);
+          var offset = calcToolbarOffset(toolbar_1);
+          var toolbarHeight = get$6(container.element()) - offset;
+          var targetBounds = box(targetElm);
+          var roomAtTop = targetBounds.y > toolbarHeight;
+          if (roomAtTop) {
+            return 'top';
+          } else {
+            var doc = documentElement(targetElm);
+            var docHeight = Math.max(doc.dom().scrollHeight, get$6(doc));
+            var roomAtBottom = targetBounds.bottom < docHeight - toolbarHeight;
+            if (roomAtBottom) {
+              return 'bottom';
+            } else {
+              var winBounds = win();
+              var isRoomAtBottomViewport = winBounds.bottom < targetBounds.bottom - toolbarHeight;
+              return isRoomAtBottomViewport ? 'bottom' : 'top';
+            }
+          }
+        case ToolbarLocation.bottom:
+          return 'bottom';
+        case ToolbarLocation.top:
+        default:
+          return 'top';
+        }
+      };
+      var setupMode = function (mode) {
+        var container = floatContainer.get();
+        Docking.setModes(container, [mode]);
+        headerBackstage.setDockingMode(mode);
+        var verticalDir = isPositionedAtTop() ? AttributeValue.TopToBottom : AttributeValue.BottomToTop;
+        set$1(container.element(), Attribute, verticalDir);
+      };
+      var updateChromeWidth = function () {
+        var maxWidth = editorMaxWidthOpt.getOrThunk(function () {
+          var bodyMargin = parseToInt(get$4(body(), 'margin-left')).getOr(0);
+          return get$7(body()) - absolute(targetElm).left() + bodyMargin;
+        });
+        set$2(floatContainer.get().element(), 'max-width', maxWidth + 'px');
+      };
+      var updateChromePosition = function () {
+        var toolbar = OuterContainer.getToolbar(outerContainer);
+        var offset = calcToolbarOffset(toolbar);
+        var targetBounds = box(targetElm);
+        var top = isPositionedAtTop() ? Math.max(targetBounds.y - get$6(floatContainer.get().element()) + offset, 0) : targetBounds.bottom;
+        setAll$1(outerContainer.element(), {
           position: 'absolute',
           top: Math.round(top) + 'px',
-          left: Math.round(location.left()) + 'px'
+          left: Math.round(targetBounds.x) + 'px'
         });
+      };
+      var repositionPopups$1 = function () {
+        uiMothership.broadcastOn([repositionPopups()], {});
       };
       var updateChromeUi = function (resetDocking) {
         if (resetDocking === void 0) {
           resetDocking = false;
         }
-        if (split) {
-          OuterContainer.refreshToolbar(uiComponents.outerContainer);
+        if (!isVisible()) {
+          return;
         }
         if (!useFixedToolbarContainer) {
-          var toolbar = OuterContainer.getToolbar(uiComponents.outerContainer);
-          updateChromePosition(toolbar);
+          updateChromeWidth();
+        }
+        if (isSplitToolbar) {
+          OuterContainer.refreshToolbar(outerContainer);
+        }
+        if (!useFixedToolbarContainer) {
+          updateChromePosition();
         }
         if (isSticky) {
-          resetDocking ? Docking.reset(floatContainer) : Docking.refresh(floatContainer);
+          var floatContainerComp = floatContainer.get();
+          resetDocking ? Docking.reset(floatContainerComp) : Docking.refresh(floatContainerComp);
+        }
+        repositionPopups$1();
+      };
+      var updateMode = function (updateUi) {
+        if (updateUi === void 0) {
+          updateUi = true;
+        }
+        if (useFixedToolbarContainer || !isSticky || !isVisible()) {
+          return;
+        }
+        var currentMode = headerBackstage.getDockingMode();
+        var newMode = calcMode(floatContainer.get());
+        if (newMode !== currentMode) {
+          setupMode(newMode);
+          if (updateUi) {
+            updateChromeUi(true);
+          }
         }
       };
       var show = function () {
-        set$2(uiComponents.outerContainer.element(), 'display', 'flex');
+        visible.set(true);
+        set$2(outerContainer.element(), 'display', 'flex');
         DOM.addClass(editor.getBody(), 'mce-edit-focus');
-        remove$6(uiComponents.uiMothership.element(), 'display');
+        remove$6(uiMothership.element(), 'display');
+        updateMode(false);
         updateChromeUi();
       };
       var hide = function () {
+        visible.set(false);
         if (uiComponents.outerContainer) {
-          set$2(uiComponents.outerContainer.element(), 'display', 'none');
+          set$2(outerContainer.element(), 'display', 'none');
           DOM.removeClass(editor.getBody(), 'mce-edit-focus');
         }
-        set$2(uiComponents.uiMothership.element(), 'display', 'none');
+        set$2(uiMothership.element(), 'display', 'none');
       };
+      return {
+        isVisible: isVisible,
+        isPositionedAtTop: isPositionedAtTop,
+        show: show,
+        hide: hide,
+        update: updateChromeUi,
+        updateMode: updateMode,
+        repositionPopups: repositionPopups$1
+      };
+    };
+
+    var getTargetPosAndBounds = function (targetElm, isToolbarTop) {
+      var bounds = box(targetElm);
+      return {
+        pos: isToolbarTop ? bounds.y : bounds.bottom,
+        bounds: bounds
+      };
+    };
+    var setupEvents$1 = function (editor, targetElm, ui) {
+      var prevPosAndBounds = Cell(getTargetPosAndBounds(targetElm, ui.isPositionedAtTop()));
+      var resizeContent = function (e) {
+        var _a = getTargetPosAndBounds(targetElm, ui.isPositionedAtTop()), pos = _a.pos, bounds = _a.bounds;
+        var _b = prevPosAndBounds.get(), prevPos = _b.pos, prevBounds = _b.bounds;
+        var hasResized = bounds.height !== prevBounds.height || bounds.width !== prevBounds.width;
+        prevPosAndBounds.set({
+          pos: pos,
+          bounds: bounds
+        });
+        if (hasResized) {
+          fireResizeContent(editor, e);
+        }
+        if (ui.isVisible()) {
+          if (prevPos !== pos) {
+            ui.update(true);
+          } else if (hasResized) {
+            ui.updateMode();
+            ui.repositionPopups();
+          }
+        }
+      };
+      editor.on('activate', ui.show);
+      editor.on('deactivate', ui.hide);
+      editor.on('SkinLoaded ResizeWindow', function () {
+        return ui.update(true);
+      });
+      editor.on('NodeChange keydown', function (e) {
+        global$2.requestAnimationFrame(function () {
+          return resizeContent(e);
+        });
+      });
+      editor.on('ScrollWindow', function () {
+        return ui.updateMode();
+      });
+      var elementLoad = unbindable();
+      elementLoad.set(capture$1(Element.fromDom(editor.getBody()), 'load', resizeContent));
+      editor.on('remove', function () {
+        elementLoad.clear();
+      });
+    };
+    var render$1 = function (editor, uiComponents, rawUiConfig, backstage, args) {
+      var mothership = uiComponents.mothership, uiMothership = uiComponents.uiMothership, outerContainer = uiComponents.outerContainer;
+      var floatContainer = Cell(null);
+      var targetElm = Element.fromDom(args.targetNode);
+      var ui = InlineHeader(editor, targetElm, uiComponents, backstage, floatContainer);
+      inline(editor);
       var render = function () {
-        if (floatContainer) {
-          show();
+        if (floatContainer.get()) {
+          ui.show();
           return;
         }
-        floatContainer = OuterContainer.getHeader(uiComponents.outerContainer).getOrDie();
+        floatContainer.set(OuterContainer.getHeader(outerContainer).getOrDie());
         var uiContainer = getUiContainer(editor);
-        attachSystem(uiContainer, uiComponents.mothership);
-        attachSystem(uiContainer, uiComponents.uiMothership);
+        attachSystem(uiContainer, mothership);
+        attachSystem(uiContainer, uiMothership);
         setToolbar(editor, uiComponents, rawUiConfig, backstage);
-        OuterContainer.setMenubar(uiComponents.outerContainer, identifyMenus(editor, rawUiConfig));
-        show();
-        editor.on('activate', show);
-        editor.on('deactivate', hide);
-        editor.on('NodeChange SkinLoaded ResizeWindow', function () {
-          if (!editor.hidden) {
-            updateChromeUi(true);
-          }
-        });
+        OuterContainer.setMenubar(outerContainer, identifyMenus(editor, rawUiConfig));
+        ui.show();
+        setupEvents$1(editor, targetElm, ui);
         editor.nodeChanged();
       };
       editor.on('focus', render);
-      editor.on('blur hide', hide);
+      editor.on('blur hide', ui.hide);
       editor.on('init', function () {
         if (editor.hasFocus()) {
           render();
         }
       });
       setupReadonlyModeSwitch(editor, uiComponents);
-      return { editorContainer: uiComponents.outerContainer.element().dom() };
+      return { editorContainer: outerContainer.element().dom() };
     };
-    var Inline = { render: render$1 };
+
+    var Inline = /*#__PURE__*/Object.freeze({
+        __proto__: null,
+        render: render$1
+    });
 
     var register$5 = function (editor) {
       var alignToolbarButtons = [
@@ -26676,7 +27110,6 @@
         icon: alignNoneToolbarButton.icon
       });
     };
-    var AlignmentButtons = { register: register$5 };
 
     var toggleFormat = function (editor, fmt) {
       return function () {
@@ -26715,7 +27148,7 @@
           text: 'Superscript',
           icon: 'superscript'
         }
-      ], function (btn, idx) {
+      ], function (btn, _idx) {
         editor.ui.registry.addToggleButton(btn.name, {
           tooltip: btn.text,
           icon: btn.icon,
@@ -26724,12 +27157,12 @@
         });
       });
       for (var i = 1; i <= 6; i++) {
-        var name = 'h' + i;
-        editor.ui.registry.addToggleButton(name, {
-          text: name.toUpperCase(),
+        var name_1 = 'h' + i;
+        editor.ui.registry.addToggleButton(name_1, {
+          text: name_1.toUpperCase(),
           tooltip: 'Heading ' + i,
-          onSetup: onSetupFormatToggle(editor, name),
-          onAction: toggleFormat(editor, name)
+          onSetup: onSetupFormatToggle(editor, name_1),
+          onAction: toggleFormat(editor, name_1)
         });
       }
     };
@@ -26921,14 +27354,13 @@
       registerButtons(editor);
       registerMenuItems(editor);
     };
-    var SimpleControls = { register: register$6 };
 
     var toggleUndoRedoState = function (api, editor, type) {
       var checkState = function () {
         return editor.undoManager ? editor.undoManager[type]() : false;
       };
       var onUndoStateChange = function () {
-        api.setDisabled(editor.readonly || !checkState());
+        api.setDisabled(editor.mode.isReadOnly() || !checkState());
       };
       api.setDisabled(!checkState());
       editor.on('Undo Redo AddUndo TypingUndo ClearUndos SwitchMode', onUndoStateChange);
@@ -26986,7 +27418,6 @@
       registerMenuItems$1(editor);
       registerButtons$1(editor);
     };
-    var UndoRedo = { register: register$7 };
 
     var toggleVisualAidState = function (api, editor) {
       api.setActive(editor.hasVisual);
@@ -27022,7 +27453,6 @@
       registerToolbarButton(editor);
       registerMenuItems$2(editor);
     };
-    var VisualAid = { register: register$8 };
 
     var toggleOutdentState = function (api, editor) {
       api.setDisabled(!editor.queryCommandState('outdent'));
@@ -27056,7 +27486,6 @@
     var register$9 = function (editor) {
       registerButtons$2(editor);
     };
-    var IndentOutdent = { register: register$9 };
 
     var register$a = function (editor, backstage) {
       alignSelectMenu(editor, backstage);
@@ -27065,18 +27494,16 @@
       formatSelectMenu(editor, backstage);
       fontsizeSelectMenu(editor, backstage);
     };
-    var ComplexControls = { register: register$a };
 
     var setup$8 = function (editor, backstage) {
-      AlignmentButtons.register(editor);
-      SimpleControls.register(editor);
-      ComplexControls.register(editor, backstage);
-      UndoRedo.register(editor);
-      ColorSwatch.register(editor);
-      VisualAid.register(editor);
-      IndentOutdent.register(editor);
+      register$5(editor);
+      register$6(editor);
+      register$a(editor, backstage);
+      register$7(editor);
+      register$1(editor);
+      register$8(editor);
+      register$9(editor);
     };
-    var FormatControls = { setup: setup$8 };
 
     var nu$d = function (x, y) {
       return {
@@ -27088,11 +27515,11 @@
     var transpose$1 = function (pos, dx, dy) {
       return nu$d(pos.x + dx, pos.y + dy);
     };
-    var isTouchEvent = function (e) {
+    var isTouchEvent$1 = function (e) {
       return e.type === 'longpress' || e.type.indexOf('touch') === 0;
     };
     var fromPageXY = function (e) {
-      if (isTouchEvent(e)) {
+      if (isTouchEvent$1(e)) {
         var touch = e.touches[0];
         return nu$d(touch.pageX, touch.pageY);
       } else {
@@ -27100,7 +27527,7 @@
       }
     };
     var fromClientXY = function (e) {
-      if (isTouchEvent(e)) {
+      if (isTouchEvent$1(e)) {
         var touch = e.touches[0];
         return nu$d(touch.clientX, touch.clientY);
       } else {
@@ -27112,7 +27539,7 @@
       return transpose$1(pos, containerPos.x, containerPos.y);
     };
     var getPointAnchor = function (editor, e) {
-      if (e.type === 'contextmenu') {
+      if (e.type === 'contextmenu' || e.type === 'longpress') {
         if (editor.inline) {
           return fromPageXY(e);
         } else {
@@ -27209,8 +27636,8 @@
         });
       }
     };
-    var getAnchorSpec$1 = function (editor, isTriggeredByKeyboardEvent) {
-      var anchorSpec = isTriggeredByKeyboardEvent ? getNodeAnchor$1(editor) : getSelectionAnchor(editor);
+    var getAnchorSpec$1 = function (editor, isTriggeredByKeyboardEvent, e) {
+      var anchorSpec = isTriggeredByKeyboardEvent ? getNodeAnchor$1(editor) : getPointAnchor(editor, e);
       return __assign({
         bubble: nu$8(0, bubbleSize$1, bubbleAlignments$2),
         layouts: layouts,
@@ -27244,17 +27671,19 @@
         editor.off('mousedown', preventMousedown);
       };
     };
-    var show = function (editor, e, items, backstage, contextmenu, isTriggeredByKeyboardEvent) {
-      var toolbarOrMenubarEnabled = isMenubarEnabled(editor) || isToolbarEnabled(editor) || isMultipleToolbars(editor);
-      var anchorSpec = getAnchorSpec$1(editor, isTriggeredByKeyboardEvent);
+    var show = function (editor, e, items, backstage, contextmenu, isTriggeredByKeyboardEvent, highlightImmediately) {
+      var anchorSpec = getAnchorSpec$1(editor, isTriggeredByKeyboardEvent, e);
       build$2(items, ItemResponse$1.CLOSE_ON_EXECUTE, backstage, true).map(function (menuData) {
         e.preventDefault();
         InlineView.showMenuWithinBounds(contextmenu, anchorSpec, {
-          menu: { markers: markers$1('normal') },
+          menu: {
+            markers: markers$1('normal'),
+            highlightImmediately: highlightImmediately
+          },
           data: menuData,
           type: 'horizontal'
         }, function () {
-          return getBounds$2(editor, toolbarOrMenubarEnabled);
+          return Option.some(getContextToolbarBounds(editor, backstage.shared));
         });
         editor.fire(hideContextToolbarEvent);
       });
@@ -27264,9 +27693,13 @@
       var isiOS = detection.os.isiOS();
       var isOSX = detection.os.isOSX();
       var isAndroid = detection.os.isAndroid();
+      var isTouch = detection.deviceType.isTouch();
+      var shouldHighlightImmediately = function () {
+        return !(isAndroid || isiOS || isOSX && isTouch);
+      };
       var open = function () {
         var items = buildMenu();
-        show(editor, e, items, backstage, contextmenu, isTriggeredByKeyboardEvent);
+        show(editor, e, items, backstage, contextmenu, isTriggeredByKeyboardEvent, shouldHighlightImmediately());
       };
       if ((isOSX || isiOS) && !isTriggeredByKeyboardEvent) {
         var openiOS_1 = function () {
@@ -27308,11 +27741,6 @@
     };
     var getContextMenu = function (editor) {
       return getMenuItems(editor, 'contextmenu', 'link linkchecker image imagetools table spellchecker configurepermanentpen');
-    };
-    var Settings$1 = {
-      shouldNeverUseNative: shouldNeverUseNative,
-      getContextMenu: getContextMenu,
-      isContextMenuDisabled: isContextMenuDisabled
     };
 
     var isSeparator$1 = function (item) {
@@ -27386,7 +27814,10 @@
       return sections;
     };
     var isNativeOverrideKeyEvent = function (editor, e) {
-      return e.ctrlKey && !Settings$1.shouldNeverUseNative(editor);
+      return e.ctrlKey && !shouldNeverUseNative(editor);
+    };
+    var isTriggeredByKeyboard = function (editor, e) {
+      return e.type !== 'longpress' && (e.button !== 2 || e.target === editor.getBody() && e.pointerType === '');
     };
     var setup$9 = function (editor, lazySink, backstage) {
       var detection = detect$3();
@@ -27404,7 +27835,7 @@
           return backstage.setContextMenuState(false);
         },
         fireDismissalEventInstead: {},
-        inlineBehaviours: derive$1([config('dismissContextMenu', [run(dismissRequested(), function (comp, se) {
+        inlineBehaviours: derive$1([config('dismissContextMenu', [run(dismissRequested(), function (comp, _se) {
               Sandboxing.close(comp);
               editor.focus();
             })])])
@@ -27413,78 +27844,148 @@
         return InlineView.hide(contextmenu);
       };
       var showContextMenu = function (e) {
-        var isLongpress = e.type === 'longpress';
-        if (Settings$1.shouldNeverUseNative(editor)) {
+        if (shouldNeverUseNative(editor)) {
           e.preventDefault();
         }
-        if (isNativeOverrideKeyEvent(editor, e) || Settings$1.isContextMenuDisabled(editor)) {
+        if (isNativeOverrideKeyEvent(editor, e) || isContextMenuDisabled(editor)) {
           return;
         }
-        var isTriggeredByKeyboardEvent = !isLongpress && (e.button !== 2 || e.target === editor.getBody());
+        var isTriggeredByKeyboardEvent = isTriggeredByKeyboard(editor, e);
         var buildMenu = function () {
           var selectedElement = isTriggeredByKeyboardEvent ? editor.selection.getStart(true) : e.target;
           var registry = editor.ui.registry.getAll();
-          var menuConfig = Settings$1.getContextMenu(editor);
+          var menuConfig = getContextMenu(editor);
           return generateContextMenu(registry.contextMenus, menuConfig, selectedElement);
         };
         var initAndShow$2 = isTouch() ? initAndShow$1 : initAndShow;
         initAndShow$2(editor, e, buildMenu, backstage, contextmenu, isTriggeredByKeyboardEvent);
       };
       editor.on('init', function () {
-        var hideEvents = 'ResizeEditor ScrollContent ScrollWindow longpresscancel' + (isTouch() ? '' : 'ResizeWindow');
+        var hideEvents = 'ResizeEditor ScrollContent ScrollWindow longpresscancel' + (isTouch() ? '' : ' ResizeWindow');
         editor.on(hideEvents, hideContextMenu);
-        editor.on(isTouch() ? 'longpress' : 'longpress contextmenu', showContextMenu);
+        editor.on('longpress contextmenu', showContextMenu);
       });
     };
 
-    var parseToInt = function (val) {
-      var re = /^[0-9\.]+(|px)$/i;
-      if (re.test('' + val)) {
-        return Option.some(parseInt(val, 10));
+    var adt$c = Adt.generate([
+      {
+        offset: [
+          'x',
+          'y'
+        ]
+      },
+      {
+        absolute: [
+          'x',
+          'y'
+        ]
+      },
+      {
+        fixed: [
+          'x',
+          'y'
+        ]
       }
-      return Option.none();
+    ]);
+    var subtract = function (change) {
+      return function (point) {
+        return point.translate(-change.left(), -change.top());
+      };
     };
-    var numToPx = function (val) {
-      return isNumber(val) ? val + 'px' : val;
+    var add$4 = function (change) {
+      return function (point) {
+        return point.translate(change.left(), change.top());
+      };
     };
-    var Utils = {
-      parseToInt: parseToInt,
-      numToPx: numToPx
+    var transform$1 = function (changes) {
+      return function (x, y) {
+        return foldl(changes, function (rest, f) {
+          return f(rest);
+        }, Position(x, y));
+      };
     };
-
-    var initialAttribute = 'data-initial-z-index';
-    var resetZIndex = function (blocker) {
-      parent(blocker.element()).filter(isElement).each(function (root) {
-        var initZIndex = get$2(root, initialAttribute);
-        if (has$1(root, initialAttribute)) {
-          set$2(root, 'z-index', initZIndex);
-        } else {
-          remove$6(root, 'z-index');
-        }
-        remove$1(root, initialAttribute);
+    var asFixed = function (coord, scroll, origin) {
+      return coord.fold(transform$1([
+        add$4(origin),
+        subtract(scroll)
+      ]), transform$1([subtract(scroll)]), transform$1([]));
+    };
+    var asAbsolute = function (coord, scroll, origin) {
+      return coord.fold(transform$1([add$4(origin)]), transform$1([]), transform$1([add$4(scroll)]));
+    };
+    var asOffset = function (coord, scroll, origin) {
+      return coord.fold(transform$1([]), transform$1([subtract(origin)]), transform$1([
+        add$4(scroll),
+        subtract(origin)
+      ]));
+    };
+    var withinRange = function (coord1, coord2, xRange, yRange, scroll, origin) {
+      var a1 = asAbsolute(coord1, scroll, origin);
+      var a2 = asAbsolute(coord2, scroll, origin);
+      return Math.abs(a1.left() - a2.left()) <= xRange && Math.abs(a1.top() - a2.top()) <= yRange;
+    };
+    var getDeltas = function (coord1, coord2, xRange, yRange, scroll, origin) {
+      var a1 = asAbsolute(coord1, scroll, origin);
+      var a2 = asAbsolute(coord2, scroll, origin);
+      var left = Math.abs(a1.left() - a2.left());
+      var top = Math.abs(a1.top() - a2.top());
+      return Position(left, top);
+    };
+    var toStyles = function (coord, scroll, origin) {
+      var stylesOpt = coord.fold(function (x, y) {
+        return {
+          position: Option.some('absolute'),
+          left: Option.some(x + 'px'),
+          top: Option.some(y + 'px')
+        };
+      }, function (x, y) {
+        return {
+          position: Option.some('absolute'),
+          left: Option.some(x - origin.left() + 'px'),
+          top: Option.some(y - origin.top() + 'px')
+        };
+      }, function (x, y) {
+        return {
+          position: Option.some('fixed'),
+          left: Option.some(x + 'px'),
+          top: Option.some(y + 'px')
+        };
+      });
+      return __assign({
+        right: Option.none(),
+        bottom: Option.none()
+      }, stylesOpt);
+    };
+    var translate$2 = function (coord, deltaX, deltaY) {
+      return coord.fold(function (x, y) {
+        return offset(x + deltaX, y + deltaY);
+      }, function (x, y) {
+        return absolute$3(x + deltaX, y + deltaY);
+      }, function (x, y) {
+        return fixed$1(x + deltaX, y + deltaY);
       });
     };
-    var changeZIndex = function (blocker) {
-      parent(blocker.element()).filter(isElement).each(function (root) {
-        getRaw(root, 'z-index').each(function (zindex) {
-          set$1(root, initialAttribute, zindex);
-        });
-        set$2(root, 'z-index', get$4(blocker.element(), 'z-index'));
-      });
+    var absorb = function (partialCoord, originalCoord, scroll, origin) {
+      var absorbOne = function (stencil, nu) {
+        return function (optX, optY) {
+          var original = stencil(originalCoord, scroll, origin);
+          return nu(optX.getOr(original.left()), optY.getOr(original.top()));
+        };
+      };
+      return partialCoord.fold(absorbOne(asOffset, offset), absorbOne(asAbsolute, absolute$3), absorbOne(asFixed, fixed$1));
     };
-    var instigate = function (anyComponent, blocker) {
-      anyComponent.getSystem().addToGui(blocker);
-      changeZIndex(blocker);
-    };
-    var discard = function (blocker) {
-      resetZIndex(blocker);
-      blocker.getSystem().removeFromGui(blocker);
-    };
+    var offset = adt$c.offset;
+    var absolute$3 = adt$c.absolute;
+    var fixed$1 = adt$c.fixed;
 
-    var get$d = function (component, snapsInfo) {
+    var parseAttrToInt = function (element, name) {
+      var value = get$2(element, name);
+      return isUndefined(value) ? NaN : parseInt(value, 10);
+    };
+    var get$e = function (component, snapsInfo) {
       var element = component.element();
-      var x = parseInt(get$2(element, snapsInfo.leftAttr), 10);
-      var y = parseInt(get$2(element, snapsInfo.topAttr), 10);
+      var x = parseAttrToInt(element, snapsInfo.leftAttr);
+      var y = parseAttrToInt(element, snapsInfo.topAttr);
       return isNaN(x) || isNaN(y) ? Option.none() : Option.some(Position(x, y));
     };
     var set$8 = function (component, snapsInfo, pt) {
@@ -27499,7 +28000,7 @@
     };
 
     var getCoords = function (component, snapInfo, coord, delta) {
-      return get$d(component, snapInfo).fold(function () {
+      return get$e(component, snapInfo).fold(function () {
         return coord;
       }, function (fixed) {
         return fixed$1(fixed.left() + delta.left(), fixed.top() + delta.top());
@@ -27517,8 +28018,8 @@
         };
       }, function (spanned) {
         return {
-          coord: spanned.output(),
-          extra: spanned.extra()
+          coord: spanned.output,
+          extra: spanned.extra
         };
       });
     };
@@ -27527,10 +28028,10 @@
     };
     var findMatchingSnap = function (snaps, newCoord, scroll, origin) {
       return findMap(snaps, function (snap) {
-        var sensor = snap.sensor();
-        var inRange = withinRange(newCoord, sensor, snap.range().left(), snap.range().top(), scroll, origin);
+        var sensor = snap.sensor;
+        var inRange = withinRange(newCoord, sensor, snap.range.left(), snap.range.top(), scroll, origin);
         return inRange ? Option.some({
-          output: constant(absorb(snap.output(), newCoord, scroll, origin)),
+          output: absorb(snap.output, newCoord, scroll, origin),
           extra: snap.extra
         }) : Option.none();
       });
@@ -27540,8 +28041,8 @@
       var matchSnap = findMatchingSnap(snaps, newCoord, scroll, origin);
       return matchSnap.orThunk(function () {
         var bestSnap = foldl(snaps, function (acc, snap) {
-          var sensor = snap.sensor();
-          var deltas = getDeltas(newCoord, sensor, snap.range().left(), snap.range().top(), scroll, origin);
+          var sensor = snap.sensor;
+          var deltas = getDeltas(newCoord, sensor, snap.range.left(), snap.range.top(), scroll, origin);
           return acc.deltas.fold(function () {
             return {
               deltas: Option.some(deltas),
@@ -27565,7 +28066,7 @@
         });
         return bestSnap.snap.map(function (snap) {
           return {
-            output: constant(absorb(snap.output(), newCoord, scroll, origin)),
+            output: absorb(snap.output, newCoord, scroll, origin),
             extra: snap.extra
           };
         });
@@ -27577,38 +28078,106 @@
     };
     var snapTo = function (snap, scroll, origin) {
       return {
-        coord: absorb(snap.output(), snap.output(), scroll, origin),
-        extra: snap.extra()
+        coord: absorb(snap.output, snap.output, scroll, origin),
+        extra: snap.extra
       };
     };
 
-    var getCurrentCoord = function (target) {
-      return getRaw(target, 'left').bind(function (left) {
-        return getRaw(target, 'top').bind(function (top) {
-          return getRaw(target, 'position').map(function (position) {
-            var nu = position === 'fixed' ? fixed$1 : offset;
-            return nu(parseInt(left, 10), parseInt(top, 10));
-          });
+    var snapTo$1 = function (component, dragConfig, _state, snap) {
+      var target = dragConfig.getTarget(component.element());
+      if (dragConfig.repositionTarget) {
+        var doc = owner(component.element());
+        var scroll = get$8(doc);
+        var origin = getOrigin(target);
+        var snapPin = snapTo(snap, scroll, origin);
+        var styles = toStyles(snapPin.coord, scroll, origin);
+        setOptions(target, styles);
+      }
+    };
+
+    var DraggingApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
+        snapTo: snapTo$1
+    });
+
+    var initialAttribute = 'data-initial-z-index';
+    var resetZIndex = function (blocker) {
+      parent(blocker.element()).filter(isElement).each(function (root) {
+        getOpt(root, initialAttribute).fold(function () {
+          return remove$6(root, 'z-index');
+        }, function (zIndex) {
+          return set$2(root, 'z-index', zIndex);
         });
+        remove$1(root, initialAttribute);
+      });
+    };
+    var changeZIndex = function (blocker) {
+      parent(blocker.element()).filter(isElement).each(function (root) {
+        getRaw(root, 'z-index').each(function (zindex) {
+          set$1(root, initialAttribute, zindex);
+        });
+        set$2(root, 'z-index', get$4(blocker.element(), 'z-index'));
+      });
+    };
+    var instigate = function (anyComponent, blocker) {
+      anyComponent.getSystem().addToGui(blocker);
+      changeZIndex(blocker);
+    };
+    var discard = function (blocker) {
+      resetZIndex(blocker);
+      blocker.getSystem().removeFromGui(blocker);
+    };
+    var createComponent = function (component, blockerClass, blockerEvents) {
+      return component.getSystem().build(Container.sketch({
+        dom: {
+          styles: {
+            'left': '0px',
+            'top': '0px',
+            'width': '100%',
+            'height': '100%',
+            'position': 'fixed',
+            'z-index': '1000000000000000'
+          },
+          classes: [blockerClass]
+        },
+        events: blockerEvents
+      }));
+    };
+
+    var SnapSchema = optionObjOf('snaps', [
+      strict$1('getSnapPoints'),
+      onHandler('onSensor'),
+      strict$1('leftAttr'),
+      strict$1('topAttr'),
+      defaulted$1('lazyViewport', win),
+      defaulted$1('mustSnap', false)
+    ]);
+
+    var schema$t = [
+      defaulted$1('useFixed', never),
+      strict$1('blockerClass'),
+      defaulted$1('getTarget', identity),
+      defaulted$1('onDrag', noop),
+      defaulted$1('repositionTarget', true),
+      defaulted$1('onDrop', noop),
+      defaultedFunction('getBounds', win),
+      SnapSchema
+    ];
+
+    var getCurrentCoord = function (target) {
+      return lift3(getRaw(target, 'left'), getRaw(target, 'top'), getRaw(target, 'position'), function (left, top, position) {
+        var nu = position === 'fixed' ? fixed$1 : offset;
+        return nu(parseInt(left, 10), parseInt(top, 10));
       }).getOrThunk(function () {
         var location = absolute(target);
         return absolute$3(location.left(), location.top());
       });
     };
-    var calcStartData = function (dragConfig, comp) {
-      return {
-        bounds: dragConfig.getBounds(),
-        height: getOuter$1(comp.element()),
-        width: getOuter$2(comp.element()),
-        comp: comp
-      };
-    };
-
     var clampCoords = function (component, coords, scroll, origin, startData) {
       var bounds = startData.bounds;
       var absoluteCoord = asAbsolute(coords, scroll, origin);
-      var newX = cap(absoluteCoord.left(), bounds.x(), bounds.x() + bounds.width() - startData.width);
-      var newY = cap(absoluteCoord.top(), bounds.y(), bounds.y() + bounds.height() - startData.height);
+      var newX = clamp(absoluteCoord.left(), bounds.x, bounds.x + bounds.width - startData.width);
+      var newY = clamp(absoluteCoord.top(), bounds.y, bounds.y + bounds.height - startData.height);
       var newCoords = absolute$3(newX, newY);
       return coords.fold(function () {
         var offset$1 = asOffset(newCoords, scroll, origin);
@@ -27643,19 +28212,48 @@
         var currentCoord = getCurrentCoord(target);
         var newCoord = calcNewCoord(component, dragConfig.snaps, currentCoord, scroll, origin, delta, startData);
         var styles = toStyles(newCoord, scroll, origin);
-        setAll$1(target, styles);
+        setOptions(target, styles);
       }
       dragConfig.onDrag(component, target, delta);
     };
 
-    var SnapSchema = optionObjOf('snaps', [
-      strict$1('getSnapPoints'),
-      onHandler('onSensor'),
-      strict$1('leftAttr'),
-      strict$1('topAttr'),
-      defaulted$1('lazyViewport', win),
-      defaulted$1('mustSnap', false)
-    ]);
+    var calcStartData = function (dragConfig, comp) {
+      return {
+        bounds: dragConfig.getBounds(),
+        height: getOuter$1(comp.element()),
+        width: getOuter$2(comp.element())
+      };
+    };
+    var move$1 = function (component, dragConfig, dragState, dragMode, event) {
+      var delta = dragState.update(dragMode, event);
+      var dragStartData = dragState.getStartData().getOrThunk(function () {
+        return calcStartData(dragConfig, component);
+      });
+      delta.each(function (dlt) {
+        dragBy(component, dragConfig, dragStartData, dlt);
+      });
+    };
+    var stop = function (component, blocker, dragConfig, dragState) {
+      blocker.each(discard);
+      dragConfig.snaps.each(function (snapInfo) {
+        stopDrag(component, snapInfo);
+      });
+      var target = dragConfig.getTarget(component.element());
+      dragState.reset();
+      dragConfig.onDrop(component, target);
+    };
+    var handlers = function (events) {
+      return function (dragConfig, dragState) {
+        var updateStartState = function (comp) {
+          dragState.setStartData(calcStartData(dragConfig, comp));
+        };
+        return derive(__spreadArrays([run(windowScroll(), function (comp) {
+            dragState.getStartData().each(function () {
+              return updateStartState(comp);
+            });
+          })], events(dragConfig, dragState, updateStartState)));
+      };
+    };
 
     var init$c = function (dragApi) {
       return derive([
@@ -27676,86 +28274,51 @@
     };
 
     var MouseData = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         getData: getData$1,
         getDelta: getDelta$1
     });
 
-    var handlers = function (dragConfig, dragState) {
-      var updateStartState = function (comp) {
-        dragState.setStartData(calcStartData(dragConfig, comp));
-      };
-      return derive([
-        run(windowScroll(), updateStartState),
-        run(mousedown(), function (component, simulatedEvent) {
+    var events$g = function (dragConfig, dragState, updateStartState) {
+      return [run(mousedown(), function (component, simulatedEvent) {
           var raw = simulatedEvent.event().raw();
           if (raw.button !== 0) {
             return;
           }
           simulatedEvent.stop();
+          var stop$1 = function () {
+            return stop(component, Option.some(blocker), dragConfig, dragState);
+          };
+          var delayDrop = DelayedFunction(stop$1, 200);
           var dragApi = {
-            drop: function () {
-              stop();
-            },
-            delayDrop: function () {
-              delayDrop.schedule();
-            },
-            forceDrop: function () {
-              stop();
-            },
+            drop: stop$1,
+            delayDrop: delayDrop.schedule,
+            forceDrop: stop$1,
             move: function (event) {
               delayDrop.cancel();
-              var delta = dragState.update(MouseData, event);
-              var dragStartData = dragState.getStartData().getOrThunk(function () {
-                return calcStartData(dragConfig, component);
-              });
-              delta.each(function (dlt) {
-                dragBy(component, dragConfig, dragStartData, dlt);
-              });
+              move$1(component, dragConfig, dragState, MouseData, event);
             }
           };
-          var blocker = component.getSystem().build(Container.sketch({
-            dom: {
-              styles: {
-                'left': '0px',
-                'top': '0px',
-                'width': '100%',
-                'height': '100%',
-                'position': 'fixed',
-                'z-index': '1000000000000000'
-              },
-              classes: [dragConfig.blockerClass]
-            },
-            events: init$c(dragApi)
-          }));
-          var stop = function () {
-            discard(blocker);
-            dragConfig.snaps.each(function (snapInfo) {
-              stopDrag(component, snapInfo);
-            });
-            var target = dragConfig.getTarget(component.element());
-            dragState.reset();
-            dragConfig.onDrop(component, target);
-          };
-          var delayDrop = DelayedFunction(stop, 200);
+          var blocker = createComponent(component, dragConfig.blockerClass, init$c(dragApi));
           var start = function () {
             updateStartState(component);
             instigate(component, blocker);
           };
           start();
+        })];
+    };
+    var schema$u = __spreadArrays(schema$t, [output('dragger', { handlers: handlers(events$g) })]);
+
+    var init$d = function (dragApi) {
+      return derive([
+        run(touchstart(), dragApi.forceDrop),
+        run(touchend(), dragApi.drop),
+        run(touchcancel(), dragApi.drop),
+        run(touchmove(), function (comp, simulatedEvent) {
+          dragApi.move(simulatedEvent.event());
         })
       ]);
     };
-    var schema$s = [
-      defaulted$1('useFixed', never),
-      strict$1('blockerClass'),
-      defaulted$1('getTarget', identity),
-      defaulted$1('onDrag', noop),
-      defaulted$1('repositionTarget', true),
-      onHandler('onDrop'),
-      defaultedFunction('getBounds', win),
-      SnapSchema,
-      output('dragger', { handlers: handlers })
-    ];
 
     var getDataFrom = function (touches) {
       var touch = touches[0];
@@ -27771,68 +28334,71 @@
     };
 
     var TouchData = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         getData: getData$2,
         getDelta: getDelta$2
     });
 
-    var handlers$1 = function (dragConfig, dragState) {
-      var updateStartState = function (comp) {
-        dragState.setStartData(calcStartData(dragConfig, comp));
-      };
-      return derive([
-        run(windowScroll(), updateStartState),
+    var events$h = function (dragConfig, dragState, updateStartState) {
+      var blockerCell = Cell(Option.none());
+      return [
         run(touchstart(), function (component, simulatedEvent) {
-          updateStartState(component);
           simulatedEvent.stop();
-        }),
-        run(documentTouchmove(), function (component, simulatedEvent) {
-          dragState.getStartData().each(function (startData) {
-            if (eq(startData.comp.element(), component.element())) {
-              simulatedEvent.stop();
-              var delta = dragState.update(TouchData, simulatedEvent.event());
-              var dragStartData_1 = dragState.getStartData().getOrThunk(function () {
-                return calcStartData(dragConfig, component);
-              });
-              delta.each(function (dlt) {
-                dragBy(component, dragConfig, dragStartData_1, dlt);
-              });
+          var stop$1 = function () {
+            stop(component, blockerCell.get(), dragConfig, dragState);
+            blockerCell.set(Option.none());
+          };
+          var dragApi = {
+            drop: stop$1,
+            delayDrop: function () {
+            },
+            forceDrop: stop$1,
+            move: function (event) {
+              move$1(component, dragConfig, dragState, TouchData, event);
             }
-          });
+          };
+          var blocker = createComponent(component, dragConfig.blockerClass, init$d(dragApi));
+          blockerCell.set(Option.some(blocker));
+          var start = function () {
+            updateStartState(component);
+            instigate(component, blocker);
+          };
+          start();
         }),
-        run(documentTouchend(), function (component, simulatedEvent) {
-          dragState.getStartData().each(function (startData) {
-            if (eq(startData.comp.element(), component.element())) {
-              dragConfig.snaps.each(function (snapInfo) {
-                stopDrag(component, snapInfo);
-              });
-              var target = dragConfig.getTarget(component.element());
-              dragState.reset();
-              dragConfig.onDrop(component, target);
-            }
-          });
+        run(touchmove(), function (component, simulatedEvent) {
+          simulatedEvent.stop();
+          move$1(component, dragConfig, dragState, TouchData, simulatedEvent.event());
+        }),
+        run(touchend(), function (component, simulatedEvent) {
+          simulatedEvent.stop();
+          stop(component, blockerCell.get(), dragConfig, dragState);
+          blockerCell.set(Option.none());
+        }),
+        run(touchcancel(), function (component) {
+          stop(component, blockerCell.get(), dragConfig, dragState);
+          blockerCell.set(Option.none());
         })
-      ]);
+      ];
     };
-    var schema$t = [
-      defaulted$1('useFixed', never),
-      defaulted$1('getTarget', identity),
-      defaulted$1('onDrag', noop),
-      defaulted$1('repositionTarget', true),
-      defaulted$1('onDrop', noop),
-      defaultedFunction('getBounds', win),
-      SnapSchema,
-      output('dragger', { handlers: handlers$1 })
-    ];
+    var schema$v = __spreadArrays(schema$t, [output('dragger', { handlers: handlers(events$h) })]);
 
-    var mouse = schema$s;
-    var touch = schema$t;
+    var events$i = function (dragConfig, dragState, updateStartState) {
+      return __spreadArrays(events$g(dragConfig, dragState, updateStartState), events$h(dragConfig, dragState, updateStartState));
+    };
+    var schema$w = __spreadArrays(schema$t, [output('dragger', { handlers: handlers(events$i) })]);
+
+    var mouse = schema$u;
+    var touch = schema$v;
+    var mouseOrTouch = schema$w;
 
     var DraggingBranches = /*#__PURE__*/Object.freeze({
+        __proto__: null,
         mouse: mouse,
-        touch: touch
+        touch: touch,
+        mouseOrTouch: mouseOrTouch
     });
 
-    var init$d = function () {
+    var init$e = function () {
       var previous = Option.none();
       var startData = Option.none();
       var reset = function () {
@@ -27868,23 +28434,8 @@
     };
 
     var DragState = /*#__PURE__*/Object.freeze({
-        init: init$d
-    });
-
-    var snapTo$1 = function (component, dragConfig, _state, snap) {
-      var target = dragConfig.getTarget(component.element());
-      if (dragConfig.repositionTarget) {
-        var doc = owner(component.element());
-        var scroll = get$8(doc);
-        var origin = getOrigin(target);
-        var snapPin = snapTo(snap, scroll, origin);
-        var styles = toStyles(snapPin.coord, scroll, origin);
-        setAll$1(target, styles);
-      }
-    };
-
-    var DraggingApis = /*#__PURE__*/Object.freeze({
-        snapTo: snapTo$1
+        __proto__: null,
+        init: init$e
     });
 
     var Dragging = createModes$1({
@@ -27898,15 +28449,197 @@
         }
       },
       extra: {
-        snap: MixedBag([
-          'sensor',
-          'range',
-          'output'
-        ], ['extra'])
+        snap: function (sConfig) {
+          return {
+            sensor: sConfig.sensor,
+            range: sConfig.range,
+            output: sConfig.output,
+            extra: Option.from(sConfig.extra)
+          };
+        }
       },
       state: DragState,
       apis: DraggingApis
     });
+
+    var snapWidth = 40;
+    var snapOffset = snapWidth / 2;
+    var calcSnap = function (selectorOpt, td, x, y, width, height) {
+      return selectorOpt.fold(function () {
+        return Dragging.snap({
+          sensor: absolute$3(x - snapOffset, y - snapOffset),
+          range: Position(width, height),
+          output: absolute$3(Option.some(x), Option.some(y)),
+          extra: { td: td }
+        });
+      }, function (selectorHandle) {
+        var sensorLeft = x - snapOffset;
+        var sensorTop = y - snapOffset;
+        var sensorWidth = snapWidth;
+        var sensorHeight = snapWidth;
+        var rect = selectorHandle.element().dom().getBoundingClientRect();
+        return Dragging.snap({
+          sensor: absolute$3(sensorLeft, sensorTop),
+          range: Position(sensorWidth, sensorHeight),
+          output: absolute$3(Option.some(x - rect.width / 2), Option.some(y - rect.height / 2)),
+          extra: { td: td }
+        });
+      });
+    };
+    var getSnapsConfig = function (getSnapPoints, cell, onChange) {
+      var isSameCell = function (cellOpt, td) {
+        return cellOpt.exists(function (currentTd) {
+          return eq$1(currentTd, td);
+        });
+      };
+      return {
+        getSnapPoints: getSnapPoints,
+        leftAttr: 'data-drag-left',
+        topAttr: 'data-drag-top',
+        onSensor: function (component, extra) {
+          var td = extra.td;
+          if (!isSameCell(cell.get(), td)) {
+            cell.set(Option.some(td));
+            onChange(td);
+          }
+        },
+        mustSnap: true
+      };
+    };
+    var createSelector = function (snaps) {
+      return record(Button.sketch({
+        dom: {
+          tag: 'div',
+          classes: ['tox-selector']
+        },
+        buttonBehaviours: derive$1([
+          Dragging.config({
+            mode: 'mouseOrTouch',
+            blockerClass: 'blocker',
+            snaps: snaps
+          }),
+          Unselecting.config({})
+        ]),
+        eventOrder: {
+          mousedown: [
+            'dragging',
+            'alloy.base.behaviour'
+          ],
+          touchstart: [
+            'dragging',
+            'alloy.base.behaviour'
+          ]
+        }
+      }));
+    };
+    var setup$a = function (editor, sink) {
+      var tlTds = Cell([]);
+      var brTds = Cell([]);
+      var isVisible = Cell(false);
+      var startCell = Cell(Option.none());
+      var finishCell = Cell(Option.none());
+      var getTopLeftSnap = function (td) {
+        var box = absolute$1(td);
+        return calcSnap(memTopLeft.getOpt(sink), td, box.x, box.y, box.width, box.height);
+      };
+      var getTopLeftSnaps = function () {
+        return map(tlTds.get(), function (td) {
+          return getTopLeftSnap(td);
+        });
+      };
+      var getBottomRightSnap = function (td) {
+        var box = absolute$1(td);
+        return calcSnap(memBottomRight.getOpt(sink), td, box.right, box.bottom, box.width, box.height);
+      };
+      var getBottomRightSnaps = function () {
+        return map(brTds.get(), function (td) {
+          return getBottomRightSnap(td);
+        });
+      };
+      var topLeftSnaps = getSnapsConfig(getTopLeftSnaps, startCell, function (start) {
+        finishCell.get().each(function (finish) {
+          editor.fire('TableSelectorChange', {
+            start: start,
+            finish: finish
+          });
+        });
+      });
+      var bottomRightSnaps = getSnapsConfig(getBottomRightSnaps, finishCell, function (finish) {
+        startCell.get().each(function (start) {
+          editor.fire('TableSelectorChange', {
+            start: start,
+            finish: finish
+          });
+        });
+      });
+      var memTopLeft = createSelector(topLeftSnaps);
+      var memBottomRight = createSelector(bottomRightSnaps);
+      var topLeft = build$1(memTopLeft.asSpec());
+      var bottomRight = build$1(memBottomRight.asSpec());
+      var showOrHideHandle = function (selector, cell, isAbove, isBelow) {
+        var cellRect = cell.dom().getBoundingClientRect();
+        remove$6(selector.element(), 'display');
+        var viewportHeight = defaultView(Element.fromDom(editor.getBody())).dom().innerHeight;
+        var aboveViewport = isAbove(cellRect);
+        var belowViewport = isBelow(cellRect, viewportHeight);
+        if (aboveViewport || belowViewport) {
+          set$2(selector.element(), 'display', 'none');
+        }
+      };
+      var snapTo = function (selector, cell, getSnapConfig, pos) {
+        var snap = getSnapConfig(cell);
+        Dragging.snapTo(selector, snap);
+        var isAbove = function (rect) {
+          return rect[pos] < 0;
+        };
+        var isBelow = function (rect, viewportHeight) {
+          return rect[pos] > viewportHeight;
+        };
+        showOrHideHandle(selector, cell, isAbove, isBelow);
+      };
+      var snapTopLeft = function (cell) {
+        return snapTo(topLeft, cell, getTopLeftSnap, 'top');
+      };
+      var snapLastTopLeft = function () {
+        return startCell.get().each(snapTopLeft);
+      };
+      var snapBottomRight = function (cell) {
+        return snapTo(bottomRight, cell, getBottomRightSnap, 'bottom');
+      };
+      var snapLastBottomRight = function () {
+        return finishCell.get().each(snapBottomRight);
+      };
+      if (detect$3().deviceType.isTouch()) {
+        editor.on('TableSelectionChange', function (e) {
+          if (!isVisible.get()) {
+            attach$1(sink, topLeft);
+            attach$1(sink, bottomRight);
+            isVisible.set(true);
+          }
+          startCell.set(Option.some(e.start));
+          finishCell.set(Option.some(e.finish));
+          e.otherCells.each(function (otherCells) {
+            tlTds.set(otherCells.upOrLeftCells);
+            brTds.set(otherCells.downOrRightCells);
+            snapTopLeft(e.start);
+            snapBottomRight(e.finish);
+          });
+        });
+        editor.on('ResizeEditor ResizeWindow ScrollContent', function () {
+          snapLastTopLeft();
+          snapLastBottomRight();
+        });
+        editor.on('TableSelectionClear', function () {
+          if (isVisible.get()) {
+            detach(topLeft);
+            detach(bottomRight);
+            isVisible.set(false);
+          }
+          startCell.set(Option.none());
+          finishCell.set(Option.none());
+        });
+      }
+    };
 
     var ResizeTypes;
     (function (ResizeTypes) {
@@ -27914,21 +28647,11 @@
       ResizeTypes[ResizeTypes['Both'] = 1] = 'Both';
       ResizeTypes[ResizeTypes['Vertical'] = 2] = 'Vertical';
     }(ResizeTypes || (ResizeTypes = {})));
-    var calcCappedSize = function (originalSize, delta, minSize, maxSize) {
-      var newSize = originalSize + delta;
-      var minOverride = minSize.filter(function (min) {
-        return newSize < min;
-      });
-      var maxOverride = maxSize.filter(function (max) {
-        return newSize > max;
-      });
-      return minOverride.or(maxOverride).getOr(newSize);
-    };
     var getDimensions = function (editor, deltas, resizeType, originalHeight, originalWidth) {
       var dimensions = {};
-      dimensions.height = calcCappedSize(originalHeight, deltas.top(), getMinHeightSetting(editor), getMaxHeightSetting(editor));
+      dimensions.height = calcCappedSize(originalHeight + deltas.top(), getMinHeightSetting(editor), getMaxHeightSetting(editor));
       if (resizeType === ResizeTypes.Both) {
-        dimensions.width = calcCappedSize(originalWidth, deltas.left(), getMinWidthSetting(editor), getMaxWidthSetting(editor));
+        dimensions.width = calcCappedSize(originalWidth + deltas.left(), getMinWidthSetting(editor), getMaxWidthSetting(editor));
       }
       return dimensions;
     };
@@ -27936,9 +28659,9 @@
       var container = Element.fromDom(editor.getContainer());
       var dimensions = getDimensions(editor, deltas, resizeType, get$6(container), get$7(container));
       each$1(dimensions, function (val, dim) {
-        return set$2(container, dim, Utils.numToPx(val));
+        return set$2(container, dim, numToPx(val));
       });
-      Events.fireResizeEditor(editor);
+      fireResizeEditor(editor);
     };
 
     var isHidden$1 = function (elm) {
@@ -27952,7 +28675,7 @@
       }
       return false;
     };
-    var renderElementPath = function (editor, settings) {
+    var renderElementPath = function (editor, settings, providersBackstage) {
       if (!settings.delimiter) {
         settings.delimiter = '\xBB';
       }
@@ -27971,11 +28694,15 @@
               },
               innerHtml: part.name
             },
-            action: function (btn) {
+            action: function (_btn) {
               editor.focus();
               editor.selection.select(part.element);
               editor.nodeChanged();
-            }
+            },
+            buttonBehaviours: derive$1([
+              DisablingConfigs.button(providersBackstage.isReadOnly),
+              receivingConfig()
+            ])
           });
         });
         var divider = {
@@ -27997,16 +28724,16 @@
         var newPath = [];
         var i = parents.length;
         while (i-- > 0) {
-          var parent = parents[i];
-          if (parent.nodeType === 1 && !isHidden$1(parent)) {
+          var parent_1 = parents[i];
+          if (parent_1.nodeType === 1 && !isHidden$1(parent_1)) {
             var args = editor.fire('ResolveName', {
-              name: parent.nodeName.toLowerCase(),
-              target: parent
+              name: parent_1.nodeName.toLowerCase(),
+              target: parent_1
             });
             if (!args.isDefaultPrevented()) {
               newPath.push({
                 name: args.name,
-                element: parent
+                element: parent_1
               });
             }
             if (args.isPropagationStopped()) {
@@ -28027,9 +28754,11 @@
             mode: 'flow',
             selector: 'div[role=button]'
           }),
+          Disabling.config({ disabled: providersBackstage.isReadOnly }),
+          receivingConfig(),
           Tabstopping.config({}),
           Replacing.config({}),
-          config('elementPathEvents', [runOnAttached(function (comp, e) {
+          config('elementPathEvents', [runOnAttached(function (comp, _e) {
               editor.shortcuts.add('alt+F11', 'focus statusbar elementpath', function () {
                 return Keying.focusIn(comp);
               });
@@ -28037,6 +28766,8 @@
                 var newPath = updatePath(e.parents);
                 if (newPath.length > 0) {
                   Replacing.set(comp, getDataPath(newPath));
+                } else {
+                  Replacing.set(comp, []);
                 }
               });
             })])
@@ -28044,10 +28775,8 @@
         components: []
       };
     };
-    var ElementPath = { renderElementPath: renderElementPath };
 
     var renderWordCount = function (editor, providersBackstage) {
-      var _a;
       var replaceCountText = function (comp, count, mode) {
         return Replacing.set(comp, [text(providersBackstage.translate([
             '{0} ' + mode,
@@ -28061,6 +28790,8 @@
         },
         components: [],
         buttonBehaviours: derive$1([
+          DisablingConfigs.button(providersBackstage.isReadOnly),
+          receivingConfig(),
           Tabstopping.config({}),
           Replacing.config({}),
           Representing.config({
@@ -28076,7 +28807,7 @@
             }
           }),
           config('wordcount-events', [
-            run(tapOrClick(), function (comp) {
+            runOnExecute(function (comp) {
               var currentVal = Representing.getValue(comp);
               var newMode = currentVal.mode === 'words' ? 'characters' : 'words';
               Representing.setValue(comp, {
@@ -28097,10 +28828,13 @@
             })
           ])
         ]),
-        eventOrder: (_a = {}, _a[tapOrClick()] = [
-          'wordcount-events',
-          'alloy.base.behaviour'
-        ], _a)
+        eventOrder: {
+          'alloy.execute': [
+            'disabling',
+            'alloy.base.behaviour',
+            'wordcount-events'
+          ]
+        }
       });
     };
 
@@ -28110,8 +28844,11 @@
           dom: {
             tag: 'div',
             classes: ['tox-statusbar__resize-handle'],
-            attributes: { title: providersBackstage.translate('Resize') },
-            innerHtml: get$c('resize-handle', providersBackstage.icons)
+            attributes: {
+              'title': providersBackstage.translate('Resize'),
+              'aria-hidden': 'true'
+            },
+            innerHtml: get$d('resize-handle', providersBackstage.icons)
           },
           behaviours: derive$1([Dragging.config({
               mode: 'mouse',
@@ -28151,7 +28888,7 @@
       var getTextComponents = function () {
         var components = [];
         if (editor.getParam('elementpath', true, 'boolean')) {
-          components.push(ElementPath.renderElementPath(editor, {}));
+          components.push(renderElementPath(editor, {}, providersBackstage));
         }
         if (contains$1(editor.settings.plugins, 'wordcount')) {
           components.push(renderWordCount(editor, providersBackstage));
@@ -28187,275 +28924,8 @@
       };
     };
 
-    var platform$2 = detect$3();
-    var snapWidth = 40;
-    var snapOffset = snapWidth / 2;
-    var setup$a = function (editor, sink) {
-      var tlTds = Cell([]);
-      var brTds = Cell([]);
-      var getTopLeftSnap = function (td) {
-        var box = absolute$1(td);
-        return memTopLeft.getOpt(sink).fold(function () {
-          return Dragging.snap({
-            sensor: absolute$3(box.x() - snapOffset, box.y() - snapOffset),
-            range: Position(box.width(), box.height()),
-            output: absolute$3(Option.some(box.x()), Option.some(box.y())),
-            extra: { td: td }
-          });
-        }, function (selectorHandle) {
-          var sensorLeft = box.x() - snapOffset;
-          var sensorTop = box.y() - snapOffset;
-          var sensorWidth = snapWidth;
-          var sensorHeight = snapWidth;
-          var rect = selectorHandle.element().dom().getBoundingClientRect();
-          return Dragging.snap({
-            sensor: absolute$3(sensorLeft, sensorTop),
-            range: Position(sensorWidth, sensorHeight),
-            output: absolute$3(Option.some(box.x() - rect.width / 2), Option.some(box.y() - rect.height / 2)),
-            extra: { td: td }
-          });
-        });
-      };
-      var getTopLeftSnaps = function () {
-        return map(tlTds.get(), function (td) {
-          return getTopLeftSnap(td);
-        });
-      };
-      var getBottomRightSnap = function (td) {
-        var box = absolute$1(td);
-        return memBottomRight.getOpt(sink).fold(function () {
-          return Dragging.snap({
-            sensor: absolute$3(box.x() - snapOffset, box.y() - snapOffset),
-            range: Position(box.width(), box.height()),
-            output: absolute$3(Option.some(box.right()), Option.some(box.bottom())),
-            extra: { td: td }
-          });
-        }, function (selectorHandle) {
-          var sensorLeft = box.right() - snapOffset;
-          var sensorTop = box.bottom() - snapOffset;
-          var sensorWidth = snapWidth;
-          var sensorHeight = snapWidth;
-          var rect = selectorHandle.element().dom().getBoundingClientRect();
-          return Dragging.snap({
-            sensor: absolute$3(sensorLeft, sensorTop),
-            range: Position(sensorWidth, sensorHeight),
-            output: absolute$3(Option.some(box.right() - rect.width / 2), Option.some(box.bottom() - rect.height / 2)),
-            extra: { td: td }
-          });
-        });
-      };
-      var getBottomRightSnaps = function () {
-        return map(brTds.get(), function (td) {
-          return getBottomRightSnap(td);
-        });
-      };
-      var topLeftSnaps = {
-        getSnapPoints: getTopLeftSnaps,
-        leftAttr: 'data-drag-left',
-        topAttr: 'data-drag-top',
-        onSensor: function (component, extra) {
-          startCell.set(extra.td);
-          editor.fire('tableselectorchange', {
-            start: startCell.get(),
-            finish: finishCell.get()
-          });
-        },
-        mustSnap: true
-      };
-      var bottomRightSnaps = {
-        getSnapPoints: getBottomRightSnaps,
-        leftAttr: 'data-drag-left',
-        topAttr: 'data-drag-top',
-        onSensor: function (component, extra) {
-          finishCell.set(extra.td);
-          editor.fire('tableselectorchange', {
-            start: startCell.get(),
-            finish: finishCell.get()
-          });
-        },
-        mustSnap: true
-      };
-      var memTopLeft = record(Button.sketch({
-        dom: {
-          tag: 'div',
-          classes: ['tox-selector']
-        },
-        buttonBehaviours: derive$1([
-          Dragging.config(platform$2.deviceType.isTouch() ? {
-            mode: 'touch',
-            snaps: topLeftSnaps
-          } : {
-            mode: 'mouse',
-            blockerClass: 'blocker',
-            snaps: topLeftSnaps
-          }),
-          Unselecting.config({})
-        ]),
-        eventOrder: {
-          mousedown: [
-            'dragging',
-            'alloy.base.behaviour'
-          ]
-        }
-      }));
-      var memBottomRight = record(Button.sketch({
-        dom: {
-          tag: 'div',
-          classes: ['tox-selector']
-        },
-        buttonBehaviours: derive$1([
-          Dragging.config(platform$2.deviceType.isTouch() ? {
-            mode: 'touch',
-            snaps: bottomRightSnaps
-          } : {
-            mode: 'mouse',
-            blockerClass: 'blocker',
-            snaps: bottomRightSnaps
-          }),
-          Unselecting.config({})
-        ]),
-        eventOrder: {
-          mousedown: [
-            'dragging',
-            'alloy.base.behaviour'
-          ]
-        }
-      }));
-      var topLeft = build$1(memTopLeft.asSpec());
-      var bottomRight = build$1(memBottomRight.asSpec());
-      var isVisible = Cell(false);
-      var startCell = Cell(null);
-      var finishCell = Cell(null);
-      var showOrHideHandle = function (selector, cell, isAbove, isBelow) {
-        var cellRect = cell.dom().getBoundingClientRect();
-        remove$6(selector.element(), 'display');
-        var viewportHeight = defaultView(Element.fromDom(editor.getBody())).dom().innerHeight;
-        var aboveViewport = isAbove(cellRect);
-        var belowViewport = isBelow(cellRect, viewportHeight);
-        if (aboveViewport || belowViewport) {
-          set$2(selector.element(), 'display', 'none');
-        }
-      };
-      var snapLastTopLeft = function () {
-        var cell = startCell.get();
-        snapTopLeft(cell);
-      };
-      var snapTopLeft = function (cell) {
-        var snap = getTopLeftSnap(cell);
-        Dragging.snapTo(topLeft, snap);
-        var isAbove = function (rect) {
-          return rect.top < 0;
-        };
-        var isBelow = function (rect, viewportHeight) {
-          return rect.top > viewportHeight;
-        };
-        showOrHideHandle(topLeft, cell, isAbove, isBelow);
-      };
-      var snapLastBottomRight = function () {
-        var cell = finishCell.get();
-        snapBottomRight(cell);
-      };
-      var snapBottomRight = function (cell) {
-        var firstSnap = getBottomRightSnap(cell);
-        Dragging.snapTo(bottomRight, firstSnap);
-        var isAbove = function (rect) {
-          return rect.bottom < 0;
-        };
-        var isBelow = function (rect, viewportHeight) {
-          return rect.bottom > viewportHeight;
-        };
-        showOrHideHandle(bottomRight, cell, isAbove, isBelow);
-      };
-      if (platform$2.deviceType.isTouch()) {
-        editor.on('tableselectionchange', function (e) {
-          if (!isVisible.get()) {
-            attach$1(sink, topLeft);
-            attach$1(sink, bottomRight);
-            isVisible.set(true);
-          }
-          startCell.set(e.start);
-          finishCell.set(e.finish);
-          e.otherCells.each(function (otherCells) {
-            tlTds.set(otherCells.upOrLeftCells);
-            brTds.set(otherCells.downOrRightCells);
-            snapTopLeft(e.start);
-            snapBottomRight(e.finish);
-          });
-        });
-        editor.on('resize ScrollContent', function () {
-          snapLastTopLeft();
-          snapLastBottomRight();
-        });
-        editor.on('tableselectionclear', function () {
-          if (isVisible.get()) {
-            detach(topLeft);
-            detach(bottomRight);
-            isVisible.set(false);
-          }
-        });
-      }
-    };
-    var TableSelectorHandles = { setup: setup$a };
-
-    var SIGNIFICANT_MOVE$1 = 5;
-    var LONGPRESS_DELAY$1 = 400;
-    var getTouch$1 = function (event) {
-      if (event.touches === undefined || event.touches.length !== 1) {
-        return Option.none();
-      }
-      return Option.some(event.touches[0]);
-    };
-    var isFarEnough$1 = function (touch, data) {
-      var distX = Math.abs(touch.clientX - data.x());
-      var distY = Math.abs(touch.clientY - data.y());
-      return distX > SIGNIFICANT_MOVE$1 || distY > SIGNIFICANT_MOVE$1;
-    };
-    var setupLongpress = function (editor) {
-      var startData = Cell(Option.none());
-      var longpressFired = Cell(false);
-      var debounceLongpress = last$2(function (e) {
-        editor.fire('longpress', __assign(__assign({}, e), { type: 'longpress' }));
-        longpressFired.set(true);
-      }, LONGPRESS_DELAY$1);
-      editor.on('touchstart', function (e) {
-        getTouch$1(e).each(function (touch) {
-          debounceLongpress.cancel();
-          var data = {
-            x: constant(touch.clientX),
-            y: constant(touch.clientY),
-            target: constant(e.target)
-          };
-          debounceLongpress.throttle(e);
-          longpressFired.set(false);
-          startData.set(Option.some(data));
-        });
-      }, true);
-      editor.on('touchmove', function (e) {
-        debounceLongpress.cancel();
-        getTouch$1(e).each(function (touch) {
-          startData.get().each(function (data) {
-            if (isFarEnough$1(touch, data)) {
-              startData.set(Option.none());
-              longpressFired.set(false);
-              editor.fire('longpresscancel');
-            }
-          });
-        });
-      }, true);
-      editor.on('touchend touchcancel', function (e) {
-        debounceLongpress.cancel();
-        if (e.type === 'touchend' && longpressFired.get()) {
-          startData.get().filter(function (data) {
-            return data.target().isEqualNode(e.target);
-          }).map(function () {
-            e.preventDefault();
-          });
-        }
-      }, true);
-    };
-    var TouchEvents = { setupLongpress: setupLongpress };
-
     var setup$b = function (editor) {
+      var _a;
       var isInline = editor.inline;
       var mode = isInline ? Inline : Iframe;
       var header = isStickyToolbar(editor) ? StickyHeader : StaticHeader;
@@ -28466,9 +28936,14 @@
       var isTouch = platform.deviceType.isTouch();
       var touchPlatformClass = 'tox-platform-touch';
       var deviceClasses = isTouch ? [touchPlatformClass] : [];
+      var isToolbarBottom = isToolbarLocationBottom(editor);
       var dirAttributes = global$5.isRtl() ? { attributes: { dir: 'rtl' } } : {};
+      var verticalDirAttributes = { attributes: (_a = {}, _a[Attribute] = isToolbarBottom ? AttributeValue.BottomToTop : AttributeValue.TopToBottom, _a) };
       var lazyHeader = function () {
         return lazyOuterContainer.bind(OuterContainer.getHeader);
+      };
+      var isHeaderDocked = function () {
+        return header.isDocked(lazyHeader);
       };
       var sink = build$1({
         dom: __assign({
@@ -28481,7 +28956,7 @@
         }, dirAttributes),
         behaviours: derive$1([Positioning.config({
             useFixed: function () {
-              return header.isDocked(lazyHeader);
+              return isHeaderDocked();
             }
           })])
       });
@@ -28499,11 +28974,6 @@
           return memAnchorBar.getOpt(container);
         }).getOrDie('Could not find a anchor bar element');
       };
-      var lazyMoreButton = function () {
-        return lazyOuterContainer.bind(function (container) {
-          return OuterContainer.getMoreButton(container);
-        }).getOrDie('Could not find more button element');
-      };
       var lazyToolbar = function () {
         return lazyOuterContainer.bind(function (container) {
           return OuterContainer.getToolbar(container);
@@ -28514,7 +28984,7 @@
           return OuterContainer.getThrobber(container);
         }).getOrDie('Could not find throbber element');
       };
-      var backstage = init$8(sink, editor, lazyAnchorBar, lazyMoreButton);
+      var backstage = init$8(sink, editor, lazyAnchorBar);
       var partMenubar = OuterContainer.parts().menubar({
         dom: {
           tag: 'div',
@@ -28525,33 +28995,32 @@
           editor.focus();
         }
       });
-      var toolbarDrawer = function (editor) {
-        return getToolbarDrawer(editor);
-      };
-      var partToolbar = OuterContainer.parts().toolbar({
+      var toolbarMode = getToolbarMode(editor);
+      var partToolbar = OuterContainer.parts().toolbar(__assign({
         dom: {
           tag: 'div',
           classes: ['tox-toolbar']
         },
         getSink: lazySink,
-        backstage: backstage,
+        providers: backstage.shared.providers,
         onEscape: function () {
           editor.focus();
         },
-        split: toolbarDrawer(editor),
+        type: toolbarMode,
         lazyToolbar: lazyToolbar,
-        lazyMoreButton: lazyMoreButton,
         lazyHeader: function () {
           return lazyHeader().getOrDie('Could not find header element');
         }
-      });
+      }, verticalDirAttributes));
       var partMultipleToolbar = OuterContainer.parts()['multiple-toolbar']({
         dom: {
           tag: 'div',
           classes: ['tox-toolbar-overlord']
         },
+        providers: backstage.shared.providers,
         onEscape: function () {
-        }
+        },
+        type: toolbarMode
       });
       var partSocket = OuterContainer.parts().socket({
         dom: {
@@ -28587,12 +29056,8 @@
       var hasMultipleToolbar = isMultipleToolbars(editor);
       var hasToolbar = isToolbarEnabled(editor);
       var hasMenubar = isMenubarEnabled(editor);
-      var hasToolbarDrawer = toolbarDrawer(editor) !== ToolbarDrawer.default;
       var getPartToolbar = function () {
         if (hasMultipleToolbar) {
-          if (hasToolbarDrawer) {
-            domGlobals.console.warn('Toolbar drawer cannot be applied when multiple toolbars are active');
-          }
           return [partMultipleToolbar];
         } else if (hasToolbar) {
           return [partToolbar];
@@ -28601,10 +29066,10 @@
         }
       };
       var partHeader = OuterContainer.parts().header({
-        dom: {
+        dom: __assign({
           tag: 'div',
           classes: ['tox-editor-header']
-        },
+        }, verticalDirAttributes),
         components: flatten([
           hasMenubar ? [partMenubar] : [],
           getPartToolbar(),
@@ -28612,11 +29077,12 @@
         ]),
         sticky: isStickyToolbar(editor),
         editor: editor,
-        getSink: lazySink
+        sharedBackstage: backstage.shared
       });
       var editorComponents = flatten([
-        [partHeader],
-        isInline ? [] : [socketSidebarContainer]
+        isToolbarBottom ? [] : [partHeader],
+        isInline ? [] : [socketSidebarContainer],
+        isToolbarBottom ? [partHeader] : []
       ]);
       var editorContainer = {
         dom: {
@@ -28638,7 +29104,7 @@
           classes: [
             'tox',
             'tox-tinymce'
-          ].concat(isInline ? ['tox-tinymce-inline'] : []).concat(deviceClasses).concat(platformClasses),
+          ].concat(isInline ? ['tox-tinymce-inline'] : []).concat(isToolbarBottom ? ['tox-tinymce--toolbar-bottom'] : []).concat(deviceClasses).concat(platformClasses),
           styles: __assign({ visibility: 'hidden' }, isHidden ? {
             opacity: '0',
             border: '0'
@@ -28660,8 +29126,7 @@
       });
       var mothership = takeover(outerContainer);
       var uiMothership = takeover(sink);
-      Events$1.setup(editor, mothership, uiMothership);
-      TouchEvents.setupLongpress(editor);
+      setup$3(editor, mothership, uiMothership);
       var getUi = function () {
         var channels = {
           broadcastAll: uiMothership.broadcast,
@@ -28671,31 +29136,15 @@
         };
         return { channels: channels };
       };
-      var setEditorSize = function (elm) {
-        var DOM = global$7.DOM;
-        var baseWidth = editor.getParam('width', DOM.getStyle(elm, 'width'));
-        var baseHeight = getHeightSetting(editor);
-        var minWidth = getMinWidthSetting(editor);
-        var minHeight = getMinHeightSetting(editor);
-        var parsedWidth = Utils.parseToInt(baseWidth).bind(function (w) {
-          return Utils.numToPx(minWidth.map(function (mw) {
-            return Math.max(w, mw);
-          }));
-        }).getOr(Utils.numToPx(baseWidth));
-        var parsedHeight = Utils.parseToInt(baseHeight).bind(function (h) {
-          return minHeight.map(function (mh) {
-            return Math.max(h, mh);
-          });
-        }).getOr(baseHeight);
-        var stringWidth = Utils.numToPx(parsedWidth);
-        var widthProperty = editor.inline ? 'max-width' : 'width';
-        if (isValidValue('div', widthProperty, stringWidth)) {
-          set$2(outerContainer.element(), widthProperty, stringWidth);
-        }
+      var setEditorSize = function () {
+        var parsedHeight = numToPx(getHeightWithFallback(editor));
+        var parsedWidth = numToPx(getWidthWithFallback(editor));
         if (!editor.inline) {
-          var stringHeight = Utils.numToPx(parsedHeight);
-          if (isValidValue('div', 'height', stringHeight)) {
-            set$2(outerContainer.element(), 'height', stringHeight);
+          if (isValidValue('div', 'width', parsedWidth)) {
+            set$2(outerContainer.element(), 'width', parsedWidth);
+          }
+          if (isValidValue('div', 'height', parsedHeight)) {
+            set$2(outerContainer.element(), 'height', parsedHeight);
           } else {
             set$2(outerContainer.element(), 'height', '200px');
           }
@@ -28703,29 +29152,33 @@
         return parsedHeight;
       };
       var renderUI = function () {
-        header.setup(editor, lazyHeader);
-        FormatControls.setup(editor, backstage);
+        header.setup(editor, backstage.shared, lazyHeader);
+        setup$8(editor, backstage);
         setup$9(editor, lazySink, backstage);
         setup$6(editor);
         setup$7(editor, lazyThrobber, backstage.shared);
+        map$1(getToolbarGroups(editor), function (toolbarGroupButtonConfig, name) {
+          editor.ui.registry.addGroupToolbarButton(name, toolbarGroupButtonConfig);
+        });
         var _a = editor.ui.registry.getAll(), buttons = _a.buttons, menuItems = _a.menuItems, contextToolbars = _a.contextToolbars, sidebars = _a.sidebars;
         var toolbarOpt = getMultipleToolbarsSetting(editor);
         var rawUiConfig = {
           menuItems: menuItems,
           menus: !editor.settings.menu ? {} : map$1(editor.settings.menu, function (menu) {
-            return merge(menu, { items: menu.items });
+            return __assign(__assign({}, menu), { items: menu.items });
           }),
           menubar: editor.settings.menubar,
           toolbar: toolbarOpt.getOrThunk(function () {
             return editor.getParam('toolbar', true);
           }),
+          allowToolbarGroups: toolbarMode === ToolbarMode.floating,
           buttons: buttons,
           sidebar: sidebars
         };
-        ContextToolbar.register(editor, contextToolbars, sink, { backstage: backstage });
-        TableSelectorHandles.setup(editor, sink);
+        register$4(editor, contextToolbars, sink, { backstage: backstage });
+        setup$a(editor, sink);
         var elm = editor.getElement();
-        var height = setEditorSize(elm);
+        var height = setEditorSize();
         var uiComponents = {
           mothership: mothership,
           uiMothership: uiMothership,
@@ -28745,7 +29198,6 @@
         getUi: getUi
       };
     };
-    var Render = { setup: setup$b };
 
     var describedBy = function (describedElement, describeElement) {
       var describeId = Option.from(get$2(describedElement, 'id')).fold(function () {
@@ -28756,18 +29208,16 @@
       set$1(describedElement, 'aria-describedby', describeId);
     };
 
-    var AriaLabel = {
-      labelledBy: function (labelledElement, labelElement) {
-        var labelId = Option.from(get$2(labelledElement, 'id')).fold(function () {
-          var id = generate$1('dialog-label');
-          set$1(labelElement, 'id', id);
-          return id;
-        }, identity);
-        set$1(labelledElement, 'aria-labelledby', labelId);
-      }
+    var labelledBy = function (labelledElement, labelElement) {
+      var labelId = Option.from(get$2(labelledElement, 'id')).fold(function () {
+        var id = generate$1('dialog-label');
+        set$1(labelElement, 'id', id);
+        return id;
+      }, identity);
+      set$1(labelledElement, 'aria-labelledby', labelId);
     };
 
-    var schema$u = constant([
+    var schema$x = constant([
       strict$1('lazySink'),
       option('dragBlockClass'),
       defaultedFunction('getBounds', win),
@@ -28778,7 +29228,7 @@
       onStrictKeyboardHandler('onEscape')
     ]);
     var basic = { sketch: identity };
-    var parts$e = constant([
+    var parts$f = constant([
       optional({
         name: 'draghandle',
         overrides: function (detail, spec) {
@@ -28786,7 +29236,7 @@
             behaviours: derive$1([Dragging.config({
                 mode: 'mouse',
                 getTarget: function (handle) {
-                  return ancestor$1(handle, '[role="dialog"]').getOr(handle);
+                  return ancestor$2(handle, '[role="dialog"]').getOr(handle);
                 },
                 blockerClass: detail.dragBlockClass.getOrDie(new Error('The drag blocker class was not specified for a dialog with a drag handle: \n' + JSON.stringify(spec, null, 2)).message),
                 getBounds: detail.getDragBounds
@@ -28839,7 +29289,7 @@
       })
     ]);
 
-    var factory$h = function (detail, components, spec, externals) {
+    var factory$i = function (detail, components, spec, externals) {
       var dialogBusyEvent = generate$1('alloy.dialog.busy');
       var dialogIdleEvent = generate$1('alloy.dialog.idle');
       var busyBehaviours = derive$1([
@@ -28860,8 +29310,13 @@
         var externalBlocker = externals.blocker();
         var blocker = sink.getSystem().build(__assign(__assign({}, externalBlocker), {
           components: externalBlocker.components.concat([premade$1(dialog)]),
-          behaviours: derive$1([config('dialog-blocker-events', [
-              run(dialogIdleEvent, function (blocker, se) {
+          behaviours: derive$1([
+            Focusing.config({}),
+            config('dialog-blocker-events', [
+              runOnSource(focusin(), function () {
+                Keying.focusIn(dialog);
+              }),
+              run(dialogIdleEvent, function (_blocker, _se) {
                 if (has$1(dialog.element(), 'aria-busy')) {
                   remove$1(dialog.element(), 'aria-busy');
                   busyComp.get().each(function (bc) {
@@ -28883,7 +29338,8 @@
                   Keying.focusIn(busy);
                 }
               })
-            ])])
+            ])
+          ])
         }));
         attach$1(sink, blocker);
         Keying.focusIn(dialog);
@@ -28937,7 +29393,7 @@
             useTabstopAt: detail.useTabstopAt
           }),
           config(modalEventsId, [runOnAttached(function (c) {
-              AriaLabel.labelledBy(c.element(), getPartOrDie(c, detail, 'title').element());
+              labelledBy(c.element(), getPartOrDie(c, detail, 'title').element());
               describedBy(c.element(), getPartOrDie(c, detail, 'body').element());
             })])
         ])
@@ -28945,9 +29401,9 @@
     };
     var ModalDialog = composite$1({
       name: 'ModalDialog',
-      configFields: schema$u(),
-      partFields: parts$e(),
-      factory: factory$h,
+      configFields: schema$x(),
+      partFields: parts$f(),
+      factory: factory$i,
       apis: {
         show: function (apis, dialog) {
           apis.show(dialog);
@@ -29207,8 +29663,7 @@
 
     var dialogToggleMenuItemSchema = objOf([
       strictString('type'),
-      strictString('name'),
-      defaultedBoolean('active', false)
+      strictString('name')
     ].concat(commonMenuItemFields));
     var dialogToggleMenuItemDataProcessor = boolean;
 
@@ -29235,10 +29690,7 @@
       optionString('text'),
       optionString('tooltip'),
       optionString('icon'),
-      strictArrayOf('items', dialogToggleMenuItemSchema),
-      defaultedFunction('onSetup', function () {
-        return noop;
-      })
+      strictArrayOf('items', dialogToggleMenuItemSchema)
     ], baseButtonFields);
     var dialogButtonSchema = choose$1('type', {
       submit: normalButtonFields,
@@ -29360,28 +29812,6 @@
       }
     };
 
-    var value$3 = function () {
-      var subject = Cell(Option.none());
-      var clear = function () {
-        subject.set(Option.none());
-      };
-      var set = function (s) {
-        subject.set(Option.some(s));
-      };
-      var on = function (f) {
-        subject.get().each(f);
-      };
-      var isSet = function () {
-        return subject.get().isSome();
-      };
-      return {
-        clear: clear,
-        set: set,
-        isSet: isSet,
-        on: on
-      };
-    };
-
     var toValidValues = function (values) {
       var errors = [];
       var result = {};
@@ -29422,7 +29852,7 @@
         behaviours: derive$1([
           Keying.config({
             mode: 'acyclic',
-            useTabstopAt: not(NavigableObject.isPseudoStop)
+            useTabstopAt: not(isPseudoStop)
           }),
           ComposingConfigs.memento(memForm),
           RepresentingConfigs.memento(memForm, {
@@ -29439,7 +29869,7 @@
       };
     };
 
-    var factory$i = function (detail, spec) {
+    var factory$j = function (detail, _spec) {
       return {
         uid: detail.uid,
         dom: detail.dom,
@@ -29467,7 +29897,7 @@
       configFields: [
         defaulted$1('uid', undefined),
         strict$1('value'),
-        field('dom', 'dom', mergeWithThunk(function (spec) {
+        field('dom', 'dom', mergeWithThunk(function () {
           return {
             attributes: {
               'role': 'tab',
@@ -29485,10 +29915,10 @@
         ]),
         strict$1('view')
       ],
-      factory: factory$i
+      factory: factory$j
     });
 
-    var schema$v = constant([
+    var schema$y = constant([
       strict$1('tabs'),
       strict$1('dom'),
       defaulted$1('clickToDismiss', false),
@@ -29505,7 +29935,7 @@
       factory: TabButton,
       name: 'tabs',
       unit: 'tab',
-      overrides: function (barDetail, tabSpec) {
+      overrides: function (barDetail) {
         var dismissTab$1 = function (tabbar, button) {
           Highlighting.dehighlight(tabbar, button);
           emitWith(tabbar, dismissTab(), {
@@ -29539,13 +29969,13 @@
         };
       }
     });
-    var parts$f = constant([tabsPart]);
+    var parts$g = constant([tabsPart]);
 
-    var factory$j = function (detail, components, spec, externals) {
+    var factory$k = function (detail, components, _spec, _externals) {
       return {
         'uid': detail.uid,
         'dom': detail.dom,
-        'components': components,
+        components: components,
         'debug.sketcher': 'Tabbar',
         'domModification': { attributes: { role: 'tablist' } },
         'behaviours': augment(detail.tabbarBehaviours, [
@@ -29574,12 +30004,12 @@
     };
     var Tabbar = composite$1({
       name: 'Tabbar',
-      configFields: schema$v(),
-      partFields: parts$f(),
-      factory: factory$j
+      configFields: schema$y(),
+      partFields: parts$g(),
+      factory: factory$k
     });
 
-    var factory$k = function (detail, spec) {
+    var factory$l = function (detail, _spec) {
       return {
         uid: detail.uid,
         dom: detail.dom,
@@ -29590,10 +30020,10 @@
     var Tabview = single$2({
       name: 'Tabview',
       configFields: [field$1('tabviewBehaviours', [Replacing])],
-      factory: factory$k
+      factory: factory$l
     });
 
-    var schema$w = constant([
+    var schema$z = constant([
       defaulted$1('selectFirst', true),
       onHandler('onChangeTab'),
       onHandler('onDismissTab'),
@@ -29618,12 +30048,12 @@
       factory: Tabview,
       name: 'tabview'
     });
-    var parts$g = constant([
+    var parts$h = constant([
       barPart,
       viewPart
     ]);
 
-    var factory$l = function (detail, components, spec, externals) {
+    var factory$m = function (detail, components, _spec, _externals) {
       var changeTab$1 = function (button) {
         var tabValue = Representing.getValue(button);
         getPart(button, detail, 'tabview').each(function (tabview) {
@@ -29632,7 +30062,9 @@
           });
           tabWithValue.each(function (tabData) {
             var panel = tabData.view();
-            set$1(tabview.element(), 'aria-labelledby', get$2(button.element(), 'id'));
+            getOpt(button.element(), 'id').each(function (id) {
+              set$1(tabview.element(), 'aria-labelledby', id);
+            });
             Replacing.set(tabview, panel);
             detail.onChangeTab(tabview, button, panel);
           });
@@ -29647,9 +30079,9 @@
         uid: detail.uid,
         dom: detail.dom,
         components: components,
-        behaviours: get$b(detail.tabSectionBehaviours),
+        behaviours: get$c(detail.tabSectionBehaviours),
         events: derive(flatten([
-          detail.selectFirst ? [runOnAttached(function (section, simulatedEvent) {
+          detail.selectFirst ? [runOnAttached(function (section, _simulatedEvent) {
               changeTabBy(section, Highlighting.getFirst);
             })] : [],
           [
@@ -29686,9 +30118,9 @@
     };
     var TabSection = composite$1({
       name: 'TabSection',
-      configFields: schema$w(),
-      partFields: parts$g(),
-      factory: factory$l,
+      configFields: schema$z(),
+      partFields: parts$h(),
+      factory: factory$m,
       apis: {
         getViewItems: function (apis, component) {
           return apis.getViewItems(component);
@@ -29700,7 +30132,7 @@
     });
 
     var measureHeights = function (allTabs, tabview, tabviewComp) {
-      return map(allTabs, function (tab, i) {
+      return map(allTabs, function (_tab, i) {
         Replacing.set(tabviewComp, allTabs[i].view());
         var rect = tabview.dom().getBoundingClientRect();
         Replacing.set(tabviewComp, []);
@@ -29718,76 +30150,101 @@
         }
       }));
     };
-    var getMaxTabviewHeight = function (dialog, dialogBody) {
-      var rootElm = ancestor$1(dialog, '.tox-dialog-wrap').getOr(dialog);
+    var getMaxTabviewHeight = function (dialog, tabview, tablist) {
+      var documentElement$1 = documentElement(dialog).dom();
+      var rootElm = ancestor$2(dialog, '.tox-dialog-wrap').getOr(dialog);
       var isFixed = get$4(rootElm, 'position') === 'fixed';
       var maxHeight;
       if (isFixed) {
-        maxHeight = Math.max(domGlobals.document.documentElement.clientHeight, domGlobals.window.innerHeight);
+        maxHeight = Math.max(documentElement$1.clientHeight, domGlobals.window.innerHeight);
       } else {
-        maxHeight = Math.max(domGlobals.document.documentElement.offsetHeight, domGlobals.document.documentElement.scrollHeight);
+        maxHeight = Math.max(documentElement$1.offsetHeight, documentElement$1.scrollHeight);
       }
-      var dialogChrome = dialog.dom().getBoundingClientRect().height - dialogBody.dom().getBoundingClientRect().height;
-      return maxHeight - dialogChrome;
+      var tabviewHeight = get$6(tabview);
+      var isTabListBeside = tabview.dom().offsetLeft >= tablist.dom().offsetLeft + get$7(tablist);
+      var currentTabHeight = isTabListBeside ? Math.max(get$6(tablist), tabviewHeight) : tabviewHeight;
+      var dialogTopMargin = parseInt(get$4(dialog, 'margin-top'), 10) || 0;
+      var dialogBottomMargin = parseInt(get$4(dialog, 'margin-bottom'), 10) || 0;
+      var dialogHeight = get$6(dialog) + dialogTopMargin + dialogBottomMargin;
+      var chromeHeight = dialogHeight - currentTabHeight;
+      return maxHeight - chromeHeight;
     };
     var showTab = function (allTabs, comp) {
       head(allTabs).each(function (tab) {
         return TabSection.showTab(comp, tab.value);
       });
     };
+    var setTabviewHeight = function (tabview, height) {
+      set$2(tabview, 'height', height + 'px');
+      if (!detect$3().browser.isIE()) {
+        set$2(tabview, 'flex-basis', height + 'px');
+      } else {
+        remove$6(tabview, 'flex-basis');
+      }
+    };
     var updateTabviewHeight = function (dialogBody, tabview, maxTabHeight) {
-      ancestor$1(dialogBody, '[role="dialog"]').each(function (dialog) {
-        maxTabHeight.get().map(function (height) {
-          set$2(tabview, 'height', '0');
-          return Math.min(height, getMaxTabviewHeight(dialog, dialogBody));
-        }).each(function (height) {
-          set$2(tabview, 'height', height + 'px');
+      ancestor$2(dialogBody, '[role="dialog"]').each(function (dialog) {
+        descendant$1(dialog, '[role="tablist"]').each(function (tablist) {
+          maxTabHeight.get().map(function (height) {
+            set$2(tabview, 'height', '0');
+            set$2(tabview, 'flex-basis', '0');
+            return Math.min(height, getMaxTabviewHeight(dialog, tabview, tablist));
+          }).each(function (height) {
+            setTabviewHeight(tabview, height);
+          });
         });
       });
+    };
+    var getTabview = function (dialog) {
+      return descendant$1(dialog, '[role="tabpanel"]');
     };
     var setMode = function (allTabs) {
       var smartTabHeight = function () {
         var maxTabHeight = Cell(Option.none());
         var extraEvents = [
           runOnAttached(function (comp) {
-            descendant$1(comp.element(), '[role="tabpanel"]').each(function (tabview) {
+            var dialog = comp.element();
+            getTabview(dialog).each(function (tabview) {
               set$2(tabview, 'visibility', 'hidden');
               comp.getSystem().getByDom(tabview).toOption().each(function (tabviewComp) {
                 var heights = measureHeights(allTabs, tabview, tabviewComp);
                 var maxTabHeightOpt = getMaxHeight(heights);
                 maxTabHeight.set(maxTabHeightOpt);
               });
-              updateTabviewHeight(comp.element(), tabview, maxTabHeight);
+              updateTabviewHeight(dialog, tabview, maxTabHeight);
               remove$6(tabview, 'visibility');
               showTab(allTabs, comp);
               global$2.requestAnimationFrame(function () {
-                updateTabviewHeight(comp.element(), tabview, maxTabHeight);
+                updateTabviewHeight(dialog, tabview, maxTabHeight);
               });
             });
           }),
           run(windowResize(), function (comp) {
-            descendant$1(comp.element(), '[role="tabpanel"]').each(function (tabview) {
-              updateTabviewHeight(comp.element(), tabview, maxTabHeight);
+            var dialog = comp.element();
+            getTabview(dialog).each(function (tabview) {
+              updateTabviewHeight(dialog, tabview, maxTabHeight);
             });
           }),
-          run(formResizeEvent, function (comp, se) {
-            descendant$1(comp.element(), '[role="tabpanel"]').each(function (tabview) {
+          run(formResizeEvent, function (comp, _se) {
+            var dialog = comp.element();
+            getTabview(dialog).each(function (tabview) {
               var oldFocus = active();
               set$2(tabview, 'visibility', 'hidden');
               var oldHeight = getRaw(tabview, 'height').map(function (h) {
                 return parseInt(h, 10);
               });
               remove$6(tabview, 'height');
+              remove$6(tabview, 'flex-basis');
               var newHeight = tabview.dom().getBoundingClientRect().height;
               var hasGrown = oldHeight.forall(function (h) {
                 return newHeight > h;
               });
               if (hasGrown) {
                 maxTabHeight.set(Option.from(newHeight));
-                updateTabviewHeight(comp.element(), tabview, maxTabHeight);
+                updateTabviewHeight(dialog, tabview, maxTabHeight);
               } else {
                 oldHeight.each(function (h) {
-                  set$2(tabview, 'height', h + 'px');
+                  setTabviewHeight(tabview, h);
                 });
               }
               remove$6(tabview, 'visibility');
@@ -29852,7 +30309,7 @@
                   formBehaviours: derive$1([
                     Keying.config({
                       mode: 'acyclic',
-                      useTabstopAt: not(NavigableObject.isPseudoStop)
+                      useTabstopAt: not(isPseudoStop)
                     }),
                     config('TabView.form.events', [
                       runOnAttached(setDataOnForm),
@@ -30000,7 +30457,7 @@
               tag: 'div',
               classes: ['tox-dialog__body-iframe']
             },
-            components: [NavigableObject.craft({
+            components: [craft({
                 dom: {
                   tag: 'iframe',
                   attributes: { src: spec.url }
@@ -30013,16 +30470,350 @@
           }],
         behaviours: derive$1([Keying.config({
             mode: 'acyclic',
-            useTabstopAt: not(NavigableObject.isPseudoStop)
+            useTabstopAt: not(isPseudoStop)
           })])
       };
       return ModalDialog.parts().body(bodySpec);
     };
 
+    var isTouch = global$6.deviceType.isTouch();
+    var hiddenHeader = function (title, close) {
+      return {
+        dom: {
+          tag: 'div',
+          styles: { display: 'none' },
+          classes: ['tox-dialog__header']
+        },
+        components: [
+          title,
+          close
+        ]
+      };
+    };
+    var pClose = function (onClose, providersBackstage) {
+      return ModalDialog.parts().close(Button.sketch({
+        dom: {
+          tag: 'button',
+          classes: [
+            'tox-button',
+            'tox-button--icon',
+            'tox-button--naked'
+          ],
+          attributes: {
+            'type': 'button',
+            'aria-label': providersBackstage.translate('Close')
+          }
+        },
+        action: onClose,
+        buttonBehaviours: derive$1([Tabstopping.config({})])
+      }));
+    };
+    var pUntitled = function () {
+      return ModalDialog.parts().title({
+        dom: {
+          tag: 'div',
+          classes: ['tox-dialog__title'],
+          innerHtml: '',
+          styles: { display: 'none' }
+        }
+      });
+    };
+    var pBodyMessage = function (message, providersBackstage) {
+      return ModalDialog.parts().body({
+        dom: {
+          tag: 'div',
+          classes: ['tox-dialog__body']
+        },
+        components: [{
+            dom: {
+              tag: 'div',
+              classes: ['tox-dialog__body-content']
+            },
+            components: [{ dom: fromHtml$2('<p>' + providersBackstage.translate(message) + '</p>') }]
+          }]
+      });
+    };
+    var pFooter = function (buttons) {
+      return ModalDialog.parts().footer({
+        dom: {
+          tag: 'div',
+          classes: ['tox-dialog__footer']
+        },
+        components: buttons
+      });
+    };
+    var pFooterGroup = function (startButtons, endButtons) {
+      return [
+        Container.sketch({
+          dom: {
+            tag: 'div',
+            classes: ['tox-dialog__footer-start']
+          },
+          components: startButtons
+        }),
+        Container.sketch({
+          dom: {
+            tag: 'div',
+            classes: ['tox-dialog__footer-end']
+          },
+          components: endButtons
+        })
+      ];
+    };
+    var renderDialog = function (spec) {
+      var _a;
+      var dialogClass = 'tox-dialog';
+      var blockerClass = dialogClass + '-wrap';
+      var blockerBackdropClass = blockerClass + '__backdrop';
+      var scrollLockClass = dialogClass + '__disable-scroll';
+      return ModalDialog.sketch({
+        lazySink: spec.lazySink,
+        onEscape: function (comp) {
+          spec.onEscape(comp);
+          return Option.some(true);
+        },
+        useTabstopAt: function (elem) {
+          return !isPseudoStop(elem);
+        },
+        dom: {
+          tag: 'div',
+          classes: [dialogClass].concat(spec.extraClasses),
+          styles: __assign({ position: 'relative' }, spec.extraStyles)
+        },
+        components: __spreadArrays([
+          spec.header,
+          spec.body
+        ], spec.footer.toArray()),
+        parts: {
+          blocker: {
+            dom: fromHtml$2('<div class="' + blockerClass + '"></div>'),
+            components: [{
+                dom: {
+                  tag: 'div',
+                  classes: isTouch ? [
+                    blockerBackdropClass,
+                    blockerBackdropClass + '--opaque'
+                  ] : [blockerBackdropClass]
+                }
+              }]
+          }
+        },
+        dragBlockClass: blockerClass,
+        modalBehaviours: derive$1(__spreadArrays([
+          Focusing.config({}),
+          config('dialog-events', spec.dialogEvents.concat([runOnSource(focusin(), function (comp, _se) {
+              Keying.focusIn(comp);
+            })])),
+          config('scroll-lock', [
+            runOnAttached(function () {
+              add$2(body(), scrollLockClass);
+            }),
+            runOnDetached(function () {
+              remove$4(body(), scrollLockClass);
+            })
+          ])
+        ], spec.extraBehaviours)),
+        eventOrder: __assign((_a = {}, _a[execute()] = ['dialog-events'], _a[attachedToDom()] = [
+          'scroll-lock',
+          'dialog-events',
+          'alloy.base.behaviour'
+        ], _a[detachedFromDom()] = [
+          'alloy.base.behaviour',
+          'dialog-events',
+          'scroll-lock'
+        ], _a), spec.eventOrder)
+      });
+    };
+
+    var renderClose = function (providersBackstage) {
+      return Button.sketch({
+        dom: {
+          tag: 'button',
+          classes: [
+            'tox-button',
+            'tox-button--icon',
+            'tox-button--naked'
+          ],
+          attributes: {
+            'type': 'button',
+            'aria-label': providersBackstage.translate('Close'),
+            'title': providersBackstage.translate('Close')
+          }
+        },
+        components: [{
+            dom: {
+              tag: 'div',
+              classes: ['tox-icon'],
+              innerHtml: '<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg">' + '<path d="M17.953 7.453L13.422 12l4.531 4.547-1.406 1.406L12 ' + '13.422l-4.547 4.531-1.406-1.406L10.578 12 6.047 ' + '7.453l1.406-1.406L12 10.578l4.547-4.531z" ' + 'fill-rule="evenodd"></path></svg>'
+            }
+          }],
+        action: function (comp) {
+          emit(comp, formCancelEvent);
+        }
+      });
+    };
+    var renderTitle = function (spec, id, providersBackstage) {
+      var renderComponents = function (data) {
+        return [text(providersBackstage.translate(data.title))];
+      };
+      return {
+        dom: {
+          tag: 'div',
+          classes: ['tox-dialog__title'],
+          attributes: __assign({}, id.map(function (x) {
+            return { id: x };
+          }).getOr({}))
+        },
+        components: renderComponents(spec),
+        behaviours: derive$1([Reflecting.config({
+            channel: titleChannel,
+            renderComponents: renderComponents
+          })])
+      };
+    };
+    var renderDragHandle = function () {
+      return { dom: fromHtml$2('<div class="tox-dialog__draghandle"></div>') };
+    };
+    var renderInlineHeader = function (spec, titleId, providersBackstage) {
+      return Container.sketch({
+        dom: fromHtml$2('<div class="tox-dialog__header"></div>'),
+        components: [
+          renderTitle(spec, Option.some(titleId), providersBackstage),
+          renderDragHandle(),
+          renderClose(providersBackstage)
+        ],
+        containerBehaviours: derive$1([Dragging.config({
+            mode: 'mouse',
+            blockerClass: 'blocker',
+            getTarget: function (handle) {
+              return closest$3(handle, '[role="dialog"]').getOrDie();
+            },
+            snaps: {
+              getSnapPoints: function () {
+                return [];
+              },
+              leftAttr: 'data-drag-left',
+              topAttr: 'data-drag-top'
+            }
+          })])
+      });
+    };
+    var renderModalHeader = function (spec, providersBackstage) {
+      var pTitle = ModalDialog.parts().title(renderTitle(spec, Option.none(), providersBackstage));
+      var pHandle = ModalDialog.parts().draghandle(renderDragHandle());
+      var pClose = ModalDialog.parts().close(renderClose(providersBackstage));
+      var components = [pTitle].concat(spec.draggable ? [pHandle] : []).concat([pClose]);
+      return Container.sketch({
+        dom: fromHtml$2('<div class="tox-dialog__header"></div>'),
+        components: components
+      });
+    };
+
+    var getHeader = function (title, backstage) {
+      return renderModalHeader({
+        title: backstage.shared.providers.translate(title),
+        draggable: backstage.dialog.isDraggableModal()
+      }, backstage.shared.providers);
+    };
+    var getEventExtras = function (lazyDialog, extra) {
+      return {
+        onClose: function () {
+          return extra.closeWindow();
+        },
+        onBlock: function (blockEvent) {
+          ModalDialog.setBusy(lazyDialog(), function (d, bs) {
+            return {
+              dom: {
+                tag: 'div',
+                classes: ['tox-dialog__busy-spinner'],
+                attributes: { 'aria-label': blockEvent.message() },
+                styles: {
+                  left: '0px',
+                  right: '0px',
+                  bottom: '0px',
+                  top: '0px',
+                  position: 'absolute'
+                }
+              },
+              behaviours: bs,
+              components: [{ dom: fromHtml$2('<div class="tox-spinner"><div></div><div></div><div></div></div>') }]
+            };
+          });
+        },
+        onUnblock: function () {
+          ModalDialog.setIdle(lazyDialog());
+        }
+      };
+    };
+    var renderModalDialog = function (spec, initialData, dialogEvents, backstage) {
+      var _a;
+      var updateState = function (_comp, incoming) {
+        return Option.some(incoming);
+      };
+      return build$1(renderDialog(__assign(__assign({}, spec), {
+        lazySink: backstage.shared.getSink,
+        extraBehaviours: __spreadArrays([
+          Reflecting.config({
+            channel: dialogChannel,
+            updateState: updateState,
+            initialData: initialData
+          }),
+          RepresentingConfigs.memory({})
+        ], spec.extraBehaviours),
+        onEscape: function (comp) {
+          emit(comp, formCancelEvent);
+        },
+        dialogEvents: dialogEvents,
+        eventOrder: (_a = {}, _a[receive()] = [
+          'reflecting',
+          'receiving'
+        ], _a[attachedToDom()] = [
+          'scroll-lock',
+          'reflecting',
+          'messages',
+          'dialog-events',
+          'alloy.base.behaviour'
+        ], _a[detachedFromDom()] = [
+          'alloy.base.behaviour',
+          'dialog-events',
+          'messages',
+          'reflecting',
+          'scroll-lock'
+        ], _a)
+      })));
+    };
+    var mapMenuButtons = function (buttons) {
+      var mapItems = function (button) {
+        var items = map(button.items, function (item) {
+          var cell = Cell(false);
+          return __assign(__assign({}, item), { storage: cell });
+        });
+        return __assign(__assign({}, button), { items: items });
+      };
+      return map(buttons, function (button) {
+        if (button.type === 'menu') {
+          return mapItems(button);
+        }
+        return button;
+      });
+    };
+    var extractCellsToObject = function (buttons) {
+      return foldl(buttons, function (acc, button) {
+        if (button.type === 'menu') {
+          var menuButton = button;
+          return foldl(menuButton.items, function (innerAcc, item) {
+            innerAcc[item.name] = item.storage;
+            return innerAcc;
+          }, acc);
+        }
+        return acc;
+      }, {});
+    };
+
     var initCommonEvents = function (fireApiEvent, extras) {
       return [
-        runWithTarget(focusin(), NavigableObject.onFocus),
-        fireApiEvent(formCloseEvent, function (api, spec) {
+        runWithTarget(focusin(), onFocus$1),
+        fireApiEvent(formCloseEvent, function (_api, spec) {
           extras.onClose();
           spec.onClose();
         }),
@@ -30030,10 +30821,10 @@
           spec.onCancel(api);
           emit(self, formCloseEvent);
         }),
-        run(formUnblockEvent, function (c, se) {
+        run(formUnblockEvent, function (_c, _se) {
           return extras.onUnblock();
         }),
-        run(formBlockEvent, function (c, se) {
+        run(formBlockEvent, function (_c, se) {
           return extras.onBlock(se.event());
         })
       ];
@@ -30055,7 +30846,7 @@
           spec.onAction(api, { name: event.name() });
         })]);
     };
-    var initDialog = function (getInstanceApi, extras) {
+    var initDialog = function (getInstanceApi, extras, getSink) {
       var fireApiEvent = function (eventName, f) {
         return run(eventName, function (c, se) {
           withSpec(c, function (spec, _c) {
@@ -30079,18 +30870,27 @@
           var focusIn = function () {
             return Keying.focusIn(component);
           };
+          var isDisabled = function (focused) {
+            return has$1(focused, 'disabled') || getOpt(focused, 'aria-disabled').exists(function (val) {
+              return val === 'true';
+            });
+          };
           var current = active();
           spec.onAction(api, {
             name: event.name(),
             value: event.value()
           });
-          active().fold(function () {
-            focusIn();
-          }, function (focused) {
-            if (!contains$2(component.element(), focused) || has$1(focused, 'disabled')) {
+          active().fold(focusIn, function (focused) {
+            if (isDisabled(focused)) {
               focusIn();
-            } else if (contains$2(focused, current.getOrNull()) && has$1(current.getOrDie(), 'disabled')) {
+            } else if (current.exists(function (cur) {
+                return contains$2(focused, cur) && isDisabled(cur);
+              })) {
               focusIn();
+            } else {
+              getSink().toOption().filter(function (sink) {
+                return !contains$2(sink.element(), focused);
+              }).each(focusIn);
             }
           });
         }),
@@ -30224,7 +31024,7 @@
       var setData = function (newData) {
         withRoot(function (_) {
           var prevData = instanceApi.getData();
-          var mergedData = merge(prevData, newData);
+          var mergedData = __assign(__assign({}, prevData), newData);
           var newInternalData = validateData(access, mergedData);
           var form = access.getFormWrapper();
           Representing.setValue(form, newInternalData);
@@ -30300,232 +31100,7 @@
       return instanceApi;
     };
 
-    var renderClose = function (providersBackstage) {
-      return Button.sketch({
-        dom: {
-          tag: 'button',
-          classes: [
-            'tox-button',
-            'tox-button--icon',
-            'tox-button--naked'
-          ],
-          attributes: {
-            'type': 'button',
-            'aria-label': providersBackstage.translate('Close'),
-            'title': providersBackstage.translate('Close')
-          }
-        },
-        components: [{
-            dom: {
-              tag: 'div',
-              classes: ['tox-icon'],
-              innerHtml: '<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"><path d="M17.953 7.453L13.422 12l4.531 4.547-1.406 1.406L12 13.422l-4.547 4.531-1.406-1.406L10.578 12 6.047 7.453l1.406-1.406L12 10.578l4.547-4.531z" fill-rule="evenodd"></path></svg>'
-            }
-          }],
-        action: function (comp) {
-          emit(comp, formCancelEvent);
-        }
-      });
-    };
-    var renderTitle = function (spec, id, providersBackstage) {
-      var renderComponents = function (data) {
-        return [text(providersBackstage.translate(data.title))];
-      };
-      return {
-        dom: {
-          tag: 'div',
-          classes: ['tox-dialog__title'],
-          attributes: __assign({}, id.map(function (x) {
-            return { id: x };
-          }).getOr({}))
-        },
-        components: renderComponents(spec),
-        behaviours: derive$1([Reflecting.config({
-            channel: titleChannel,
-            renderComponents: renderComponents
-          })])
-      };
-    };
-    var renderDragHandle = function () {
-      return { dom: fromHtml$2('<div class="tox-dialog__draghandle"></div>') };
-    };
-    var renderInlineHeader = function (spec, titleId, providersBackstage) {
-      return Container.sketch({
-        dom: fromHtml$2('<div class="tox-dialog__header"></div>'),
-        components: [
-          renderTitle(spec, Option.some(titleId), providersBackstage),
-          renderDragHandle(),
-          renderClose(providersBackstage)
-        ],
-        containerBehaviours: derive$1([Dragging.config({
-            mode: 'mouse',
-            blockerClass: 'blocker',
-            getTarget: function (handle) {
-              return closest$3(handle, '[role="dialog"]').getOrDie();
-            },
-            snaps: {
-              getSnapPoints: function () {
-                return [];
-              },
-              leftAttr: 'data-drag-left',
-              topAttr: 'data-drag-top'
-            }
-          })])
-      });
-    };
-    var renderModalHeader = function (spec, providersBackstage) {
-      var pTitle = ModalDialog.parts().title(renderTitle(spec, Option.none(), providersBackstage));
-      var pHandle = ModalDialog.parts().draghandle(renderDragHandle());
-      var pClose = ModalDialog.parts().close(renderClose(providersBackstage));
-      var components = [pTitle].concat(spec.draggable ? [pHandle] : []).concat([pClose]);
-      return Container.sketch({
-        dom: fromHtml$2('<div class="tox-dialog__header"></div>'),
-        components: components
-      });
-    };
-
-    var isTouch$4 = global$6.deviceType.isTouch();
-    var getHeader = function (title, backstage) {
-      return renderModalHeader({
-        title: backstage.shared.providers.translate(title),
-        draggable: backstage.dialog.isDraggableModal()
-      }, backstage.shared.providers);
-    };
-    var getEventExtras = function (lazyDialog, extra) {
-      return {
-        onClose: function () {
-          return extra.closeWindow();
-        },
-        onBlock: function (blockEvent) {
-          ModalDialog.setBusy(lazyDialog(), function (d, bs) {
-            return {
-              dom: {
-                tag: 'div',
-                classes: ['tox-dialog__busy-spinner'],
-                attributes: { 'aria-label': blockEvent.message() },
-                styles: {
-                  left: '0px',
-                  right: '0px',
-                  bottom: '0px',
-                  top: '0px',
-                  position: 'absolute'
-                }
-              },
-              behaviours: bs,
-              components: [{ dom: fromHtml$2('<div class="tox-spinner"><div></div><div></div><div></div></div>') }]
-            };
-          });
-        },
-        onUnblock: function () {
-          ModalDialog.setIdle(lazyDialog());
-        }
-      };
-    };
-    var renderModalDialog = function (spec, initialData, dialogEvents, backstage) {
-      var _a;
-      var updateState = function (_comp, incoming) {
-        return Option.some(incoming);
-      };
-      return build$1(ModalDialog.sketch({
-        lazySink: backstage.shared.getSink,
-        onEscape: function (c) {
-          emit(c, formCancelEvent);
-          return Option.some(true);
-        },
-        useTabstopAt: function (elem) {
-          return !NavigableObject.isPseudoStop(elem);
-        },
-        modalBehaviours: derive$1(__spreadArrays([
-          Reflecting.config({
-            channel: dialogChannel,
-            updateState: updateState,
-            initialData: initialData
-          }),
-          RepresentingConfigs.memory({}),
-          Focusing.config({}),
-          config('execute-on-form', dialogEvents.concat([runOnSource(focusin(), function (comp, se) {
-              Keying.focusIn(comp);
-            })])),
-          config('scroll-lock', [
-            runOnAttached(function () {
-              add$2(body(), 'tox-dialog__disable-scroll');
-            }),
-            runOnDetached(function () {
-              remove$4(body(), 'tox-dialog__disable-scroll');
-            })
-          ])
-        ], spec.extraBehaviours)),
-        eventOrder: (_a = {}, _a[execute()] = ['execute-on-form'], _a[receive()] = [
-          'reflecting',
-          'receiving'
-        ], _a[attachedToDom()] = [
-          'scroll-lock',
-          'reflecting',
-          'messages',
-          'execute-on-form',
-          'alloy.base.behaviour'
-        ], _a[detachedFromDom()] = [
-          'alloy.base.behaviour',
-          'execute-on-form',
-          'messages',
-          'reflecting',
-          'scroll-lock'
-        ], _a),
-        dom: {
-          tag: 'div',
-          classes: ['tox-dialog'].concat(spec.extraClasses),
-          styles: __assign({ position: 'relative' }, spec.extraStyles)
-        },
-        components: __spreadArrays([
-          spec.header,
-          spec.body
-        ], spec.footer.toArray()),
-        dragBlockClass: 'tox-dialog-wrap',
-        parts: {
-          blocker: {
-            dom: fromHtml$2('<div class="tox-dialog-wrap"></div>'),
-            components: [{
-                dom: {
-                  tag: 'div',
-                  classes: isTouch$4 ? [
-                    'tox-dialog-wrap__backdrop',
-                    'tox-dialog-wrap__backdrop--opaque'
-                  ] : ['tox-dialog-wrap__backdrop']
-                }
-              }]
-          }
-        }
-      }));
-    };
-    var mapMenuButtons = function (buttons) {
-      var mapItems = function (button) {
-        var items = map(button.items, function (item) {
-          var cell = Cell(false);
-          return __assign(__assign({}, item), { storage: cell });
-        });
-        return __assign(__assign({}, button), { items: items });
-      };
-      return map(buttons, function (button) {
-        if (button.type === 'menu') {
-          return mapItems(button);
-        }
-        return button;
-      });
-    };
-    var extractCellsToObject = function (buttons) {
-      return foldl(buttons, function (acc, button) {
-        if (button.type === 'menu') {
-          var menuButton = button;
-          return foldl(menuButton.items, function (innerAcc, item) {
-            innerAcc[item.name] = item.storage;
-            return innerAcc;
-          }, acc);
-        }
-        return acc;
-      }, {});
-    };
-
-    var renderDialog = function (dialogInit, extra, backstage) {
+    var renderDialog$1 = function (dialogInit, extra, backstage) {
       var header = getHeader(dialogInit.internalDialog.title, backstage);
       var body = renderModalBody({ body: dialogInit.internalDialog.body }, backstage);
       var storagedMenuButtons = mapMenuButtons(dialogInit.internalDialog.buttons);
@@ -30535,7 +31110,7 @@
         return instanceApi;
       }, getEventExtras(function () {
         return dialog;
-      }, extra));
+      }, extra), backstage.shared.getSink);
       var dialogSize = dialogInit.internalDialog.size !== 'normal' ? dialogInit.internalDialog.size === 'large' ? ['tox-dialog--width-lg'] : ['tox-dialog--width-md'] : [];
       var spec = {
         header: header,
@@ -30565,6 +31140,97 @@
         };
       }();
       var instanceApi = getDialogApi(modalAccess, extra.redial, objOfCells);
+      return {
+        dialog: dialog,
+        instanceApi: instanceApi
+      };
+    };
+
+    var renderInlineDialog = function (dialogInit, extra, backstage, ariaAttrs) {
+      var _a, _b;
+      var dialogLabelId = generate$1('dialog-label');
+      var dialogContentId = generate$1('dialog-content');
+      var updateState = function (_comp, incoming) {
+        return Option.some(incoming);
+      };
+      var memHeader = record(renderInlineHeader({
+        title: dialogInit.internalDialog.title,
+        draggable: true
+      }, dialogLabelId, backstage.shared.providers));
+      var memBody = record(renderInlineBody({ body: dialogInit.internalDialog.body }, dialogContentId, backstage, ariaAttrs));
+      var storagedMenuButtons = mapMenuButtons(dialogInit.internalDialog.buttons);
+      var objOfCells = extractCellsToObject(storagedMenuButtons);
+      var memFooter = record(renderInlineFooter({ buttons: storagedMenuButtons }, backstage));
+      var dialogEvents = SilverDialogEvents.initDialog(function () {
+        return instanceApi;
+      }, {
+        onBlock: function () {
+        },
+        onUnblock: function () {
+        },
+        onClose: function () {
+          return extra.closeWindow();
+        }
+      }, backstage.shared.getSink);
+      var dialog = build$1({
+        dom: {
+          tag: 'div',
+          classes: [
+            'tox-dialog',
+            'tox-dialog-inline'
+          ],
+          attributes: (_a = { role: 'dialog' }, _a['aria-labelledby'] = dialogLabelId, _a['aria-describedby'] = '' + dialogContentId, _a)
+        },
+        eventOrder: (_b = {}, _b[receive()] = [
+          Reflecting.name(),
+          Receiving.name()
+        ], _b[execute()] = ['execute-on-form'], _b[attachedToDom()] = [
+          'reflecting',
+          'execute-on-form'
+        ], _b),
+        behaviours: derive$1([
+          Keying.config({
+            mode: 'cyclic',
+            onEscape: function (c) {
+              emit(c, formCloseEvent);
+              return Option.some(true);
+            },
+            useTabstopAt: function (elem) {
+              return !isPseudoStop(elem) && (name(elem) !== 'button' || get$2(elem, 'disabled') !== 'disabled');
+            }
+          }),
+          Reflecting.config({
+            channel: dialogChannel,
+            updateState: updateState,
+            initialData: dialogInit
+          }),
+          Focusing.config({}),
+          config('execute-on-form', dialogEvents.concat([runOnSource(focusin(), function (comp, _se) {
+              Keying.focusIn(comp);
+            })])),
+          RepresentingConfigs.memory({})
+        ]),
+        components: [
+          memHeader.asSpec(),
+          memBody.asSpec(),
+          memFooter.asSpec()
+        ]
+      });
+      var instanceApi = getDialogApi({
+        getRoot: function () {
+          return dialog;
+        },
+        getFooter: function () {
+          return memFooter.get(dialog);
+        },
+        getBody: function () {
+          return memBody.get(dialog);
+        },
+        getFormWrapper: function () {
+          var body = memBody.get(dialog);
+          return Composing.getCurrent(body).getOr(body);
+        }
+      }, extra.redial, objOfCells);
       return {
         dialog: dialog,
         instanceApi: instanceApi
@@ -30730,227 +31396,6 @@
       };
     };
 
-    var renderInlineDialog = function (dialogInit, extra, backstage, ariaAttrs) {
-      var _a, _b;
-      var dialogLabelId = generate$1('dialog-label');
-      var dialogContentId = generate$1('dialog-content');
-      var updateState = function (_comp, incoming) {
-        return Option.some(incoming);
-      };
-      var memHeader = record(renderInlineHeader({
-        title: dialogInit.internalDialog.title,
-        draggable: true
-      }, dialogLabelId, backstage.shared.providers));
-      var memBody = record(renderInlineBody({ body: dialogInit.internalDialog.body }, dialogContentId, backstage, ariaAttrs));
-      var storagedMenuButtons = mapMenuButtons(dialogInit.internalDialog.buttons);
-      var objOfCells = extractCellsToObject(storagedMenuButtons);
-      var memFooter = record(renderInlineFooter({ buttons: storagedMenuButtons }, backstage));
-      var dialogEvents = SilverDialogEvents.initDialog(function () {
-        return instanceApi;
-      }, {
-        onBlock: function () {
-        },
-        onUnblock: function () {
-        },
-        onClose: function () {
-          return extra.closeWindow();
-        }
-      });
-      var dialog = build$1({
-        dom: {
-          tag: 'div',
-          classes: [
-            'tox-dialog',
-            'tox-dialog-inline'
-          ],
-          attributes: (_a = { role: 'dialog' }, _a['aria-labelledby'] = dialogLabelId, _a['aria-describedby'] = '' + dialogContentId, _a)
-        },
-        eventOrder: (_b = {}, _b[receive()] = [
-          Reflecting.name(),
-          Receiving.name()
-        ], _b[execute()] = ['execute-on-form'], _b[attachedToDom()] = [
-          'reflecting',
-          'execute-on-form'
-        ], _b),
-        behaviours: derive$1([
-          Keying.config({
-            mode: 'cyclic',
-            onEscape: function (c) {
-              emit(c, formCloseEvent);
-              return Option.some(true);
-            },
-            useTabstopAt: function (elem) {
-              return !NavigableObject.isPseudoStop(elem) && (name(elem) !== 'button' || get$2(elem, 'disabled') !== 'disabled');
-            }
-          }),
-          Reflecting.config({
-            channel: dialogChannel,
-            updateState: updateState,
-            initialData: dialogInit
-          }),
-          Focusing.config({}),
-          config('execute-on-form', dialogEvents.concat([runOnSource(focusin(), function (comp, se) {
-              Keying.focusIn(comp);
-            })])),
-          RepresentingConfigs.memory({})
-        ]),
-        components: [
-          memHeader.asSpec(),
-          memBody.asSpec(),
-          memFooter.asSpec()
-        ]
-      });
-      var instanceApi = getDialogApi({
-        getRoot: function () {
-          return dialog;
-        },
-        getFooter: function () {
-          return memFooter.get(dialog);
-        },
-        getBody: function () {
-          return memBody.get(dialog);
-        },
-        getFormWrapper: function () {
-          var body = memBody.get(dialog);
-          return Composing.getCurrent(body).getOr(body);
-        }
-      }, extra.redial, objOfCells);
-      return {
-        dialog: dialog,
-        instanceApi: instanceApi
-      };
-    };
-
-    var isTouch$5 = global$6.deviceType.isTouch();
-    var hiddenHeader = {
-      dom: {
-        tag: 'div',
-        styles: { display: 'none' },
-        classes: ['tox-dialog__header']
-      }
-    };
-    var defaultHeader = {
-      dom: {
-        tag: 'div',
-        classes: ['tox-dialog__header']
-      }
-    };
-    var pClose = function (onClose, providersBackstage) {
-      return ModalDialog.parts().close(Button.sketch({
-        dom: {
-          tag: 'button',
-          classes: [
-            'tox-button',
-            'tox-button--icon',
-            'tox-button--naked'
-          ],
-          attributes: {
-            'type': 'button',
-            'aria-label': providersBackstage.translate('Close')
-          }
-        },
-        action: onClose,
-        buttonBehaviours: derive$1([Tabstopping.config({})])
-      }));
-    };
-    var pUntitled = function () {
-      return ModalDialog.parts().title({
-        dom: {
-          tag: 'div',
-          classes: ['tox-dialog__title'],
-          innerHtml: '',
-          styles: { display: 'none' }
-        }
-      });
-    };
-    var pBodyMessage = function (message, providersBackstage) {
-      return ModalDialog.parts().body({
-        dom: {
-          tag: 'div',
-          classes: ['tox-dialog__body']
-        },
-        components: [{
-            dom: {
-              tag: 'div',
-              classes: ['tox-dialog__body-content']
-            },
-            components: [{ dom: fromHtml$2('<p>' + providersBackstage.translate(message) + '</p>') }]
-          }]
-      });
-    };
-    var pFooter = function (buttons) {
-      return ModalDialog.parts().footer({
-        dom: {
-          tag: 'div',
-          classes: ['tox-dialog__footer']
-        },
-        components: buttons
-      });
-    };
-    var pFooterGroup = function (startButtons, endButtons) {
-      return [
-        Container.sketch({
-          dom: {
-            tag: 'div',
-            classes: ['tox-dialog__footer-start']
-          },
-          components: startButtons
-        }),
-        Container.sketch({
-          dom: {
-            tag: 'div',
-            classes: ['tox-dialog__footer-end']
-          },
-          components: endButtons
-        })
-      ];
-    };
-    var renderDialog$1 = function (spec) {
-      return ModalDialog.sketch({
-        lazySink: spec.lazySink,
-        onEscape: function () {
-          spec.onCancel();
-          return Option.some(true);
-        },
-        dom: {
-          tag: 'div',
-          classes: ['tox-dialog'].concat(spec.extraClasses)
-        },
-        components: [
-          deepMerge(spec.headerOverride.getOr(defaultHeader), {
-            components: [
-              spec.partSpecs.title,
-              spec.partSpecs.close
-            ]
-          }),
-          spec.partSpecs.body,
-          spec.partSpecs.footer
-        ],
-        parts: {
-          blocker: {
-            dom: fromHtml$2('<div class="tox-dialog-wrap"></div>'),
-            components: [{
-                dom: {
-                  tag: 'div',
-                  classes: isTouch$5 ? [
-                    'tox-dialog-wrap__backdrop',
-                    'tox-dialog-wrap__backdrop--opaque'
-                  ] : ['tox-dialog-wrap__backdrop']
-                }
-              }]
-          }
-        },
-        modalBehaviours: derive$1([config('basic-dialog-events', [
-            run(formCancelEvent, function (comp, se) {
-              spec.onCancel();
-            }),
-            run(formSubmitEvent, function (comp, se) {
-              spec.onSubmit();
-            })
-          ])])
-      });
-    };
-
     var setup$c = function (extras) {
       var sharedBackstage = extras.backstage.shared;
       var open = function (message, callback) {
@@ -30966,24 +31411,21 @@
           disabled: false,
           icon: Option.none()
         }, 'cancel', extras.backstage));
-        var alertDialog = build$1(renderDialog$1({
+        var titleSpec = pUntitled();
+        var closeSpec = pClose(closeDialog, sharedBackstage.providers);
+        var alertDialog = build$1(renderDialog({
           lazySink: function () {
             return sharedBackstage.getSink();
           },
-          headerOverride: Option.some(hiddenHeader),
-          partSpecs: {
-            title: pUntitled(),
-            close: pClose(function () {
-              closeDialog();
-            }, sharedBackstage.providers),
-            body: pBodyMessage(message, sharedBackstage.providers),
-            footer: pFooter(pFooterGroup([], [memFooterClose.asSpec()]))
-          },
-          onCancel: function () {
-            return closeDialog();
-          },
-          onSubmit: noop,
-          extraClasses: ['tox-alert-dialog']
+          header: hiddenHeader(titleSpec, closeSpec),
+          body: pBodyMessage(message, sharedBackstage.providers),
+          footer: Option.some(pFooter(pFooterGroup([], [memFooterClose.asSpec()]))),
+          onEscape: closeDialog,
+          extraClasses: ['tox-alert-dialog'],
+          extraBehaviours: [],
+          extraStyles: {},
+          dialogEvents: [run(formCancelEvent, closeDialog)],
+          eventOrder: {}
         }));
         ModalDialog.show(alertDialog);
         var footerCloseButton = memFooterClose.get(alertDialog);
@@ -31010,34 +31452,40 @@
         var footerNo = renderFooterButton({
           name: 'no',
           text: 'No',
-          primary: true,
+          primary: false,
           align: 'end',
           disabled: false,
           icon: Option.none()
         }, 'cancel', extras.backstage);
-        var confirmDialog = build$1(renderDialog$1({
+        var titleSpec = pUntitled();
+        var closeSpec = pClose(function () {
+          return closeDialog(false);
+        }, sharedBackstage.providers);
+        var confirmDialog = build$1(renderDialog({
           lazySink: function () {
             return sharedBackstage.getSink();
           },
-          headerOverride: Option.some(hiddenHeader),
-          partSpecs: {
-            title: pUntitled(),
-            close: pClose(function () {
-              closeDialog(false);
-            }, sharedBackstage.providers),
-            body: pBodyMessage(message, sharedBackstage.providers),
-            footer: pFooter(pFooterGroup([], [
-              footerNo,
-              memFooterYes.asSpec()
-            ]))
-          },
-          onCancel: function () {
+          header: hiddenHeader(titleSpec, closeSpec),
+          body: pBodyMessage(message, sharedBackstage.providers),
+          footer: Option.some(pFooter(pFooterGroup([], [
+            footerNo,
+            memFooterYes.asSpec()
+          ]))),
+          onEscape: function () {
             return closeDialog(false);
           },
-          onSubmit: function () {
-            return closeDialog(true);
-          },
-          extraClasses: ['tox-confirm-dialog']
+          extraClasses: ['tox-confirm-dialog'],
+          extraBehaviours: [],
+          extraStyles: {},
+          dialogEvents: [
+            run(formCancelEvent, function () {
+              return closeDialog(false);
+            }),
+            run(formSubmitEvent, function () {
+              return closeDialog(true);
+            })
+          ],
+          eventOrder: {}
         }));
         ModalDialog.show(confirmDialog);
         var footerYesButton = memFooterYes.get(confirmDialog);
@@ -31049,8 +31497,11 @@
     var validateData$1 = function (data, validator) {
       return getOrDie(asRaw('data', validator, data));
     };
-    var inlineAdditionalBehaviours = function (editor, isStickyToolbar) {
-      if (isStickyToolbar) {
+    var isAlertOrConfirmDialog = function (target) {
+      return closest$4(target, '.tox-alert-dialog') || closest$4(target, '.tox-confirm-dialog');
+    };
+    var inlineAdditionalBehaviours = function (editor, isStickyToolbar, isToolbarLocationTop) {
+      if (isStickyToolbar && isToolbarLocationTop) {
         return [];
       } else {
         return [Docking.config({
@@ -31062,17 +31513,7 @@
               fadeOutClass: 'tox-dialog-dock-fadeout',
               transitionClass: 'tox-dialog-dock-transition'
             },
-            leftAttr: 'data-dock-left',
-            topAttr: 'data-dock-top',
-            positionAttr: 'data-dock-pos',
-            modes: ['top'],
-            lazyViewport: function () {
-              var win$1 = win();
-              var headerEle = descendant$1(Element.fromDom(editor.getContainer()), '.tox-editor-header').getOrDie();
-              var headerBounds = absolute$1(headerEle);
-              var topBounds = Math.max(win$1.y(), headerBounds.bottom());
-              return bounds$1(win$1.x(), topBounds, win$1.width(), win$1.bottom() - topBounds);
-            }
+            modes: ['top']
           })];
       }
     };
@@ -31084,7 +31525,7 @@
       var confirmDialog = setup$d(extras);
       var open = function (config, params, closeWindow) {
         if (params !== undefined && params.inline === 'toolbar') {
-          return openInlineDialog(config, backstage.shared.anchors.toolbar(), closeWindow, params.ariaAttrs);
+          return openInlineDialog(config, backstage.shared.anchors.inlineDialog(), closeWindow, params.ariaAttrs);
         } else if (params !== undefined && params.inline === 'cursor') {
           return openInlineDialog(config, backstage.shared.anchors.cursor(), closeWindow, params.ariaAttrs);
         } else {
@@ -31115,7 +31556,7 @@
             initialData: initialData,
             internalDialog: contents
           };
-          var dialog = renderDialog(dialogInit, {
+          var dialog = renderDialog$1(dialogInit, {
             redial: DialogManager.redial,
             closeWindow: function () {
               ModalDialog.hide(dialog.dialog);
@@ -31132,6 +31573,7 @@
         var factory = function (contents, internalInitialData, dataValidator) {
           var initialData = validateData$1(internalInitialData, dataValidator);
           var inlineDialog = value$3();
+          var isToolbarLocationTop = backstage.shared.header.isPositionedAtTop();
           var dialogInit = {
             dataValidator: dataValidator,
             initialData: initialData,
@@ -31139,6 +31581,7 @@
           };
           var refreshDocking = function () {
             return inlineDialog.on(function (dialog) {
+              InlineView.reposition(dialog);
               Docking.refresh(dialog);
             });
           };
@@ -31151,20 +31594,24 @@
               closeWindow(dialogUi.instanceApi);
             }
           }, backstage, ariaAttrs);
-          var inlineDialogComp = build$1(InlineView.sketch({
+          var inlineDialogComp = build$1(InlineView.sketch(__assign(__assign({
             lazySink: backstage.shared.getSink,
             dom: {
               tag: 'div',
               classes: []
             },
-            fireDismissalEventInstead: {},
-            inlineBehaviours: derive$1(__spreadArrays([config('window-manager-inline-events', [run(dismissRequested(), function (comp, se) {
+            fireDismissalEventInstead: {}
+          }, isToolbarLocationTop ? {} : { fireRepositionEventInstead: {} }), {
+            inlineBehaviours: derive$1(__spreadArrays([config('window-manager-inline-events', [run(dismissRequested(), function (_comp, _se) {
                   emit(dialogUi.dialog, formCancelEvent);
-                })])], inlineAdditionalBehaviours(editor, isStickyToolbar$1)))
-          }));
+                })])], inlineAdditionalBehaviours(editor, isStickyToolbar$1, isToolbarLocationTop))),
+            isExtraPart: function (_comp, target) {
+              return isAlertOrConfirmDialog(target);
+            }
+          })));
           inlineDialog.set(inlineDialogComp);
           InlineView.showWithin(inlineDialogComp, anchor, premade$1(dialogUi.dialog), Option.some(body()));
-          if (!isStickyToolbar$1) {
+          if (!isStickyToolbar$1 || !isToolbarLocationTop) {
             Docking.refresh(inlineDialogComp);
             editor.on('ResizeEditor', refreshDocking);
           }
@@ -31195,13 +31642,12 @@
         confirm: confirm
       };
     };
-    var WindowManager = { setup: setup$e };
 
     function Theme () {
       global$1.add('silver', function (editor) {
-        var _a = Render.setup(editor), uiMothership = _a.uiMothership, backstage = _a.backstage, renderUI = _a.renderUI, getUi = _a.getUi;
+        var _a = setup$b(editor), uiMothership = _a.uiMothership, backstage = _a.backstage, renderUI = _a.renderUI, getUi = _a.getUi;
         Autocompleter.register(editor, backstage.shared);
-        var windowMgr = WindowManager.setup({
+        var windowMgr = setup$e({
           editor: editor,
           backstage: backstage
         });
