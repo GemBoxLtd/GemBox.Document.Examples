@@ -207,6 +207,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProgressReportingInWpf", "A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoHyphenation", "Advanced Features\Auto Hyphenation\AutoHyphenation.csproj", "{6970144C-06CD-45C9-8609-61EA0DA85681}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Azure", "Azure", "{BF0D3FCA-0050-4F8B-8598-A5F5D09FE50C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunction", "Azure\AzureFunction.csproj", "{AF0A0DAF-F813-4BA9-A45B-80F05B317461}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -537,6 +541,10 @@ Global
 		{6970144C-06CD-45C9-8609-61EA0DA85681}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6970144C-06CD-45C9-8609-61EA0DA85681}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6970144C-06CD-45C9-8609-61EA0DA85681}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF0A0DAF-F813-4BA9-A45B-80F05B317461}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF0A0DAF-F813-4BA9-A45B-80F05B317461}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF0A0DAF-F813-4BA9-A45B-80F05B317461}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF0A0DAF-F813-4BA9-A45B-80F05B317461}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -626,6 +634,7 @@ Global
 		{FE6E9A0A-DA26-4BA5-B64D-325A96AA55E1} = {76A822B1-9822-49F4-BA11-8154F475B2CD}
 		{64963614-8034-43EA-8AF4-7427E5A4E4C9} = {76A822B1-9822-49F4-BA11-8154F475B2CD}
 		{6970144C-06CD-45C9-8609-61EA0DA85681} = {6FE70688-6229-4255-A47B-EBCD1B6550C6}
+		{AF0A0DAF-F813-4BA9-A45B-80F05B317461} = {BF0D3FCA-0050-4F8B-8598-A5F5D09FE50C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B77A3C47-0A11-4E2C-A780-DA1AA1200FA2}

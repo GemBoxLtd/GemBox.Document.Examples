@@ -189,6 +189,10 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ProgressReportingInWindowsF
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ProgressReportingInWpf", "Advanced Features\Progress Reporting And Cancellation\ProgressReportingInWpf\ProgressReportingInWpf.vbproj", "{5FC557FB-0756-4A27-9498-B08A31CE9D26}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Azure", "Azure", "{EAB86B91-E636-4B19-8734-A0C120342246}"
+EndProject
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "AzureFunction", "Azure\AzureFunction.vbproj", "{E1C54B3E-44C7-477B-9EA9-18225656CB4B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -499,6 +503,10 @@ Global
 		{5FC557FB-0756-4A27-9498-B08A31CE9D26}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5FC557FB-0756-4A27-9498-B08A31CE9D26}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5FC557FB-0756-4A27-9498-B08A31CE9D26}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E1C54B3E-44C7-477B-9EA9-18225656CB4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1C54B3E-44C7-477B-9EA9-18225656CB4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E1C54B3E-44C7-477B-9EA9-18225656CB4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E1C54B3E-44C7-477B-9EA9-18225656CB4B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -583,6 +591,7 @@ Global
 		{F8BD2965-C754-45BD-8DC4-A2D6115091E6} = {227100DA-88D1-47DA-AC70-1421D606FEE3}
 		{F739C5F2-A529-4381-AB93-93662F64404C} = {227100DA-88D1-47DA-AC70-1421D606FEE3}
 		{5FC557FB-0756-4A27-9498-B08A31CE9D26} = {227100DA-88D1-47DA-AC70-1421D606FEE3}
+		{E1C54B3E-44C7-477B-9EA9-18225656CB4B} = {EAB86B91-E636-4B19-8734-A0C120342246}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3F9A0C8B-7A43-4F13-8C1E-91313E4DEB88}
