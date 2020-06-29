@@ -65,9 +65,9 @@ class Program
         // Customize mail merging to achieve calculation of "TotalPrice" for each project.
         document.MailMerge.FieldMerging += (sender, e) =>
         {
-            if (e.RangeName == "Projects" && e.FieldName == "TotalPrice")
+            if (e.MergeContext.RangeName == "Projects" && e.FieldName == "TotalPrice")
             {
-                var total = data.Tables[e.RangeName].Rows[e.RecordNumber - 1]
+                var total = data.Tables[e.MergeContext.RangeName].Rows[e.MergeContext.RecordIndex]
                     .GetChildRows(itemsRangeName).Sum(item => (double)item["Price"]);
 
                 var totalRun = new Run(e.Document, total.ToString("0.00"));
@@ -114,9 +114,9 @@ class Program
         // Customize mail merging to achieve calculation of "TotalPrice" for each project.
         document.MailMerge.FieldMerging += (sender, e) =>
         {
-            if (e.RangeName == "Projects" && e.FieldName == "TotalPrice")
+            if (e.MergeContext.RangeName == "Projects" && e.FieldName == "TotalPrice")
             {
-                var total = projects[e.RecordNumber - 1].Items.Sum(item => item.Price);
+                var total = projects[e.MergeContext.RecordIndex].Items.Sum(item => item.Price);
 
                 var totalRun = new Run(e.Document, total.ToString("0.00"));
                 totalRun.CharacterFormat = e.Field.CharacterFormat.Clone();

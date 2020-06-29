@@ -23,10 +23,15 @@ class Program
         document.MailMerge.ClearOptions = MailMergeClearOptions.RemoveEmptyTableRows;
         document.MailMerge.Execute(data, "Example2");
 
-        // Execute mail merge on "Example2" merge range.
+        // Execute mail merge on "Example3" merge range.
+        // Also, remove fields and tables that didn't merge in this range.
+        document.MailMerge.ClearOptions = MailMergeClearOptions.RemoveUnusedFields | MailMergeClearOptions.RemoveEmptyTables;
+        document.MailMerge.Execute(data, "Example3");
+
+        // Execute mail merge on "Example4" merge range.
         // Also, remove the range if all fields didn't merge in this range.
         document.MailMerge.ClearOptions = MailMergeClearOptions.RemoveEmptyRanges;
-        document.MailMerge.Execute(data, "Example3");
+        document.MailMerge.Execute(data, "Example4");
 
         document.Save("Merged Clear Options Output.docx");
     }

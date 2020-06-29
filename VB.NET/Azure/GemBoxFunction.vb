@@ -7,32 +7,32 @@ Imports Microsoft.Extensions.Logging
 Imports GemBox.Document
 
 Module GemBoxFunction
-        <FunctionName("GemBoxFunction")>
-        Async Function Run(
-            <HttpTrigger(AuthorizationLevel.Anonymous, "get", Route := Nothing)> req As HttpRequest,
-            log As ILogger) as Task(Of IActionResult)
-        
-            ' If using Professional version, put your serial key below.
-            ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+#Disable Warning BC42356 ' This async method lacks 'Await'.
+    <FunctionName("GemBoxFunction")>
+    Async Function Run(<HttpTrigger(AuthorizationLevel.Anonymous, "get", Route:=Nothing)> req As HttpRequest, log As ILogger) As Task(Of IActionResult)
+#Enable Warning BC42356
 
-            Dim document As New DocumentModel()
+        ' If using Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
-            Dim section As New Section(document)
-            document.Sections.Add(section)
+        Dim document As New DocumentModel()
 
-            Dim paragraph As New Paragraph(document)
-            section.Blocks.Add(paragraph)
+        Dim section As New Section(document)
+        document.Sections.Add(section)
 
-            Dim inline As New Run(document, "Hello World!")
-            paragraph.Inlines.Add(inline)
+        Dim paragraph As New Paragraph(document)
+        section.Blocks.Add(paragraph)
 
-            Dim fileName = "Output.docx"
-            Dim options = SaveOptions.DocxDefault
+        Dim inline As New Run(document, "Hello World!")
+        paragraph.Inlines.Add(inline)
 
-            Using stream As new MemoryStream()
-                document.Save(stream, options)
-                return New FileContentResult(stream.ToArray(), options.ContentType) With { .FileDownloadName = fileName } 
-            End Using
-             
-        End Function
+        Dim fileName = "Output.docx"
+        Dim options = SaveOptions.DocxDefault
+
+        Using stream As New MemoryStream()
+            document.Save(stream, options)
+            Return New FileContentResult(stream.ToArray(), options.ContentType) With {.FileDownloadName = fileName}
+        End Using
+
+    End Function
 End Module

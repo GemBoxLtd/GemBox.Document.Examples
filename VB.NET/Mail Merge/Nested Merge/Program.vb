@@ -66,9 +66,9 @@ Module Program
         ' Customize mail merging to achieve calculation of "TotalPrice" for each project.
         AddHandler document.MailMerge.FieldMerging,
             Sub(sender, e)
-                If e.RangeName = "Projects" And e.FieldName = "TotalPrice" Then
+                If e.MergeContext.RangeName = "Projects" And e.FieldName = "TotalPrice" Then
 
-                    Dim total = data.Tables(e.RangeName).Rows(e.RecordNumber - 1) _
+                    Dim total = data.Tables(e.MergeContext.RangeName).Rows(e.MergeContext.RecordIndex) _
                         .GetChildRows(itemsRangeName).Sum(Function(item) CDbl(item("Price")))
 
                     Dim totalRun As New Run(e.Document, total.ToString("0.00"))
@@ -116,9 +116,9 @@ Module Program
         ' Customize mail merging to achieve calculation of "TotalPrice" for each project.
         AddHandler document.MailMerge.FieldMerging,
             Sub(sender, e)
-                If e.RangeName = "Projects" And e.FieldName = "TotalPrice" Then
+                If e.MergeContext.RangeName = "Projects" And e.FieldName = "TotalPrice" Then
 
-                    Dim total = projects(e.RecordNumber - 1).Items.Sum(Function(item) item.Price)
+                    Dim total = projects(e.MergeContext.RecordIndex).Items.Sum(Function(item) item.Price)
 
                     Dim totalRun As New Run(e.Document, total.ToString("0.00"))
                     totalRun.CharacterFormat = e.Field.CharacterFormat.Clone()

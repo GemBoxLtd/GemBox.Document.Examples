@@ -10,9 +10,9 @@ using GemBox.Document;
 public static class GemBoxFunction
 {
     [FunctionName("GemBoxFunction")]
-    public static async Task<IActionResult> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
-        ILogger log)
+#pragma warning disable CS1998 // Async method lacks 'await' operators.
+    public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req, ILogger log)
+#pragma warning restore CS1998
     {
         // If using Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");

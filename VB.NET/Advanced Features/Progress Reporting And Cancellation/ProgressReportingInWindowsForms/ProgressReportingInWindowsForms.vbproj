@@ -60,7 +60,7 @@
     <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="GemBox.Document" Version="31.0.1201-hotfix" />
+    <PackageReference Include="GemBox.Document" Version="*" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.VisualBasic" />
