@@ -47,6 +47,7 @@ This repository contains the source code of GemBox.Document example projects for
 | WPF | [C#](https://github.com/gemboxsoftware-dev-team/GemBox.Document.Examples/tree/master/C%23/WPF), [VB.NET](https://github.com/gemboxsoftware-dev-team/GemBox.Document.Examples/tree/master/VB.NET/WPF) |
 | ASP.NET | [C#](https://github.com/gemboxsoftware-dev-team/GemBox.Document.Examples/tree/master/C%23/ASP.NET) |
 | ASP.NET Core | [C#](https://github.com/gemboxsoftware-dev-team/GemBox.Document.Examples/tree/master/C%23/ASP.NET%20Core) |
+| Azure | [C#](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/C%23/Azure), [VB.NET](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/VB.NET/Azure) |
 | Linux / macOS | [C#](https://github.com/gemboxsoftware-dev-team/GemBox.Document.Examples/tree/master/C%23/Linux_macOS) |
 | COM | [PYTHON](https://github.com/gemboxsoftware-dev-team/GemBox.Document.Examples/blob/master/PYTHON%2C%20PHP%2C%20VBSCRIPT/COM.py), [PHP](https://github.com/gemboxsoftware-dev-team/GemBox.Document.Examples/blob/master/PYTHON%2C%20PHP%2C%20VBSCRIPT/COM.php), [VBSCRIPT](https://github.com/gemboxsoftware-dev-team/GemBox.Document.Examples/blob/master/PYTHON%2C%20PHP%2C%20VBSCRIPT/COM.vbs) |
 | Word Editor in Windows Forms | [C#](https://github.com/gemboxsoftware-dev-team/GemBox.Document.Examples/tree/master/C%23/Word%20Editor%20in%20Windows%20Forms) |
