@@ -1,31 +1,57 @@
 using System;
-using System.Diagnostics;
-using System.Linq;
+using System.Collections.Generic;
+using System.IO;
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Engines;
+using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Running;
 using GemBox.Document;
 
-class Program
+[SimpleJob(RuntimeMoniker.Net48)]
+[SimpleJob(RuntimeMoniker.NetCoreApp31)]
+public class Program
 {
-    static void Main()
-    {
-        // GemBox.Document has 4 working modes, each mode has the same performance and set of features.
-        // Read more on: https://www.gemboxsoftware.com/document/help/html/Evaluation_and_Licensing.htm
+    private DocumentModel document;
+    private readonly Consumer consumer = new Consumer();
 
-        // Set license key to use GemBox.Document in a Free mode.
+    public static void Main()
+    {
+        BenchmarkRunner.Run<Program>();
+    }
+
+    [GlobalSetup]
+    public void SetLicense()
+    {
+        // If using Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
-        // Continue to use the component in a Trial mode when free limit is reached.
-        ComponentInfo.FreeLimitReached += (sender, e) => e.FreeLimitReachedAction = FreeLimitReachedAction.ContinueAsTrial;
+        // If using Free version and example exceeds its limitations, use Trial or Time Limited version:
+        // https://www.gemboxsoftware.com/document/examples/free-trial-professional-modes/1301
 
-        var watch = Stopwatch.StartNew();
-        var document = DocumentModel.Load("lorem-ipsum-100-pages.docx", LoadOptions.DocxDefault);
-        Console.WriteLine($"Load file [sec]: {watch.Elapsed.TotalSeconds}");
+        this.document = DocumentModel.Load("RandomSections.docx");
+    }
 
-        watch.Restart();
-        int numberOfParagraphs = document.GetChildElements(true, ElementType.Paragraph).Count();
-        Console.WriteLine($"Iterate through {numberOfParagraphs} paragraphs [sec]: {watch.Elapsed.TotalSeconds}");
+    [Benchmark]
+    public DocumentModel Reading()
+    {
+        return DocumentModel.Load("RandomSections.docx");
+    }
 
-        watch.Restart();
-        document.Save("output.docx");
-        Console.WriteLine($"Save file [sec]: {watch.Elapsed.TotalSeconds}");
+    [Benchmark]
+    public void Writing()
+    {
+        using (var stream = new MemoryStream())
+            this.document.Save(stream, new DocxSaveOptions());
+    }
+
+    [Benchmark]
+    public void Iterating()
+    {
+        this.LoopThroughAllElements().Consume(this.consumer);
+    }
+
+    public IEnumerable<Element> LoopThroughAllElements()
+    {
+        return this.document.GetChildElements(true);
     }
 }

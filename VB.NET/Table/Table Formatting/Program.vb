@@ -82,10 +82,10 @@ Module Program
         section.Blocks.Add(table)
 
         ' If you were to save a document at this point, you'd notice that the last few rows don't fit on the same page.
-        ' In other words, the table rows break across first and second page.
+        ' In other words, the table rows break across the first and second page.
         'document.Save("TableOnTwoPages.docx")
 
-        ' To prevent table's breaking across two pages, you need to set KeepWithNext formatting.
+        ' To prevent the table breaking across two pages, you need to set the KeepWithNext formatting.
         For Each cell As TableCell In table.GetChildElements(True, ElementType.TableCell)
             ' Cell should have at least one paragraph.
             If cell.Blocks.Count = 0 Then cell.Blocks.Add(New Paragraph(cell.Document))

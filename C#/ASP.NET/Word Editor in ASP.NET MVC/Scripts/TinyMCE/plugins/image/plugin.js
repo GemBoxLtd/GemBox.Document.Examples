@@ -4,7 +4,7 @@
  * For LGPL see License.txt in the project root for license information.
  * For commercial licenses see https://www.tiny.cloud/
  *
- * Version: 5.3.0 (2020-05-21)
+ * Version: 5.4.1 (2020-07-08)
  */
 (function (domGlobals) {
     'use strict';
@@ -881,8 +881,7 @@
     };
     function Uploader (settings) {
       var defaultHandler = function (blobInfo, success, failure, progress) {
-        var xhr, formData;
-        xhr = new domGlobals.XMLHttpRequest();
+        var xhr = new domGlobals.XMLHttpRequest();
         xhr.open('POST', settings.url);
         xhr.withCredentials = settings.credentials;
         xhr.upload.onprogress = function (e) {
@@ -892,19 +891,18 @@
           failure('Image upload failed due to a XHR Transport error. Code: ' + xhr.status);
         };
         xhr.onload = function () {
-          var json;
           if (xhr.status < 200 || xhr.status >= 300) {
             failure('HTTP Error: ' + xhr.status);
             return;
           }
-          json = JSON.parse(xhr.responseText);
+          var json = JSON.parse(xhr.responseText);
           if (!json || typeof json.location !== 'string') {
             failure('Invalid JSON: ' + xhr.responseText);
             return;
           }
           success(pathJoin(settings.basePath, json.location));
         };
-        formData = new domGlobals.FormData();
+        var formData = new domGlobals.FormData();
         formData.append('file', blobInfo.blob(), blobInfo.filename());
         xhr.send(formData);
       };
@@ -1429,7 +1427,7 @@
               finalize();
             }).catch(function (err) {
               finalize();
-              helpers.alertErr(api, err);
+              helpers.alertErr(err);
             });
           } else {
             helpers.addToBlobCache(blobInfo);
@@ -1549,8 +1547,8 @@
       };
     };
     var alertErr = function (editor) {
-      return function (api, message) {
-        editor.windowManager.alert(message, api.close);
+      return function (message) {
+        editor.windowManager.alert(message);
       };
     };
     var normalizeCss$1 = function (editor) {

@@ -1,5 +1,7 @@
+using System;
 using System.Linq;
 using GemBox.Document;
+using GemBox.Document.Tables;
 
 class Program
 {
@@ -8,30 +10,92 @@ class Program
         // If using Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
-        var document = DocumentModel.Load("Reading.docx");
+        Example1();
+        Example2();
+    }
 
-        // 1. The easiest way how to find and replace text.
-        document.Content.Replace(".NET", "C# / VB.NET");
+    static void Example1()
+    {
+        var document = DocumentModel.Load("FindAndReplaceText.docx");
 
-        // 2. You can also find and highlight text by specifying the format of replacement text.
-        var highlightText = "read, write, convert and print";
-        document.Content.Replace(highlightText, highlightText);
-        document.Content.Replace(highlightText, highlightText,
-            new CharacterFormat() { HighlightColor = Color.Yellow });
+        // The easiest way how you can find and replace text is with "Replace" method.
+        document.Content.Replace("%FirstName%", "John");
+        document.Content.Replace("%LastName%", "Doe");
+        document.Content.Replace("%Date%", DateTime.Today.ToLongDateString());
 
-        // 3. You can also search for specified text and achieve more complex replacements.
-        // Notice the "Reverse" method usage for avoiding any possible invalid state due to replacements inside iteration.
-        var searchText = "GemBox.Document";
-        foreach (ContentRange searchedContent in document.Content.Find(searchText).Reverse())
+        // You can also find and highlight text by specifying "HighlightColor" of replacement text.
+        document.Content.Replace("membership", "membership", new CharacterFormat() { HighlightColor = Color.Yellow });
+
+        // You can also search for placeholder text with "Find" method and then achieve more complex replacement.
+        // The "Reverse" extension method is used when iterating through document's content
+        // to avoid any possible invalid state when replacing the content within iteration.
+
+        // Replace text with text that has different formatting.
+        foreach (ContentRange searchedContent in document.Content.Find("%Price%").Reverse())
         {
-            var replaceText = "Word library from GemBox called ";
-            ContentRange replacedContent = searchedContent.LoadText(replaceText,
-                new CharacterFormat() { FontColor = new Color(237, 125, 49) });
-
-            var hyperlink = new Hyperlink(document, "https://www.gemboxsoftware.com/document", "GemBox.Document");
-            replacedContent.End.InsertRange(hyperlink.Content);
+            ContentRange replacedContent = searchedContent.LoadText("$",
+                new CharacterFormat() { Size = 14, FontColor = Color.Purple });
+            replacedContent.End.LoadText("100.00",
+                new CharacterFormat() { Size = 11, FontColor = Color.Purple });
         }
 
-        document.Save("Find and Replace.docx");
+        // Replace text with hyperlink.
+        foreach (ContentRange searchedContent in document.Content.Find("%Email%").Reverse())
+        {
+            Hyperlink emailLink = new Hyperlink(document, "mailto:john.doe@example.com", "John.Doe@example.com");
+            searchedContent.Set(emailLink.Content);
+        }
+
+        document.Save("FoundAndReplacedText.docx");
+    }
+
+    static void Example2()
+    {
+        var document = DocumentModel.Load("FindAndReplaceContent.docx");
+
+        var dummyText = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas porttitor congue massa.";
+
+        // Find an image placeholder.
+        var picturePlaceholder = document.Content.Find("%Portrait%").First();
+        var picture = new Picture(document, "avatar.png");
+
+        // Replace the placeholder text with the image.
+        picturePlaceholder.Set(picture.Content);
+
+        // Find an HTML placeholder.
+        var htmlPlaceholder = document.Content.Find("%AboutMe%").First();
+        var html =
+$@"<ul style='font:11pt Calibri;'>
+    <li style='color:red;'>{dummyText}</li>
+    <li style='color:green;'>{dummyText}</li>
+    <li style='color:blue;'>{dummyText}</li>
+</ul>";
+
+        // Replace the placeholder text with HTML formatted text.
+        htmlPlaceholder.LoadText(html, new HtmlLoadOptions());
+
+        // Find a table placeholder.
+        var tablePlaceholder = document.Content.Find("%JobHistory%").First();
+
+        var table = new Table(document,
+            new TableRow(document,
+                new TableCell(document, new Paragraph(document, "2021 - 2030")),
+                new TableCell(document, new Paragraph(document, dummyText))),
+            new TableRow(document,
+                new TableCell(document, new Paragraph(document, "2011 - 2020")),
+                new TableCell(document, new Paragraph(document, dummyText))),
+            new TableRow(document,
+                new TableCell(document, new Paragraph(document, "2001 - 2010")),
+                new TableCell(document, new Paragraph(document, dummyText))));
+
+        table.Columns.Add(new TableColumn(70));
+        table.Columns.Add(new TableColumn(250));
+        table.TableFormat.AutomaticallyResizeToFitContents = false;
+
+        // Delete the placeholder text and insert the table before it.
+        tablePlaceholder = tablePlaceholder.LoadText(string.Empty);
+        tablePlaceholder.Start.InsertRange(table.Content);
+
+        document.Save("FoundAndReplacedContent.docx");
     }
 }

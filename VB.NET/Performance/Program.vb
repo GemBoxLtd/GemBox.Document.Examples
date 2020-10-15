@@ -1,32 +1,53 @@
 Imports System
-Imports System.Diagnostics
-Imports System.Linq
+Imports System.Collections.Generic
+Imports System.IO
+Imports BenchmarkDotNet.Attributes
+Imports BenchmarkDotNet.Engines
+Imports BenchmarkDotNet.Jobs
+Imports BenchmarkDotNet.Running
 Imports GemBox.Document
 
-Module Program
+<SimpleJob(RuntimeMoniker.Net48)>
+<SimpleJob(RuntimeMoniker.NetCoreApp31)>
+Public Class Program
 
-    Sub Main()
+    Private document As DocumentModel
+    Private ReadOnly consumer As Consumer = New Consumer()
 
-        ' GemBox.Document has 4 working modes, each mode has the same performance and set of features. 
-        ' Read more on: https://www.gemboxsoftware.com/document/help/html/Evaluation_and_Licensing.htm
+    Public Shared Sub Main()
+        BenchmarkRunner.Run(Of Program)()
+    End Sub
 
-        ' Set license key to use GemBox.Document in a Free mode.
+    <GlobalSetup>
+    Public Sub SetLicense()
+        ' If using Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
-        ' Continue to use the component in a Trial mode when free limit is reached.
-        AddHandler ComponentInfo.FreeLimitReached, Sub(sender, e) e.FreeLimitReachedAction = FreeLimitReachedAction.ContinueAsTrial
+        ' If using Free version and example exceeds its limitations, use Trial or Time Limited version:
+        ' https://www.gemboxsoftware.com/document/examples/free-trial-professional-modes/1301
 
-        Dim watch = Stopwatch.StartNew()
-        Dim document = DocumentModel.Load("lorem-ipsum-100-pages.docx", LoadOptions.DocxDefault)
-        Console.WriteLine($"Load file [sec]: {watch.Elapsed.TotalSeconds}")
-
-        watch.Restart()
-        Dim numberOfParagraphs As Integer = document.GetChildElements(True, ElementType.Paragraph).Count()
-        Console.WriteLine($"Iterate through {numberOfParagraphs} paragraphs [sec]: {watch.Elapsed.TotalSeconds}")
-
-        watch.Restart()
-        document.Save("output.docx")
-        Console.WriteLine($"Save file [sec]: {watch.Elapsed.TotalSeconds}")
-
+        Me.document = DocumentModel.Load("RandomSections.docx")
     End Sub
-End Module
+
+    <Benchmark>
+    Public Function Reading() As DocumentModel
+        Return DocumentModel.Load("RandomSections.docx")
+    End Function
+
+    <Benchmark>
+    Public Sub Writing()
+        Using stream = New MemoryStream()
+            Me.document.Save(stream, New DocxSaveOptions())
+        End Using
+    End Sub
+
+    <Benchmark>
+    Public Sub Iterating()
+        Me.LoopThroughAllElements().Consume(Me.consumer)
+    End Sub
+
+    Public Iterator Function LoopThroughAllElements() As IEnumerable(Of Element)
+        Return Me.document.GetChildElements(True)
+    End Function
+
+End Class

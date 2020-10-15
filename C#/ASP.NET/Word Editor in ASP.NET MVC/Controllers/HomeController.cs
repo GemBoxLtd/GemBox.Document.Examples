@@ -8,7 +8,7 @@ namespace AspNetWordEditor.Controllers
     public class HomeController : Controller
     {
         [HttpGet]
-        public ActionResult Index() => this.View();
+        public ActionResult Index() => this.View(new FileModel());
 
         [HttpPost]
         public FileResult Download(FileModel model)
