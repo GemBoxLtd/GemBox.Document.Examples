@@ -69,7 +69,6 @@ class Program
             Author = "GemBox",
             Date = DateTime.Now
         };
-
         // CharacterFormatRevision.CharacterFormat holds the format which was used before the revision was applied.
         characterFormatRevision.CharacterFormat = run1.CharacterFormat.Clone();
         run1.CharacterFormatRevision = characterFormatRevision;

@@ -98,7 +98,9 @@ Module Program
         row2.Revision = New Revision(RevisionType.Delete) With {.Author = "GemBox"}
 
         ' 6. Adding a new table row.
-        Dim newRow = New TableRow(document, New TableCell(document, New Paragraph(document, "new row")), New TableCell(document))
+        Dim newRow = New TableRow(document,
+            New TableCell(document, New Paragraph(document, "new row")),
+            New TableCell(document))
         ' Mark row as inserted.
         newRow.Revision = New Revision(RevisionType.Insert) With {.Author = "GemBox"}
         table.Rows.Add(newRow)
