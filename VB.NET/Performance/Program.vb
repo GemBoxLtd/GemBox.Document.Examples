@@ -46,7 +46,7 @@ Public Class Program
         Me.LoopThroughAllElements().Consume(Me.consumer)
     End Sub
 
-    Public Iterator Function LoopThroughAllElements() As IEnumerable(Of Element)
+    Public Function LoopThroughAllElements() As IEnumerable(Of Element)
         Return Me.document.GetChildElements(True)
     End Function
 

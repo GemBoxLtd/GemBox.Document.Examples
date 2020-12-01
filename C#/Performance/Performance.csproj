@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="GemBox.Document" Version="*" />
     <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
-    <PackageReference Include="System.Drawing.Common" Version="4.7.0" Condition="'$(TargetFramework)' != 'net48'" />
+    <PackageReference Include="System.Drawing.Common" Version="*" Condition="'$(TargetFramework)' != 'net48'" />
   </ItemGroup>
 
   <ItemGroup>

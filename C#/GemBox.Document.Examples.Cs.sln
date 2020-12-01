@@ -9,9 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelloWorld", "Hello World\H
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common Uses", "Common Uses", "{A727258F-2824-4299-A423-D49B94267705}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Convert", "Common Uses\Convert\Convert.csproj", "{3E5DEB1F-6D5E-402E-84F2-9FE7BF0C7652}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertToPdf", "Common Uses\Convert to PDF\ConvertToPdf.csproj", "{3E5DEB1F-6D5E-402E-84F2-9FE7BF0C7652}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExtractTextFromPDF", "Common Uses\Extract Text From PDF\ExtractTextFromPDF.csproj", "{67E6B3FC-1294-4AFB-92B1-34E6BC4AC975}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExtractTextFromPdf", "Common Uses\Extract Text from PDF\ExtractTextFromPdf.csproj", "{67E6B3FC-1294-4AFB-92B1-34E6BC4AC975}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TemplateUse", "Common Uses\Template Use\TemplateUse.csproj", "{443CBD33-7A8C-4F25-9FFD-533F2539DAFD}"
 EndProject
@@ -25,15 +25,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReadingPages", "Common Uses
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Print", "Print", "{F4A8BFC9-6512-4443-B133-6B90CB836AF2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrintInConsole", "Common Uses\Print\PrintInConsole\PrintInConsole.csproj", "{FD470D10-B086-4422-B921-3988A69D28C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrintInConsole", "Common Uses\Print\Print in Console\PrintInConsole.csproj", "{FD470D10-B086-4422-B921-3988A69D28C9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrintInWinForms", "Common Uses\Print\PrintInWinForms\PrintInWinForms.csproj", "{9085A56C-29DC-4792-BCF3-B17E83281019}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrintInWinForms", "Common Uses\Print\Print in WinForms\PrintInWinForms.csproj", "{9085A56C-29DC-4792-BCF3-B17E83281019}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrintInWpf", "Common Uses\Print\PrintInWpf\PrintInWpf.csproj", "{CFF221DC-276D-427C-AE7C-3DD464E7DB58}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrintInWpf", "Common Uses\Print\Print in WPF\PrintInWpf.csproj", "{CFF221DC-276D-427C-AE7C-3DD464E7DB58}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Basic Features", "Basic Features", "{1DA7C158-C1C9-4E2B-A31B-3DE822647F43}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BookmarksAndHyperlinks", "Basic Features\Bookmarks And Hyperlinks\BookmarksAndHyperlinks.csproj", "{E6119118-54D4-44C9-A946-94BE6F6AB86B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BookmarksAndHyperlinks", "Basic Features\Bookmarks and Hyperlinks\BookmarksAndHyperlinks.csproj", "{E6119118-54D4-44C9-A946-94BE6F6AB86B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Breaks", "Basic Features\Breaks\Breaks.csproj", "{BFA90DAC-6796-40BC-BCB8-A3979DF6B80F}"
 EndProject
@@ -43,9 +43,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocumentProperties", "Basic
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fields", "Basic Features\Fields\Fields.csproj", "{E35A0850-2BE4-4C01-835D-7D71948943D3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FootnotesAndEndnotes", "Basic Features\Footnotes And Endnotes\FootnotesAndEndnotes.csproj", "{E73B6322-4169-4344-8A30-F6938F5DBBC3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FootnotesAndEndnotes", "Basic Features\Footnotes and Endnotes\FootnotesAndEndnotes.csproj", "{E73B6322-4169-4344-8A30-F6938F5DBBC3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HeaderAndFooter", "Basic Features\Header And Footer\HeaderAndFooter.csproj", "{15517B3C-3493-4DDC-9588-FF405D7A1B45}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HeadersAndFooters", "Basic Features\Headers and Footers\HeadersAndFooters.csproj", "{15517B3C-3493-4DDC-9588-FF405D7A1B45}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PageSetup", "Basic Features\Page Setup\PageSetup.csproj", "{3091D8A5-3087-45C7-BCC1-8108310E86B7}"
 EndProject
@@ -55,7 +55,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shapes", "Basic Features\Sh
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TextBoxes", "Basic Features\Text Boxes\TextBoxes.csproj", "{56DD6399-9FDD-4CB8-A34E-238BF972A724}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TOC", "Basic Features\TOC\TOC.csproj", "{4C724FB0-1B40-416C-A47F-C08E714EDA50}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TableOfContent", "Basic Features\TableOfContent\TableOfContent.csproj", "{4C724FB0-1B40-416C-A47F-C08E714EDA50}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ViewOptions", "Basic Features\View Options\ViewOptions.csproj", "{224D21E2-7C41-421B-B59F-7CD08F9B6EA3}"
 EndProject
@@ -65,13 +65,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Advanced Features", "Advanc
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContentControls", "Advanced Features\Content Controls\ContentControls.csproj", "{12AC0319-0542-42EC-AA1B-88BDC50FB4E0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HtmlImportAndExport", "Advanced Features\Html Import And Export\HtmlImportAndExport.csproj", "{B9ACC7F4-A07A-440E-B38C-BF598E9E5986}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HtmlImportAndExport", "Advanced Features\Html Import and Export\HtmlImportAndExport.csproj", "{B9ACC7F4-A07A-440E-B38C-BF598E9E5986}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModifyBookmarks", "Advanced Features\Modify Bookmarks\ModifyBookmarks.csproj", "{91D5A73C-88FE-44DE-A26C-E4C8326057F3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrivateFonts", "Advanced Features\Private Fonts\PrivateFonts.csproj", "{ECAB873E-38AE-4772-A790-593E3627017D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RightToLeftText", "Advanced Features\Right To Left Text\RightToLeftText.csproj", "{01227087-933A-4CEB-98A9-DEF59CC03ACE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RightToLeftText", "Advanced Features\Right to Left Text\RightToLeftText.csproj", "{01227087-933A-4CEB-98A9-DEF59CC03ACE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StyleResolution", "Advanced Features\Style Resolution\StyleResolution.csproj", "{455F01FB-A0C8-4646-9F65-D9A2EAB14A0C}"
 EndProject
@@ -91,7 +91,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Content Manipulation", "Con
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeleteContent", "Content Manipulation\Delete Content\DeleteContent.csproj", "{BD5784D3-58C3-4DA0-AF98-2D0603B04D51}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FindAndReplace", "Content Manipulation\Find And Replace\FindAndReplace.csproj", "{84210790-FF7A-4D34-9F45-7E133CBE5467}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FindAndReplace", "Content Manipulation\Find and Replace\FindAndReplace.csproj", "{84210790-FF7A-4D34-9F45-7E133CBE5467}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GetContent", "Content Manipulation\Get Content\GetContent.csproj", "{E13AAAC1-842F-4739-A3CD-C49892476F12}"
 EndProject
@@ -145,13 +145,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NestedMerge", "Mail Merge\N
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Protection", "Protection", "{58458FBE-B191-4DBC-8D17-31A75F2D02D0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DOCXEncryption", "Protection\DOCX Encryption\DOCXEncryption.csproj", "{767CEDCF-867F-48CE-A660-456D02AAE147}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocxEncryption", "Protection\DOCX Encryption\DocxEncryption.csproj", "{767CEDCF-867F-48CE-A660-456D02AAE147}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DOCXWriteProtection", "Protection\DOCX Write Protection\DOCXWriteProtection.csproj", "{3478D754-A3CE-43E7-BFB1-ABC94A5F0E24}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocxWriteProtection", "Protection\DOCX Write Protection\DocxWriteProtection.csproj", "{3478D754-A3CE-43E7-BFB1-ABC94A5F0E24}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PDFDigitalSignature", "Protection\PDF Digital Signature\PDFDigitalSignature.csproj", "{5A3E8561-2E2E-4A2E-86FF-6B70D82C876A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PdfDigitalSignature", "Protection\PDF Digital Signature\PdfDigitalSignature.csproj", "{5A3E8561-2E2E-4A2E-86FF-6B70D82C876A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PDFEncryption", "Protection\PDF Encryption\PDFEncryption.csproj", "{45CB3E36-A905-4302-8ABB-D91B0657F4A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PdfEncryption", "Protection\PDF Encryption\PdfEncryption.csproj", "{45CB3E36-A905-4302-8ABB-D91B0657F4A1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RestrictEditing", "Protection\Restrict Editing\RestrictEditing.csproj", "{C4C484F3-46DD-4226-BC0F-149222ADD346}"
 EndProject
@@ -159,63 +159,57 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Performance", "Performance"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Performance", "Performance\Performance.csproj", "{97CC1C64-F994-4D99-8D0E-73D7D7AEEE06}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ASP.NET", "ASP.NET", "{B58668DC-064A-4F13-AA12-7CF2346FA9FE}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platforms", "Platforms", "{B58668DC-064A-4F13-AA12-7CF2346FA9FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediumTrust", "ASP.NET\MediumTrust\MediumTrust.csproj", "{C7E73865-4A94-4E77-BCE1-ADABA5D876CA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetMediumTrust", "Platforms\MediumTrust\AspNetMediumTrust.csproj", "{C7E73865-4A94-4E77-BCE1-ADABA5D876CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetWordEditor", "ASP.NET\Word Editor in ASP.NET MVC\AspNetWordEditor.csproj", "{F009E5BC-9AF9-4464-B3D9-81A43B98858A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetWordEditor", "Platforms\Word Editor in ASP.NET MVC\AspNetWordEditor.csproj", "{F009E5BC-9AF9-4464-B3D9-81A43B98858A}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ASP.NET Core", "ASP.NET Core", "{0A693B3C-99E3-454E-800F-E884071CB427}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore", "Platforms\ASP.NET Core\AspNetCore.csproj", "{D9C829D8-4EA1-458C-91D0-DFC5AF5E246D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocumentCore", "ASP.NET Core\DocumentCore.csproj", "{D9C829D8-4EA1-458C-91D0-DFC5AF5E246D}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Linux_macOS", "Linux_macOS", "{91A2CFB0-871C-44E7-AE8A-A5ECFCAE8971}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Linux_macOS", "Linux_macOS\Linux_macOS.csproj", "{DE50E611-D702-425E-99B0-9F90429DF2C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Linux_macOS", "Platforms\Linux_macOS\Linux_macOS.csproj", "{DE50E611-D702-425E-99B0-9F90429DF2C5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Preservation", "Preservation", "{BB501EA9-6D42-4E09-8CED-178AFFD01BC0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TrackedChanges", "Preservation\Tracked Changes\TrackedChanges.csproj", "{BDDEC2C7-B4C8-4692-8420-3D59B36DD632}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Preservation", "Preservation\Preservation.csproj", "{BEE4C624-997A-4D10-A568-B254F6622AB3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Macros", "Preservation\Macros\Macros.csproj", "{BEE4C624-997A-4D10-A568-B254F6622AB3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsFormsRichTextEditor", "Platforms\Word Editor in Windows Forms\WindowsFormsRichTextEditor.csproj", "{BA2B45E7-6264-43C2-B869-9E65B67FF47F}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Word Editor in Windows Forms", "Word Editor in Windows Forms", "{8D862CFB-2C29-4F59-A8DC-4F53B95CED6C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfExportToImageSource", "Platforms\Export to ImageSource\WpfExportToImageSource.csproj", "{4A93E440-0C1E-429B-8A50-C1CE789E31D5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsFormsRichTextEditor", "Word Editor in Windows Forms\WindowsFormsRichTextEditor.csproj", "{BA2B45E7-6264-43C2-B869-9E65B67FF47F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfExportToXpsDocument", "Platforms\Export to XpsDocument\WpfExportToXpsDocument.csproj", "{BD063B1D-E7BF-479D-8586-728E4589A118}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WPF", "WPF", "{81474230-8DE4-40BF-B6A4-46595A425DB1}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExportToImageSource", "WPF\Export to ImageSource\ExportToImageSource.csproj", "{4A93E440-0C1E-429B-8A50-C1CE789E31D5}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExportToXpsDocument", "WPF\Export to XpsDocument\ExportToXpsDocument.csproj", "{BD063B1D-E7BF-479D-8586-728E4589A118}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfRichTextEditor", "WPF\Word Editor in WPF\WpfRichTextEditor.csproj", "{0229BF2E-0837-4CC5-8AE1-79FA56ED7308}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfRichTextEditor", "Platforms\Word Editor in WPF\WpfRichTextEditor.csproj", "{0229BF2E-0837-4CC5-8AE1-79FA56ED7308}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Comments", "Basic Features\Comments\Comments.csproj", "{BB8EA260-BF28-413B-8EA2-98A8917C744F}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Progress Reporting And Cancellation", "Progress Reporting And Cancellation", "{76A822B1-9822-49F4-BA11-8154F475B2CD}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Progress Reporting and Cancellation", "Progress Reporting and Cancellation", "{76A822B1-9822-49F4-BA11-8154F475B2CD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CancellationInConsole", "Advanced Features\Progress Reporting And Cancellation\CancellationInConsole\CancellationInConsole.csproj", "{79FE1C04-002D-405D-9C13-52DDD7A7EFD3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CancellationInConsole", "Advanced Features\Progress Reporting and Cancellation\Cancellation in Console\CancellationInConsole.csproj", "{79FE1C04-002D-405D-9C13-52DDD7A7EFD3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CancellationInWpf", "Advanced Features\Progress Reporting And Cancellation\CancellationInWpf\CancellationInWpf.csproj", "{7D2E8813-BEE4-47F8-8552-A8255D5E4082}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CancellationInWpf", "Advanced Features\Progress Reporting and Cancellation\Cancellation in WPF\CancellationInWpf.csproj", "{7D2E8813-BEE4-47F8-8552-A8255D5E4082}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProgressReportingInConsole", "Advanced Features\Progress Reporting And Cancellation\ProgressReportingInConsole\ProgressReportingInConsole.csproj", "{14F25FCA-AC8D-45E2-A766-3651DA5EFC97}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProgressReportingInConsole", "Advanced Features\Progress Reporting and Cancellation\Progress Reporting in Console\ProgressReportingInConsole.csproj", "{14F25FCA-AC8D-45E2-A766-3651DA5EFC97}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProgressReportingInWindowsForms", "Advanced Features\Progress Reporting And Cancellation\ProgressReportingInWindowsForms\ProgressReportingInWindowsForms.csproj", "{FE6E9A0A-DA26-4BA5-B64D-325A96AA55E1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProgressReportingInWindowsForms", "Advanced Features\Progress Reporting and Cancellation\Progress Reporting in WindowsForms\ProgressReportingInWindowsForms.csproj", "{FE6E9A0A-DA26-4BA5-B64D-325A96AA55E1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProgressReportingInWpf", "Advanced Features\Progress Reporting And Cancellation\ProgressReportingInWpf\ProgressReportingInWpf.csproj", "{64963614-8034-43EA-8AF4-7427E5A4E4C9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProgressReportingInWpf", "Advanced Features\Progress Reporting and Cancellation\Progress Reporting in WPF\ProgressReportingInWpf.csproj", "{64963614-8034-43EA-8AF4-7427E5A4E4C9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoHyphenation", "Advanced Features\Auto Hyphenation\AutoHyphenation.csproj", "{6970144C-06CD-45C9-8609-61EA0DA85681}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Azure", "Azure", "{BF0D3FCA-0050-4F8B-8598-A5F5D09FE50C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunction", "Platforms\Azure\AzureFunction.csproj", "{AF0A0DAF-F813-4BA9-A45B-80F05B317461}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunction", "Azure\AzureFunction.csproj", "{AF0A0DAF-F813-4BA9-A45B-80F05B317461}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertToImage", "Common Uses\Convert To Image\ConvertToImage.csproj", "{EBEB7CDB-69F7-469B-8CF5-7C71A37D4138}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertToImage", "Common Uses\Convert to Image\ConvertToImage.csproj", "{EBEB7CDB-69F7-469B-8CF5-7C71A37D4138}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MergeBarcodes", "Mail Merge\Merge Barcodes\MergeBarcodes.csproj", "{85B54146-BD3E-42DC-803E-AC09770DBDB3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TrackChanges", "Basic Features\Track Changes\TrackChanges.csproj", "{A6907BCF-0F3D-4D02-BFF5-378A1719011C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocxDigitalSignature", "Protection\DOCX Digital Signature\DocxDigitalSignature.csproj", "{6ADFEB08-48B5-44C8-915F-09A77F15102A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertFromHtml", "Common Uses\Convert from HTML\ConvertFromHtml.csproj", "{F4E31CF6-D55A-4CAF-A337-5B187728F7BF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocumentDocker", "Platforms\Docker\DocumentDocker.csproj", "{84A26E20-5523-4C43-91EE-1698BB7D0B3B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -495,10 +489,6 @@ Global
 		{DE50E611-D702-425E-99B0-9F90429DF2C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DE50E611-D702-425E-99B0-9F90429DF2C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DE50E611-D702-425E-99B0-9F90429DF2C5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BDDEC2C7-B4C8-4692-8420-3D59B36DD632}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BDDEC2C7-B4C8-4692-8420-3D59B36DD632}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BDDEC2C7-B4C8-4692-8420-3D59B36DD632}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BDDEC2C7-B4C8-4692-8420-3D59B36DD632}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BEE4C624-997A-4D10-A568-B254F6622AB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BEE4C624-997A-4D10-A568-B254F6622AB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BEE4C624-997A-4D10-A568-B254F6622AB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -563,6 +553,18 @@ Global
 		{A6907BCF-0F3D-4D02-BFF5-378A1719011C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A6907BCF-0F3D-4D02-BFF5-378A1719011C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A6907BCF-0F3D-4D02-BFF5-378A1719011C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6ADFEB08-48B5-44C8-915F-09A77F15102A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6ADFEB08-48B5-44C8-915F-09A77F15102A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6ADFEB08-48B5-44C8-915F-09A77F15102A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6ADFEB08-48B5-44C8-915F-09A77F15102A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4E31CF6-D55A-4CAF-A337-5B187728F7BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4E31CF6-D55A-4CAF-A337-5B187728F7BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4E31CF6-D55A-4CAF-A337-5B187728F7BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4E31CF6-D55A-4CAF-A337-5B187728F7BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84A26E20-5523-4C43-91EE-1698BB7D0B3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84A26E20-5523-4C43-91EE-1698BB7D0B3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84A26E20-5523-4C43-91EE-1698BB7D0B3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84A26E20-5523-4C43-91EE-1698BB7D0B3B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -636,14 +638,13 @@ Global
 		{97CC1C64-F994-4D99-8D0E-73D7D7AEEE06} = {AD5C55A3-1DCF-480D-9E84-B74FCABE5429}
 		{C7E73865-4A94-4E77-BCE1-ADABA5D876CA} = {B58668DC-064A-4F13-AA12-7CF2346FA9FE}
 		{F009E5BC-9AF9-4464-B3D9-81A43B98858A} = {B58668DC-064A-4F13-AA12-7CF2346FA9FE}
-		{D9C829D8-4EA1-458C-91D0-DFC5AF5E246D} = {0A693B3C-99E3-454E-800F-E884071CB427}
-		{DE50E611-D702-425E-99B0-9F90429DF2C5} = {91A2CFB0-871C-44E7-AE8A-A5ECFCAE8971}
-		{BDDEC2C7-B4C8-4692-8420-3D59B36DD632} = {BB501EA9-6D42-4E09-8CED-178AFFD01BC0}
+		{D9C829D8-4EA1-458C-91D0-DFC5AF5E246D} = {B58668DC-064A-4F13-AA12-7CF2346FA9FE}
+		{DE50E611-D702-425E-99B0-9F90429DF2C5} = {B58668DC-064A-4F13-AA12-7CF2346FA9FE}
 		{BEE4C624-997A-4D10-A568-B254F6622AB3} = {BB501EA9-6D42-4E09-8CED-178AFFD01BC0}
-		{BA2B45E7-6264-43C2-B869-9E65B67FF47F} = {8D862CFB-2C29-4F59-A8DC-4F53B95CED6C}
-		{4A93E440-0C1E-429B-8A50-C1CE789E31D5} = {81474230-8DE4-40BF-B6A4-46595A425DB1}
-		{BD063B1D-E7BF-479D-8586-728E4589A118} = {81474230-8DE4-40BF-B6A4-46595A425DB1}
-		{0229BF2E-0837-4CC5-8AE1-79FA56ED7308} = {81474230-8DE4-40BF-B6A4-46595A425DB1}
+		{BA2B45E7-6264-43C2-B869-9E65B67FF47F} = {B58668DC-064A-4F13-AA12-7CF2346FA9FE}
+		{4A93E440-0C1E-429B-8A50-C1CE789E31D5} = {B58668DC-064A-4F13-AA12-7CF2346FA9FE}
+		{BD063B1D-E7BF-479D-8586-728E4589A118} = {B58668DC-064A-4F13-AA12-7CF2346FA9FE}
+		{0229BF2E-0837-4CC5-8AE1-79FA56ED7308} = {B58668DC-064A-4F13-AA12-7CF2346FA9FE}
 		{BB8EA260-BF28-413B-8EA2-98A8917C744F} = {1DA7C158-C1C9-4E2B-A31B-3DE822647F43}
 		{76A822B1-9822-49F4-BA11-8154F475B2CD} = {6FE70688-6229-4255-A47B-EBCD1B6550C6}
 		{79FE1C04-002D-405D-9C13-52DDD7A7EFD3} = {76A822B1-9822-49F4-BA11-8154F475B2CD}
@@ -652,10 +653,13 @@ Global
 		{FE6E9A0A-DA26-4BA5-B64D-325A96AA55E1} = {76A822B1-9822-49F4-BA11-8154F475B2CD}
 		{64963614-8034-43EA-8AF4-7427E5A4E4C9} = {76A822B1-9822-49F4-BA11-8154F475B2CD}
 		{6970144C-06CD-45C9-8609-61EA0DA85681} = {6FE70688-6229-4255-A47B-EBCD1B6550C6}
-		{AF0A0DAF-F813-4BA9-A45B-80F05B317461} = {BF0D3FCA-0050-4F8B-8598-A5F5D09FE50C}
+		{AF0A0DAF-F813-4BA9-A45B-80F05B317461} = {B58668DC-064A-4F13-AA12-7CF2346FA9FE}
 		{EBEB7CDB-69F7-469B-8CF5-7C71A37D4138} = {A727258F-2824-4299-A423-D49B94267705}
 		{85B54146-BD3E-42DC-803E-AC09770DBDB3} = {4205912D-F830-4FD0-A5A8-208110F848C6}
 		{A6907BCF-0F3D-4D02-BFF5-378A1719011C} = {1DA7C158-C1C9-4E2B-A31B-3DE822647F43}
+		{6ADFEB08-48B5-44C8-915F-09A77F15102A} = {58458FBE-B191-4DBC-8D17-31A75F2D02D0}
+		{F4E31CF6-D55A-4CAF-A337-5B187728F7BF} = {A727258F-2824-4299-A423-D49B94267705}
+		{84A26E20-5523-4C43-91EE-1698BB7D0B3B} = {B58668DC-064A-4F13-AA12-7CF2346FA9FE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B77A3C47-0A11-4E2C-A780-DA1AA1200FA2}

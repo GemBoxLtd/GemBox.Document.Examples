@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="GemBox.Document" Version="*" />
-    <PackageReference Include="GemBox.Pdf" Version="13.0.1111-hotfix" />
+    <PackageReference Include="GemBox.Pdf" Version="*" />
     <PackageReference Include="System.Drawing.Common" Version="*" Condition=" '$(TargetFramework)' == 'netcoreapp3.1' " />
     <Reference Include="System.Security" Condition=" '$(TargetFramework)' == 'net48' " />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="*" Condition=" '$(TargetFramework)' == 'netcoreapp3.1' " />

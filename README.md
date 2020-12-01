@@ -44,20 +44,15 @@ This repository contains the source code of GemBox.Document example projects for
 | Mail Merge | [C#](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/C%23/Mail%20Merge), [VB.NET](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/VB.NET/Mail%20Merge) |
 | Forms | [C#](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/C%23/Forms), [VB.NET](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/VB.NET/Forms) |
 | Protection | [C#](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/C%23/Protection), [VB.NET](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/VB.NET/Protection) |
+| Platforms | [C#](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/C%23/Platforms), [VB.NET](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/VB.NET/Platforms) |
 | Preservation | [C#](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/C%23/Preservation), [VB.NET](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/VB.NET/Preservation) |
-| WPF | [C#](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/C%23/WPF), [VB.NET](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/VB.NET/WPF) |
-| COM | [PYTHON](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/blob/master/PYTHON%2C%20PHP%2C%20VBSCRIPT/Program.py), [PHP](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/blob/master/PYTHON%2C%20PHP%2C%20VBSCRIPT/Program.php), [VBSCRIPT](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/blob/master/PYTHON%2C%20PHP%2C%20VBSCRIPT/Program.asp) |
-| ASP.NET | [C#](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/C%23/ASP.NET) |
-| ASP.NET Core | [C#](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/C%23/ASP.NET%20Core) |
-| Azure | [C#](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/C%23/Azure), [VB.NET](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/VB.NET/Azure) |
-| Linux / macOS | [C#](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/C%23/Linux_macOS) |
-| Word Editor in Windows Forms | [C#](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/C%23/Word%20Editor%20in%20Windows%20Forms) |
 | Performance | [C#](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/C%23/Performance), [VB.NET](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/tree/master/VB.NET/Performance) |
+| COM | [PYTHON](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/blob/master/PYTHON%2C%20PHP%2C%20VBSCRIPT/Program.py), [PHP](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/blob/master/PYTHON%2C%20PHP%2C%20VBSCRIPT/Program.php), [VBSCRIPT](https://github.com/GemBox-d-o-o/GemBox.Document.Examples/blob/master/PYTHON%2C%20PHP%2C%20VBSCRIPT/Program.asp) |
 
 ## System Requirement
 
 * .NET Framework 3.5 - 4.8
-* .NET Core 3.0
+* .NET Core 3.1
 * Or platforms that implement .NET Standard 2.0 or higher.
 
 ## Installation

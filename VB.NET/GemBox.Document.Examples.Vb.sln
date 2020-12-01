@@ -11,13 +11,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Advanced Features", "Advanc
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ContentControls", "Advanced Features\Content Controls\ContentControls.vbproj", "{FCCEDC4B-0496-40BA-AF79-72E2B079B2D6}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "HtmlImportAndExport", "Advanced Features\Html Import And Export\HtmlImportAndExport.vbproj", "{A235A4EA-B335-47FB-94C8-6DF919D216CC}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "HtmlImportAndExport", "Advanced Features\Html Import and Export\HtmlImportAndExport.vbproj", "{A235A4EA-B335-47FB-94C8-6DF919D216CC}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ModifyBookmarks", "Advanced Features\Modify Bookmarks\ModifyBookmarks.vbproj", "{5BB175FD-7C0A-41D8-B480-F1FD7AEBF3A1}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "PrivateFonts", "Advanced Features\Private Fonts\PrivateFonts.vbproj", "{C1D095F8-66EE-498E-9D76-A4D7F03144A4}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "RightToLeftText", "Advanced Features\Right To Left Text\RightToLeftText.vbproj", "{E732E963-5B49-434C-90B6-A0F308879122}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "RightToLeftText", "Advanced Features\Right to Left Text\RightToLeftText.vbproj", "{E732E963-5B49-434C-90B6-A0F308879122}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "StyleResolution", "Advanced Features\Style Resolution\StyleResolution.vbproj", "{4B4B9180-F286-48C9-9287-DD764E4D5924}"
 EndProject
@@ -25,7 +25,7 @@ Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "UnitConversion", "Advanced 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Basic Features", "Basic Features", "{380BC34D-9A13-4794-B498-A6B5C6B81305}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BookmarksAndHyperlinks", "Basic Features\Bookmarks And Hyperlinks\BookmarksAndHyperlinks.vbproj", "{0EE338F1-5678-410F-96D7-36FFF3610DBD}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "BookmarksAndHyperlinks", "Basic Features\Bookmarks and Hyperlinks\BookmarksAndHyperlinks.vbproj", "{0EE338F1-5678-410F-96D7-36FFF3610DBD}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Breaks", "Basic Features\Breaks\Breaks.vbproj", "{8DDFD3B1-72C1-41C9-A660-5C35AE59182A}"
 EndProject
@@ -35,9 +35,9 @@ Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "DocumentProperties", "Basic
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Fields", "Basic Features\Fields\Fields.vbproj", "{2AFCBD4F-9D0E-4DDD-9A44-A955CEC4117E}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "FootnotesAndEndnotes", "Basic Features\Footnotes And Endnotes\FootnotesAndEndnotes.vbproj", "{97C15AFA-AD2E-436E-BCCD-663EF0886DB9}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "FootnotesAndEndnotes", "Basic Features\Footnotes and Endnotes\FootnotesAndEndnotes.vbproj", "{97C15AFA-AD2E-436E-BCCD-663EF0886DB9}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "HeaderAndFooter", "Basic Features\Header And Footer\HeaderAndFooter.vbproj", "{C17BEF6A-4CB7-48B5-8CF4-6147D204363D}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "HeadersAndFooters", "Basic Features\Headers and Footers\HeadersAndFooters.vbproj", "{C17BEF6A-4CB7-48B5-8CF4-6147D204363D}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "PageSetup", "Basic Features\Page Setup\PageSetup.vbproj", "{C0F12B34-3FF5-4F0F-BC5B-86E9E19E9740}"
 EndProject
@@ -47,7 +47,7 @@ Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Shapes", "Basic Features\Sh
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "TextBoxes", "Basic Features\Text Boxes\TextBoxes.vbproj", "{C7CC6A91-9012-4028-8451-FD906C49571A}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "TOC", "Basic Features\TOC\TOC.vbproj", "{AAE95252-3846-4734-801F-8593DFCBBF96}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "TableOfContent", "Basic Features\TableOfContent\TableOfContent.vbproj", "{AAE95252-3846-4734-801F-8593DFCBBF96}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ViewOptions", "Basic Features\View Options\ViewOptions.vbproj", "{9BD89A95-4B57-4B19-8370-442FAA56310A}"
 EndProject
@@ -55,9 +55,9 @@ Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Watermarks", "Basic Feature
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common Uses", "Common Uses", "{068A5C07-4F0B-4E3C-BC8C-5463BF912A34}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Convert", "Common Uses\Convert\Convert.vbproj", "{1D97C008-51D2-40C0-97BB-86E77D2D4CE7}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ConvertToPdf", "Common Uses\Convert to PDF\ConvertToPdf.vbproj", "{1D97C008-51D2-40C0-97BB-86E77D2D4CE7}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ExtractTextFromPDF", "Common Uses\Extract Text From PDF\ExtractTextFromPDF.vbproj", "{E690C5A5-6586-4EB5-B141-4BAA4936A811}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ExtractTextFromPDF", "Common Uses\Extract Text from PDF\ExtractTextFromPDF.vbproj", "{E690C5A5-6586-4EB5-B141-4BAA4936A811}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "TemplateUse", "Common Uses\Template Use\TemplateUse.vbproj", "{39DDE80C-FDB3-4494-B66D-5AC322CBE347}"
 EndProject
@@ -71,17 +71,17 @@ Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Reading", "Common Uses\Read
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ReadingPages", "Common Uses\Reading\Reading Pages\ReadingPages.vbproj", "{A58F5105-A7D0-43AA-9199-FDB270C99D72}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "PrintInConsole", "Common Uses\Print\PrintInConsole\PrintInConsole.vbproj", "{D0E340F8-9EF0-4844-AC80-FE99F464660B}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "PrintInConsole", "Common Uses\Print\Print in Console\PrintInConsole.vbproj", "{D0E340F8-9EF0-4844-AC80-FE99F464660B}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "PrintInWinForms", "Common Uses\Print\PrintInWinForms\PrintInWinForms.vbproj", "{523769AE-9A52-43F5-8120-02E857821B1D}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "PrintInWinForms", "Common Uses\Print\Print in WinForms\PrintInWinForms.vbproj", "{523769AE-9A52-43F5-8120-02E857821B1D}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "PrintInWpf", "Common Uses\Print\PrintInWpf\PrintInWpf.vbproj", "{7373C27D-2732-4C39-9272-BCD3355905E2}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "PrintInWpf", "Common Uses\Print\Print in WPF\PrintInWpf.vbproj", "{7373C27D-2732-4C39-9272-BCD3355905E2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Content Manipulation", "Content Manipulation", "{8E543A67-684B-4D26-87D7-358BB63BFEF0}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "DeleteContent", "Content Manipulation\Delete Content\DeleteContent.vbproj", "{A99E1205-2057-4F1F-8F32-7B11A78D5672}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "FindAndReplace", "Content Manipulation\Find And Replace\FindAndReplace.vbproj", "{4F19151B-411E-477B-87A4-25419344A250}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "FindAndReplace", "Content Manipulation\Find and Replace\FindAndReplace.vbproj", "{4F19151B-411E-477B-87A4-25419344A250}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "GetContent", "Content Manipulation\Get Content\GetContent.vbproj", "{8186323B-8C13-45D3-AC16-1F041EAD69C2}"
 EndProject
@@ -137,19 +137,17 @@ Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Performance", "Performance\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Preservation", "Preservation", "{4031CAD0-4BD6-4DE7-9A88-37A0818769C2}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "TrackedChanges", "Preservation\Tracked Changes\TrackedChanges.vbproj", "{3BB09408-D8EC-460D-9EAF-9675AA1D3980}"
-EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Macros", "Preservation\Macros\Macros.vbproj", "{443D34D7-F4A7-40D1-925C-09A6A7C0DAB6}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Preservation", "Preservation\Preservation.vbproj", "{443D34D7-F4A7-40D1-925C-09A6A7C0DAB6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Protection", "Protection", "{43C7BE02-485C-4196-8FA4-FA28F247FB03}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "DOCXEncryption", "Protection\DOCX Encryption\DOCXEncryption.vbproj", "{39B20613-D9A2-44E7-91FF-B931BA0C8D99}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "DocxEncryption", "Protection\DOCX Encryption\DocxEncryption.vbproj", "{39B20613-D9A2-44E7-91FF-B931BA0C8D99}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "DOCXWriteProtection", "Protection\DOCX Write Protection\DOCXWriteProtection.vbproj", "{98FEADD2-D76D-4E5F-8FB1-5B58319306D1}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "DocxWriteProtection", "Protection\DOCX Write Protection\DocxWriteProtection.vbproj", "{98FEADD2-D76D-4E5F-8FB1-5B58319306D1}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "PDFDigitalSignature", "Protection\PDF Digital Signature\PDFDigitalSignature.vbproj", "{D67021B8-059C-4E18-8528-C9DB3EA62BC4}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "PdfDigitalSignature", "Protection\PDF Digital Signature\PdfDigitalSignature.vbproj", "{D67021B8-059C-4E18-8528-C9DB3EA62BC4}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "PDFEncryption", "Protection\PDF Encryption\PDFEncryption.vbproj", "{D423BEAC-F031-4557-A4F3-1016378DEDDD}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "PdfEncryption", "Protection\PDF Encryption\PdfEncryption.vbproj", "{D423BEAC-F031-4557-A4F3-1016378DEDDD}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "RestrictEditing", "Protection\Restrict Editing\RestrictEditing.vbproj", "{91D84961-150E-4757-B37E-4F9DF3DFFC07}"
 EndProject
@@ -165,39 +163,43 @@ Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "TableFormatting", "Table\Ta
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "TableStyles", "Table\Table Styles\TableStyles.vbproj", "{072538C6-EFFD-4C26-A3CF-9C62A2858A93}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WPF", "WPF", "{69907768-F5C3-432F-B335-A40B2D8F4AFC}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platforms", "Platforms", "{69907768-F5C3-432F-B335-A40B2D8F4AFC}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ExportToImageSource", "WPF\Export to ImageSource\ExportToImageSource.vbproj", "{A557C74B-0E48-4CC0-9E1A-5FEF7F4EA542}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "WpfExportToImageSource", "Platforms\Export to ImageSource\WpfExportToImageSource.vbproj", "{A557C74B-0E48-4CC0-9E1A-5FEF7F4EA542}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ExportToXpsDocument", "WPF\Export to XpsDocument\ExportToXpsDocument.vbproj", "{6F85609F-511C-462A-A52A-5F0F6816E7DD}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "WpfExportToXpsDocument", "Platforms\Export to XpsDocument\WpfExportToXpsDocument.vbproj", "{6F85609F-511C-462A-A52A-5F0F6816E7DD}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "WpfRichTextEditor", "WPF\Word Editor in WPF\WpfRichTextEditor.vbproj", "{B5028236-A94C-4CA2-AA88-647ECF4236E7}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "WpfRichTextEditor", "Platforms\Word Editor in WPF\WpfRichTextEditor.vbproj", "{B5028236-A94C-4CA2-AA88-647ECF4236E7}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Comments", "Basic Features\Comments\Comments.vbproj", "{2E889756-02BF-4A6A-95AE-6C94213C0CF6}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "AutoHyphenation", "Advanced Features\Auto Hyphenation\AutoHyphenation.vbproj", "{5FADA53E-7D7E-44B7-A794-C8107CAB849E}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Progress Reporting And Cancellation", "Progress Reporting And Cancellation", "{227100DA-88D1-47DA-AC70-1421D606FEE3}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Progress Reporting and Cancellation", "Progress Reporting and Cancellation", "{227100DA-88D1-47DA-AC70-1421D606FEE3}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "CancellationInConsole", "Advanced Features\Progress Reporting And Cancellation\CancellationInConsole\CancellationInConsole.vbproj", "{837B7DF0-7F71-40CB-A284-196C79389339}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "CancellationInConsole", "Advanced Features\Progress Reporting and Cancellation\Cancellation in Console\CancellationInConsole.vbproj", "{837B7DF0-7F71-40CB-A284-196C79389339}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "CancellationInWpf", "Advanced Features\Progress Reporting And Cancellation\CancellationInWpf\CancellationInWpf.vbproj", "{DD8E6270-16F0-4686-B4B5-23B319258511}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "CancellationInWpf", "Advanced Features\Progress Reporting and Cancellation\Cancellation in WPF\CancellationInWpf.vbproj", "{DD8E6270-16F0-4686-B4B5-23B319258511}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ProgressReportingInConsole", "Advanced Features\Progress Reporting And Cancellation\ProgressReportingInConsole\ProgressReportingInConsole.vbproj", "{F8BD2965-C754-45BD-8DC4-A2D6115091E6}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ProgressReportingInConsole", "Advanced Features\Progress Reporting and Cancellation\Progress Reporting in Console\ProgressReportingInConsole.vbproj", "{F8BD2965-C754-45BD-8DC4-A2D6115091E6}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ProgressReportingInWindowsForms", "Advanced Features\Progress Reporting And Cancellation\ProgressReportingInWindowsForms\ProgressReportingInWindowsForms.vbproj", "{F739C5F2-A529-4381-AB93-93662F64404C}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ProgressReportingInWindowsForms", "Advanced Features\Progress Reporting and Cancellation\Progress Reporting in WindowsForms\ProgressReportingInWindowsForms.vbproj", "{F739C5F2-A529-4381-AB93-93662F64404C}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ProgressReportingInWpf", "Advanced Features\Progress Reporting And Cancellation\ProgressReportingInWpf\ProgressReportingInWpf.vbproj", "{5FC557FB-0756-4A27-9498-B08A31CE9D26}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ProgressReportingInWpf", "Advanced Features\Progress Reporting and Cancellation\Progress Reporting in WPF\ProgressReportingInWpf.vbproj", "{5FC557FB-0756-4A27-9498-B08A31CE9D26}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Azure", "Azure", "{EAB86B91-E636-4B19-8734-A0C120342246}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "AzureFunction", "Platforms\Azure\AzureFunction.vbproj", "{E1C54B3E-44C7-477B-9EA9-18225656CB4B}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "AzureFunction", "Azure\AzureFunction.vbproj", "{E1C54B3E-44C7-477B-9EA9-18225656CB4B}"
-EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ConvertToImage", "Common Uses\Convert To Image\ConvertToImage.vbproj", "{0C351E60-EEC4-4170-82F5-E54A04FBD2C6}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ConvertToImage", "Common Uses\Convert to Image\ConvertToImage.vbproj", "{0C351E60-EEC4-4170-82F5-E54A04FBD2C6}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "MergeBarcodes", "Mail Merge\Merge Barcodes\MergeBarcodes.vbproj", "{3C3E51CF-8AFB-4967-9A4D-14B042AB59F3}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "TrackChanges", "Basic Features\Track Changes\TrackChanges.vbproj", "{67B5C03B-89D2-4A7E-85AF-BAD086D55823}"
+EndProject
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "DocxDigitalSignature", "Protection\DOCX Digital Signature\DocxDigitalSignature.vbproj", "{6795FC67-337F-400C-AAB3-BF8C08955C68}"
+EndProject
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ConvertFromHtml", "Common Uses\Convert from HTML\ConvertFromHtml.vbproj", "{E94ABC17-4D5B-4BB1-87C3-73BE5AA49090}"
+EndProject
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "DocumentDocker", "Platforms\Docker\DocumentDocker.vbproj", "{5C26ADD2-ED27-4DBF-8953-4F4F29972D41}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -421,10 +423,6 @@ Global
 		{DBAF6A97-6F54-462C-B3B3-8B1505B2CFF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DBAF6A97-6F54-462C-B3B3-8B1505B2CFF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DBAF6A97-6F54-462C-B3B3-8B1505B2CFF7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3BB09408-D8EC-460D-9EAF-9675AA1D3980}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3BB09408-D8EC-460D-9EAF-9675AA1D3980}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3BB09408-D8EC-460D-9EAF-9675AA1D3980}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3BB09408-D8EC-460D-9EAF-9675AA1D3980}.Release|Any CPU.Build.0 = Release|Any CPU
 		{443D34D7-F4A7-40D1-925C-09A6A7C0DAB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{443D34D7-F4A7-40D1-925C-09A6A7C0DAB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{443D34D7-F4A7-40D1-925C-09A6A7C0DAB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -525,6 +523,18 @@ Global
 		{67B5C03B-89D2-4A7E-85AF-BAD086D55823}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{67B5C03B-89D2-4A7E-85AF-BAD086D55823}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{67B5C03B-89D2-4A7E-85AF-BAD086D55823}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6795FC67-337F-400C-AAB3-BF8C08955C68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6795FC67-337F-400C-AAB3-BF8C08955C68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6795FC67-337F-400C-AAB3-BF8C08955C68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6795FC67-337F-400C-AAB3-BF8C08955C68}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E94ABC17-4D5B-4BB1-87C3-73BE5AA49090}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E94ABC17-4D5B-4BB1-87C3-73BE5AA49090}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E94ABC17-4D5B-4BB1-87C3-73BE5AA49090}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E94ABC17-4D5B-4BB1-87C3-73BE5AA49090}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C26ADD2-ED27-4DBF-8953-4F4F29972D41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C26ADD2-ED27-4DBF-8953-4F4F29972D41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C26ADD2-ED27-4DBF-8953-4F4F29972D41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C26ADD2-ED27-4DBF-8953-4F4F29972D41}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -586,7 +596,6 @@ Global
 		{B5A23B21-26BE-49EE-BEF8-383DD685933B} = {7E7E64A7-72CC-4B85-8B9D-F817301EBD7C}
 		{5C988236-41FE-4577-BB95-ABA1786A5AF4} = {7E7E64A7-72CC-4B85-8B9D-F817301EBD7C}
 		{DBAF6A97-6F54-462C-B3B3-8B1505B2CFF7} = {C1A1967C-60EF-4B67-9D05-8150AFDCE2A5}
-		{3BB09408-D8EC-460D-9EAF-9675AA1D3980} = {4031CAD0-4BD6-4DE7-9A88-37A0818769C2}
 		{443D34D7-F4A7-40D1-925C-09A6A7C0DAB6} = {4031CAD0-4BD6-4DE7-9A88-37A0818769C2}
 		{39B20613-D9A2-44E7-91FF-B931BA0C8D99} = {43C7BE02-485C-4196-8FA4-FA28F247FB03}
 		{98FEADD2-D76D-4E5F-8FB1-5B58319306D1} = {43C7BE02-485C-4196-8FA4-FA28F247FB03}
@@ -609,10 +618,13 @@ Global
 		{F8BD2965-C754-45BD-8DC4-A2D6115091E6} = {227100DA-88D1-47DA-AC70-1421D606FEE3}
 		{F739C5F2-A529-4381-AB93-93662F64404C} = {227100DA-88D1-47DA-AC70-1421D606FEE3}
 		{5FC557FB-0756-4A27-9498-B08A31CE9D26} = {227100DA-88D1-47DA-AC70-1421D606FEE3}
-		{E1C54B3E-44C7-477B-9EA9-18225656CB4B} = {EAB86B91-E636-4B19-8734-A0C120342246}
+		{E1C54B3E-44C7-477B-9EA9-18225656CB4B} = {69907768-F5C3-432F-B335-A40B2D8F4AFC}
 		{0C351E60-EEC4-4170-82F5-E54A04FBD2C6} = {068A5C07-4F0B-4E3C-BC8C-5463BF912A34}
 		{3C3E51CF-8AFB-4967-9A4D-14B042AB59F3} = {7E7E64A7-72CC-4B85-8B9D-F817301EBD7C}
 		{67B5C03B-89D2-4A7E-85AF-BAD086D55823} = {380BC34D-9A13-4794-B498-A6B5C6B81305}
+		{6795FC67-337F-400C-AAB3-BF8C08955C68} = {43C7BE02-485C-4196-8FA4-FA28F247FB03}
+		{E94ABC17-4D5B-4BB1-87C3-73BE5AA49090} = {068A5C07-4F0B-4E3C-BC8C-5463BF912A34}
+		{5C26ADD2-ED27-4DBF-8953-4F4F29972D41} = {69907768-F5C3-432F-B335-A40B2D8F4AFC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3F9A0C8B-7A43-4F13-8C1E-91313E4DEB88}
