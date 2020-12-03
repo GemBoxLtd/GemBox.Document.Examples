@@ -161,7 +161,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Performance", "Performance\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platforms", "Platforms", "{B58668DC-064A-4F13-AA12-7CF2346FA9FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetMediumTrust", "Platforms\MediumTrust\AspNetMediumTrust.csproj", "{C7E73865-4A94-4E77-BCE1-ADABA5D876CA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetMediumTrust", "Platforms\MediumTrust in ASP.NET\AspNetMediumTrust.csproj", "{C7E73865-4A94-4E77-BCE1-ADABA5D876CA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetWordEditor", "Platforms\Word Editor in ASP.NET MVC\AspNetWordEditor.csproj", "{F009E5BC-9AF9-4464-B3D9-81A43B98858A}"
 EndProject
