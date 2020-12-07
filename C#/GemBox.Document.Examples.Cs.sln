@@ -175,9 +175,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Preservation", "Preservatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsFormsRichTextEditor", "Platforms\Word Editor in Windows Forms\WindowsFormsRichTextEditor.csproj", "{BA2B45E7-6264-43C2-B869-9E65B67FF47F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfExportToImageSource", "Platforms\Export to ImageSource\WpfExportToImageSource.csproj", "{4A93E440-0C1E-429B-8A50-C1CE789E31D5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfExportToImageSource", "Platforms\Export to ImageSource in WPF\WpfExportToImageSource.csproj", "{4A93E440-0C1E-429B-8A50-C1CE789E31D5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfExportToXpsDocument", "Platforms\Export to XpsDocument\WpfExportToXpsDocument.csproj", "{BD063B1D-E7BF-479D-8586-728E4589A118}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfExportToXpsDocument", "Platforms\Export to XpsDocument in WPF\WpfExportToXpsDocument.csproj", "{BD063B1D-E7BF-479D-8586-728E4589A118}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfRichTextEditor", "Platforms\Word Editor in WPF\WpfRichTextEditor.csproj", "{0229BF2E-0837-4CC5-8AE1-79FA56ED7308}"
 EndProject

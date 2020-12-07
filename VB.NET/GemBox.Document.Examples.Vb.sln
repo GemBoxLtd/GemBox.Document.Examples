@@ -165,9 +165,9 @@ Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "TableStyles", "Table\Table 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platforms", "Platforms", "{69907768-F5C3-432F-B335-A40B2D8F4AFC}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "WpfExportToImageSource", "Platforms\Export to ImageSource\WpfExportToImageSource.vbproj", "{A557C74B-0E48-4CC0-9E1A-5FEF7F4EA542}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "WpfExportToImageSource", "Platforms\Export to ImageSource in WPF\WpfExportToImageSource.vbproj", "{A557C74B-0E48-4CC0-9E1A-5FEF7F4EA542}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "WpfExportToXpsDocument", "Platforms\Export to XpsDocument\WpfExportToXpsDocument.vbproj", "{6F85609F-511C-462A-A52A-5F0F6816E7DD}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "WpfExportToXpsDocument", "Platforms\Export to XpsDocument in WPF\WpfExportToXpsDocument.vbproj", "{6F85609F-511C-462A-A52A-5F0F6816E7DD}"
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "WpfRichTextEditor", "Platforms\Word Editor in WPF\WpfRichTextEditor.vbproj", "{B5028236-A94C-4CA2-AA88-647ECF4236E7}"
 EndProject
