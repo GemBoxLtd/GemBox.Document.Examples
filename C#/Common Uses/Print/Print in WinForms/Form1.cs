@@ -46,7 +46,7 @@ public partial class Form1 : Form
 
             // Set PrintOptions properties based on PrinterSettings properties.
             printOptions.CopyCount = printerSettings.Copies;
-            printOptions.FromPage = printerSettings.FromPage - 1;
+            printOptions.FromPage = printerSettings.FromPage == 0 ? 0 : printerSettings.FromPage - 1;
             printOptions.ToPage = printerSettings.ToPage == 0 ? int.MaxValue : printerSettings.ToPage - 1;
 
             this.document.Print(printerSettings.PrinterName, printOptions);

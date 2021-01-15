@@ -30,8 +30,8 @@ Module Program
         picture2.Layout = layout2
         paragraph.Inlines.Add(picture2)
 
-        ' Create and add a floating picture with WMF image.
-        Dim picture3 As New Picture(document, "Graphics1.wmf", 378, 189, LengthUnit.Pixel)
+        ' Create and add a floating picture with SVG image.
+        Dim picture3 As New Picture(document, "Graphics1.svg", 400, 200, LengthUnit.Pixel)
         Dim layout3 As New FloatingLayout(
             New HorizontalPosition(3.5, LengthUnit.Inch, HorizontalPositionAnchor.Page),
             New VerticalPosition(2, LengthUnit.Inch, VerticalPositionAnchor.Page),

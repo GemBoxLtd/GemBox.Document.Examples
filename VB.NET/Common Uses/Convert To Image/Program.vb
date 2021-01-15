@@ -1,4 +1,3 @@
-Imports System
 Imports System.IO
 Imports System.IO.Compression
 Imports GemBox.Document
@@ -19,22 +18,12 @@ Module Program
     Sub Example1()
         ' Load a Word file into the DocumentModel object.
         Dim document = DocumentModel.Load("Input.docx")
-        Dim section = document.Sections(0)
 
-        ' Calculate the default image width based on the page size and DPI resolution.
-        Dim widthInPoints = section.PageSetup.PageWidth
-        Dim resolution = 300
-        Dim widthInPixels = widthInPoints * resolution / 72
-
-        ' Select the first Word page.
-        ' Set the DPI resolution.
-        ' Set the image width to half and keep the aspect ratio.
+        ' Create image save options.
         Dim imageOptions As New ImageSaveOptions(ImageSaveFormat.Png) With
         {
-            .PageNumber = 0,
-            .DpiX = resolution,
-            .DpiY = resolution,
-            .Width = widthInPixels / 2
+            .PageNumber = 0, ' Select the first Word page.
+            .Width = 1240 ' Set the image width and keep the aspect ratio.
         }
 
         ' Save the DocumentModel object to a PNG file.

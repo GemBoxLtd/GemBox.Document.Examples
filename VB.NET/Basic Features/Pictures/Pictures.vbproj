@@ -7,13 +7,14 @@
 
   <ItemGroup>
     <PackageReference Include="GemBox.Document" Version="*" />
+    <PackageReference Include="System.Drawing.Common" Version="*" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="Dices.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Graphics1.wmf">
+    <None Update="Graphics1.svg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Zahnrad.gif">

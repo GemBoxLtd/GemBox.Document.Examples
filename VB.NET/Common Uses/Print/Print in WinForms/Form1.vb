@@ -35,7 +35,7 @@ Partial Public Class Form1
 
     Private Sub PrintFileMenuItem_Click(sender As Object, e As EventArgs) Handles PrintFileMenuItem.Click
 
-        If document Is Nothing Then Return
+        If Me.document Is Nothing Then Return
 
         Dim printDialog As New PrintDialog() With {.AllowSomePages = True}
         If (printDialog.ShowDialog() = DialogResult.OK) Then
@@ -45,7 +45,7 @@ Partial Public Class Form1
 
             ' Set PrintOptions properties based on PrinterSettings properties.
             printOptions.CopyCount = printerSettings.Copies
-            printOptions.FromPage = printerSettings.FromPage - 1
+            printOptions.FromPage = If(printerSettings.FromPage = 0, 0, printerSettings.FromPage - 1)
             printOptions.ToPage = If(printerSettings.ToPage = 0, Integer.MaxValue, printerSettings.ToPage - 1)
 
             Me.document.Print(printerSettings.PrinterName, printOptions)

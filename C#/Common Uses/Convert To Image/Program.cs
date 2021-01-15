@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.IO.Compression;
 using GemBox.Document;
@@ -19,24 +18,12 @@ class Program
     {
         // Load a Word file into the DocumentModel object.
         var document = DocumentModel.Load("Input.docx");
-        var section = document.Sections[0];
 
-        // Calculate the default image width based on the page size and DPI resolution.
-        var widthInPoints = section.PageSetup.PageWidth;
-        var resolution = 300;
-        var widthInPixels = widthInPoints * resolution / 72;
-
+        // Create image save options.
         var imageOptions = new ImageSaveOptions(ImageSaveFormat.Png)
         {
-            // Select the first Word page.
-            PageNumber = 0,
-
-            // Set the DPI resolution.
-            DpiX = resolution,
-            DpiY = resolution,
-
-            // Set the image width to half and keep the aspect ratio.
-            Width = widthInPixels / 2
+            PageNumber = 0, // Select the first Word page.
+            Width = 1240 // Set the image width and keep the aspect ratio.
         };
 
         // Save the DocumentModel object to a PNG file.
@@ -48,9 +35,9 @@ class Program
         // Load a Word file.
         var document = DocumentModel.Load("Input.docx");
 
+        // Max integer value indicates that all document pages should be saved.
         var imageOptions = new ImageSaveOptions(ImageSaveFormat.Tiff)
         {
-            // Max integer value indicates that all document pages should be saved.
             PageCount = int.MaxValue
         };
 

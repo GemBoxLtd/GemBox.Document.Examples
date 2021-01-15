@@ -1,7 +1,6 @@
 Imports System
 Imports System.IO
 Imports System.Linq
-Imports System.Text.RegularExpressions
 Imports GemBox.Document
 
 Module Program
@@ -25,7 +24,7 @@ Module Program
 
         ' Get Word document's count statistics.
         Dim charactersCount As Integer = text.Replace(Environment.NewLine, String.Empty).Length
-        Dim wordsCount As Integer = Regex.Matches(text, "[\S]+").Count
+        Dim wordsCount As Integer = document.Content.CountWords()
         Dim paragraphsCount As Integer = document.GetChildElements(True, ElementType.Paragraph).Count()
         Dim pageCount As Integer = document.GetPaginator().Pages.Count
 

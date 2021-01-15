@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using GemBox.Document;
 
 class Program
@@ -25,7 +24,7 @@ class Program
 
         // Get Word document's count statistics.
         int charactersCount = text.Replace(Environment.NewLine, string.Empty).Length;
-        int wordsCount = Regex.Matches(text, @"[\S]+").Count;
+        int wordsCount = document.Content.CountWords();
         int paragraphsCount = document.GetChildElements(true, ElementType.Paragraph).Count();
         int pageCount = document.GetPaginator().Pages.Count;
 
