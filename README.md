@@ -52,8 +52,8 @@ This repository contains the source code of GemBox.Document example projects for
 ## System Requirement
 
 * .NET Framework 3.5 - 4.8
-* .NET Core 3.1
-* Or platforms that implement .NET Standard 2.0 or higher.
+* .NET Core 3.1 (.NET 5 for Windows)
+* .NET Standard 2.0 (.NET 5 for Linux, macOS, Android, iOS, …)
 
 ## Installation
 
