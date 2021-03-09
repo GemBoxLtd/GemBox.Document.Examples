@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("AspNetWordEditor")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("GemBox d.o.o.")]
+[assembly: AssemblyCompany("GemBox Ltd.")]
 [assembly: AssemblyProduct("AspNetWordEditor")]
-[assembly: AssemblyCopyright("Copyright © GemBox d.o.o.")]
+[assembly: AssemblyCopyright("Copyright © GemBox Ltd.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

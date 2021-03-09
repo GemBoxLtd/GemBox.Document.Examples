@@ -10,9 +10,9 @@ Imports System.Runtime.InteropServices
 
 <Assembly: AssemblyTitle("PrintInWinForms")>
 <Assembly: AssemblyDescription("")>
-<Assembly: AssemblyCompany("GemBox d.o.o.")>
+<Assembly: AssemblyCompany("GemBox Ltd.")>
 <Assembly: AssemblyProduct("PrintInWinForms")>
-<Assembly: AssemblyCopyright("Copyright © GemBox d.o.o.")>
+<Assembly: AssemblyCopyright("Copyright © GemBox Ltd.")>
 <Assembly: AssemblyTrademark("")>
 
 <Assembly: ComVisible(False)>

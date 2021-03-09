@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("WindowsFormsRichTextEditor")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("GemBox d.o.o.")]
+[assembly: AssemblyCompany("GemBox Ltd.")]
 [assembly: AssemblyProduct("WindowsFormsRichTextEditor")]
-[assembly: AssemblyCopyright("Copyright © GemBox d.o.o.")]
+[assembly: AssemblyCopyright("Copyright © GemBox Ltd.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -10,9 +10,9 @@ using System.Windows;
 [assembly: AssemblyTitle("ProgressReportingInWpf")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("GemBox d.o.o.")]
+[assembly: AssemblyCompany("GemBox Ltd.")]
 [assembly: AssemblyProduct("ProgressReportingInWpf")]
-[assembly: AssemblyCopyright("Copyright © GemBox d.o.o.")]
+[assembly: AssemblyCopyright("Copyright © GemBox Ltd.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

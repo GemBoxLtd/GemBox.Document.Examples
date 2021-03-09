@@ -8,9 +8,9 @@ using System.Windows;
 [assembly: AssemblyTitle("WpfRichTextEditor")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("GemBox d.o.o.")]
+[assembly: AssemblyCompany("GemBox Ltd.")]
 [assembly: AssemblyProduct("WpfRichTextEditor")]
-[assembly: AssemblyCopyright("Copyright © GemBox d.o.o.")]
+[assembly: AssemblyCopyright("Copyright © GemBox Ltd.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

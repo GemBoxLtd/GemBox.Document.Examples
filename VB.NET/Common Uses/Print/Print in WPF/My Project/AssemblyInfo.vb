@@ -13,9 +13,9 @@ Imports System.Windows
 
 <Assembly: AssemblyTitle("PrintInWpf")>
 <Assembly: AssemblyDescription("")>
-<Assembly: AssemblyCompany("GemBox d.o.o.")>
+<Assembly: AssemblyCompany("GemBox Ltd.")>
 <Assembly: AssemblyProduct("PrintInWpf")>
-<Assembly: AssemblyCopyright("Copyright © GemBox d.o.o.")>
+<Assembly: AssemblyCopyright("Copyright © GemBox Ltd.")>
 <Assembly: AssemblyTrademark("")>
 <Assembly: ComVisible(false)>
 

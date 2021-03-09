@@ -10,9 +10,9 @@ using System.Windows;
 [assembly: AssemblyTitle("CancellationInWpf")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("GemBox d.o.o.")]
+[assembly: AssemblyCompany("GemBox Ltd.")]
 [assembly: AssemblyProduct("CancellationInWpf")]
-[assembly: AssemblyCopyright("Copyright © GemBox d.o.o.")]
+[assembly: AssemblyCopyright("Copyright © GemBox Ltd.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
