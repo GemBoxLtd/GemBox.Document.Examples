@@ -7,40 +7,20 @@ Module Program
         ' If using Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
-        ' Create a new document.
-        Dim document As New DocumentModel()
-        document.DefaultParagraphFormat.Alignment = HorizontalAlignment.Center
+        Dim document = DocumentModel.Load("MergeBarcodes.docx")
 
-        ' Create a barcode merge field that will display the value in a barcode font.
-        Dim barcodeField As New Field(document, FieldType.MergeField, "Barcode", "«Barcode»") With
+        ' Create data source for mail merge process.
+        Dim data = New With
         {
-            .CharacterFormat = New CharacterFormat() With
-            {
-                .FontName = "Code 128",
-                .Size = 80
-            }
+            .QrCode = "QR Code created with GemBox.Document",
+            .Code128 = "1234567890",
+            .Ean13 = "5901234123457"
         }
 
-        ' Create a label merge field that will display the value with a '*' character as the prefix and suffix.
-        Dim labelField As New Field(document, FieldType.MergeField, "Label \b * \f *", "*«Label»*") With
-        {
-            .CharacterFormat = New CharacterFormat() With
-            {
-                .FontName = "Arial Black",
-                .Size = 20,
-                .FontColor = Color.Red
-            }
-        }
+        ' Execute mail merge process.
+        document.MailMerge.Execute(data)
 
-        ' Add merge fields to the document.
-        document.Sections.Add(
-            New Section(document,
-                New Paragraph(document, barcodeField),
-                New Paragraph(document, labelField)))
-
-        document.MailMerge.Execute(New With {.Barcode = "1234567890", .Label = "1234567890"})
-
-        document.Save("Barcode Output.docx")
+        document.Save("Mail Merge Output.docx")
 
     End Sub
 End Module

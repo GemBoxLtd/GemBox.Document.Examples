@@ -1,5 +1,7 @@
 # GemBox.Document
 
+[![NuGet version](https://img.shields.io/nuget/v/GemBox.Document?style=for-the-badge)](https://www.nuget.org/packages/GemBox.Document/) [![NuGet downloads](https://img.shields.io/nuget/dt/GemBox.Document?style=for-the-badge)](https://www.nuget.org/packages/GemBox.Document/) [![Visual Studio Marketplace rating](https://img.shields.io/visual-studio-marketplace/stars/GemBoxSoftware.GemBoxDocument?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=GemBoxSoftware.GemBoxDocument)
+
 <img src="https://www.gemboxsoftware.com/images/NugetGbd.png" alt="GemBox.Document logo" align="left" />
 
 GemBox.Document is a .NET component which enables developers to read, write, convert and print document files (DOCX, DOC, PDF, HTML, XPS, RTF and TXT) from .NET applications in a simple and efficient way.
@@ -57,17 +59,15 @@ This repository contains the source code of GemBox.Document example projects for
 
 ## Installation
 
-You can download GemBox.Document from [BugFixes](https://www.gemboxsoftware.com/document/downloads/bugfixes.html) 🛠️
+You can download GemBox.Document from [BugFixes 🛠️](https://www.gemboxsoftware.com/document/downloads/bugfixes.html) or from [NuGet 📦](https://www.nuget.org/packages/GemBox.Document/).
 
-Or from [NuGet](https://www.nuget.org/packages/GemBox.Document/) 📦
+## Support
 
-## Resources
-
-* [Overview](https://www.gemboxsoftware.com/document)
-* [Documentation](https://www.gemboxsoftware.com/document/docs/introduction.html)
-* [Support](https://www.gemboxsoftware.com/document/support)
+* [Contact Us](https://support.gemboxsoftware.com/new-ticket?ticket%5Bdepartment%5D=1&ticket%5Bproduct%5D=2)
+* [Forum](https://forum.gemboxsoftware.com/c/gembox-document/6)
 * [Blog](https://www.gemboxsoftware.com/gembox-document)
+* [API Reference](https://www.gemboxsoftware.com/document/docs/introduction.html)
 
 ## License
 
-You can download GemBox.Document's license agreement from [EULA.rtf](https://www.gemboxsoftware.com/EULA.rtf) 📝
+You can download GemBox.Document's license agreement from [EULA.rtf 📝](https://www.gemboxsoftware.com/EULA.rtf).

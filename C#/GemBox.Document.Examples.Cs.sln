@@ -213,6 +213,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCoreMvc", "Platforms\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCoreRazorPages", "Platforms\ASP.NET Core Razor Pages\AspNetCoreRazorPages.csproj", "{92B59E62-CFF9-487E-926B-DEC4156D0A42}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Barcodes", "Basic Features\Barcodes\Barcodes.csproj", "{E615F4F1-AC5F-4439-9B84-4488EAFF5558}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -571,6 +573,10 @@ Global
 		{92B59E62-CFF9-487E-926B-DEC4156D0A42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{92B59E62-CFF9-487E-926B-DEC4156D0A42}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{92B59E62-CFF9-487E-926B-DEC4156D0A42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E615F4F1-AC5F-4439-9B84-4488EAFF5558}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E615F4F1-AC5F-4439-9B84-4488EAFF5558}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E615F4F1-AC5F-4439-9B84-4488EAFF5558}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E615F4F1-AC5F-4439-9B84-4488EAFF5558}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -667,6 +673,7 @@ Global
 		{84A26E20-5523-4C43-91EE-1698BB7D0B3B} = {B58668DC-064A-4F13-AA12-7CF2346FA9FE}
 		{45198920-9288-4FD5-A534-7DD01235EE31} = {B58668DC-064A-4F13-AA12-7CF2346FA9FE}
 		{92B59E62-CFF9-487E-926B-DEC4156D0A42} = {B58668DC-064A-4F13-AA12-7CF2346FA9FE}
+		{E615F4F1-AC5F-4439-9B84-4488EAFF5558} = {1DA7C158-C1C9-4E2B-A31B-3DE822647F43}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B77A3C47-0A11-4E2C-A780-DA1AA1200FA2}

@@ -9,4 +9,10 @@
     <PackageReference Include="GemBox.Document" Version="*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="MergeBarcodes.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
