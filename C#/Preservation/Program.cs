@@ -1,4 +1,3 @@
-using System.IO;
 using GemBox.Document;
 
 class Program
@@ -14,7 +13,6 @@ class Program
 
         // Save Word document to output file of same format together with
         // preserved information (unsupported features) from input file.
-        string extension = Path.GetExtension("Macros.docm");
-        document.Save($"Preserved Output{extension}");
+        document.Save("Preserved Output.docm");
     }
 }

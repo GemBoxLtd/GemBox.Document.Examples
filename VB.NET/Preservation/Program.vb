@@ -1,4 +1,3 @@
-Imports System.IO
 Imports GemBox.Document
 
 Module Program
@@ -14,8 +13,7 @@ Module Program
 
         ' Save Word document to output file of same format together with
         ' preserved information (unsupported features) from input file.
-        Dim extension As String = Path.GetExtension("Macros.docm")
-        document.Save($"Preserved Output{extension}")
+        document.Save("Preserved Output.docm")
 
     End Sub
 End Module
