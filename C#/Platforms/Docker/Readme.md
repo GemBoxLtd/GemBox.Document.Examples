@@ -12,6 +12,6 @@ docker cp gemboxcontainer:/app/output.docx .
 docker cp gemboxcontainer:/app/output.pdf .
 
 :: 4. Clean up, remove container and image.
-docker image rm gemboximage
 docker container rm gemboxcontainer
+docker image rm gemboximage
 ```
