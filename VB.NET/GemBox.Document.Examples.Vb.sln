@@ -47,7 +47,7 @@ Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Shapes", "Basic Features\Sh
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "TextBoxes", "Basic Features\Text Boxes\TextBoxes.vbproj", "{C7CC6A91-9012-4028-8451-FD906C49571A}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "TableOfContent", "Basic Features\TableOfContent\TableOfContent.vbproj", "{AAE95252-3846-4734-801F-8593DFCBBF96}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "TableOfContent", "Basic Features\Table Of Content\TableOfContent.vbproj", "{AAE95252-3846-4734-801F-8593DFCBBF96}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ViewOptions", "Basic Features\View Options\ViewOptions.vbproj", "{9BD89A95-4B57-4B19-8370-442FAA56310A}"
 EndProject

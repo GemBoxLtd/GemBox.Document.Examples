@@ -2,12 +2,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net48;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>net48;net6.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="GemBox.Document" Version="*" />
-    <PackageReference Include="System.Drawing.Common" Version="*" />
   </ItemGroup>
 
   <ItemGroup>

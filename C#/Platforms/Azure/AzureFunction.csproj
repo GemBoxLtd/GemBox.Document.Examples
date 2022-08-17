@@ -1,17 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <AzureFunctionsVersion>v3</AzureFunctionsVersion>
+    <TargetFramework>net6.0</TargetFramework>
+    <AzureFunctionsVersion>v4</AzureFunctionsVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.13" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" />
     <PackageReference Include="GemBox.Document" Version="*" />
-	<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="5.0.0" />
-	<PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
-	<FunctionsPreservedDependencies Include="System.Text.Encoding.CodePages.dll" />
-	<FunctionsPreservedDependencies Include="System.Runtime.CompilerServices.Unsafe.dll" />
+  <FunctionsPreservedDependencies Include="System.Text.Encoding.CodePages.dll" />
+  <FunctionsPreservedDependencies Include="System.Runtime.CompilerServices.Unsafe.dll" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

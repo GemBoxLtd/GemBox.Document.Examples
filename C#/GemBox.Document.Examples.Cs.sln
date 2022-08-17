@@ -55,7 +55,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shapes", "Basic Features\Sh
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TextBoxes", "Basic Features\Text Boxes\TextBoxes.csproj", "{56DD6399-9FDD-4CB8-A34E-238BF972A724}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TableOfContent", "Basic Features\TableOfContent\TableOfContent.csproj", "{4C724FB0-1B40-416C-A47F-C08E714EDA50}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TableOfContent", "Basic Features\Table Of Content\TableOfContent.csproj", "{4C724FB0-1B40-416C-A47F-C08E714EDA50}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ViewOptions", "Basic Features\View Options\ViewOptions.csproj", "{224D21E2-7C41-421B-B59F-7CD08F9B6EA3}"
 EndProject
@@ -161,7 +161,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Performance", "Performance\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platforms", "Platforms", "{B58668DC-064A-4F13-AA12-7CF2346FA9FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetMediumTrust", "Platforms\MediumTrust in ASP.NET\AspNetMediumTrust.csproj", "{C7E73865-4A94-4E77-BCE1-ADABA5D876CA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetMediumTrust", "Platforms\Medium Trust in ASP.NET Web Forms\AspNetMediumTrust.csproj", "{C7E73865-4A94-4E77-BCE1-ADABA5D876CA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetWordEditor", "Platforms\Word Editor in ASP.NET MVC\AspNetWordEditor.csproj", "{F009E5BC-9AF9-4464-B3D9-81A43B98858A}"
 EndProject
@@ -209,9 +209,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertFromHtml", "Common U
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocumentDocker", "Platforms\Docker\DocumentDocker.csproj", "{84A26E20-5523-4C43-91EE-1698BB7D0B3B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCoreMvc", "Platforms\ASP.NET Core MVC\AspNetCoreMvc.csproj", "{45198920-9288-4FD5-A534-7DD01235EE31}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCoreMvc", "Platforms\ASP.NET Core\MVC\AspNetCoreMvc.csproj", "{45198920-9288-4FD5-A534-7DD01235EE31}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCoreRazorPages", "Platforms\ASP.NET Core Razor Pages\AspNetCoreRazorPages.csproj", "{92B59E62-CFF9-487E-926B-DEC4156D0A42}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCoreRazorPages", "Platforms\ASP.NET Core\Razor Pages\AspNetCoreRazorPages.csproj", "{92B59E62-CFF9-487E-926B-DEC4156D0A42}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Barcodes", "Basic Features\Barcodes\Barcodes.csproj", "{E615F4F1-AC5F-4439-9B84-4488EAFF5558}"
 EndProject

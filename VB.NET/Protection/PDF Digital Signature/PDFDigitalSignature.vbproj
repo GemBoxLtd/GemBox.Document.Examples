@@ -2,17 +2,12 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net48;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>net48;net6.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="GemBox.Document" Version="*" />
     <PackageReference Include="GemBox.Pdf" Version="*" />
-    <PackageReference Include="System.Drawing.Common" Version="*" Condition=" '$(TargetFramework)' == 'netcoreapp3.1' " />
-    <Reference Include="System.Security" Condition=" '$(TargetFramework)' == 'net48' " />
-    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="*" Condition=" '$(TargetFramework)' == 'netcoreapp3.1' " />
-    <PackageReference Include="BouncyCastle" Version="*" Condition=" '$(TargetFramework)' == 'net48' " />
-    <PackageReference Include="Portable.BouncyCastle" Version="*" Condition=" '$(TargetFramework)' == 'netcoreapp3.1' " />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,7 +1,7 @@
-FROM mcr.microsoft.com/dotnet/core/runtime:3.1-buster-slim AS base
+FROM mcr.microsoft.com/dotnet/runtime:6.0 AS base
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["DocumentDocker.csproj", ""]
 RUN dotnet restore "./DocumentDocker.csproj"
@@ -20,8 +20,8 @@ RUN sed -i 's/main/main contrib/g' /etc/apt/sources.list
 # Downloads the package lists from the repositories.
 RUN apt-get update
 
-# Install System.Drawing.Common dependency.
-RUN apt-get install -y libgdiplus
+# Install font configuration.
+RUN apt-get install -y fontconfig
 
 # Install Microsoft TrueType core fonts.
 RUN apt-get install -y ttf-mscorefonts-installer
