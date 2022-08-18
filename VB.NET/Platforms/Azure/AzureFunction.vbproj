@@ -9,8 +9,8 @@
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
-  <FunctionsPreservedDependencies Include="System.Text.Encoding.CodePages.dll" />
-  <FunctionsPreservedDependencies Include="System.Runtime.CompilerServices.Unsafe.dll" />
+    <FunctionsPreservedDependencies Include="System.Text.Encoding.CodePages.dll" />
+    <FunctionsPreservedDependencies Include="System.Runtime.CompilerServices.Unsafe.dll" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">
