@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using GemBox.Document;
 using GemBox.Document.Tables;
 
@@ -21,29 +22,56 @@ class Program
         // The easiest way how you can find and replace text is with "Replace" method.
         document.Content.Replace("%FirstName%", "John");
         document.Content.Replace("%LastName%", "Doe");
-        document.Content.Replace("%Date%", DateTime.Today.ToLongDateString());
 
-        // You can also find and highlight text by specifying "HighlightColor" of replacement text.
-        document.Content.Replace("membership", "membership", new CharacterFormat() { HighlightColor = Color.Yellow });
+        // Another way would be to use Regex.
+        document.Content.Replace(new Regex("%DATE%", RegexOptions.IgnoreCase),
+            DateTime.Today.ToLongDateString());
 
-        // You can also search for placeholder text with "Find" method and then achieve more complex replacement.
-        // The "Reverse" extension method is used when iterating through document's content
-        // to avoid any possible invalid state when replacing the content within iteration.
+        document.Content.Replace(new Regex("%.*?%"), range =>
+        {
+            string value = null;
+            switch (range.ToString())
+            {
+                case "%Address%": value = "240 Old Country Road"; break;
+                case "%City%": value = "Springfield"; break;
+                case "%State%": value = "IL"; break;
+                case "%Country%": value = "USA"; break;
+            };
 
-        // Replace text with text that has different formatting.
+            if (string.IsNullOrEmpty(value))
+                return range;
+
+            var format = ((Run)range.Start.Parent).CharacterFormat;
+            var run = new Run(document, value) { CharacterFormat = format.Clone() };
+            return run.Content;
+        });
+
+        // You can also search for placeholder text with the "Find" method and then achieve a
+        // more complex replacement, like the following which has a replace text with different formatting.
+        // Notice that the "Reverse" extension method is used here to avoid a possible invalid state because
+        // the replacements are done while iterating through the document's content.
         foreach (ContentRange searchedContent in document.Content.Find("%Price%").Reverse())
         {
             ContentRange replacedContent = searchedContent.LoadText("$",
-                new CharacterFormat() { Size = 14, FontColor = Color.Purple });
+                new CharacterFormat() { Size = 14, FontColor = Color.Blue, Bold = true });
             replacedContent.End.LoadText("100.00",
-                new CharacterFormat() { Size = 11, FontColor = Color.Purple });
+                new CharacterFormat() { Size = 11, FontColor = Color.Purple, Italic = true });
         }
 
-        // Replace text with hyperlink.
+        // Another more complex replacement in which searched text is replaced with a hyperlink.
         foreach (ContentRange searchedContent in document.Content.Find("%Email%").Reverse())
         {
             Hyperlink emailLink = new Hyperlink(document, "mailto:john.doe@example.com", "John.Doe@example.com");
             searchedContent.Set(emailLink.Content);
+        }
+
+        // You can also find and highlight text by specifying "HighlightColor" of replacement text.
+        foreach (ContentRange searchedContent in document.Content.Find("membership").Reverse())
+        {
+            var highlightedText = new Run(document, "membership");
+            highlightedText.CharacterFormat = ((Run)searchedContent.Start.Parent).CharacterFormat.Clone();
+            highlightedText.CharacterFormat.HighlightColor = Color.Yellow;
+            searchedContent.Set(highlightedText.Content);
         }
 
         document.Save("FoundAndReplacedText.docx");
