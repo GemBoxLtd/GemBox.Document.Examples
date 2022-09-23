@@ -1,61 +1,53 @@
-# GemBox.Document
+## What is GemBox.Document?
 
-[![NuGet version](https://img.shields.io/nuget/v/GemBox.Document?style=for-the-badge)](https://www.nuget.org/packages/GemBox.Document/) [![NuGet downloads](https://img.shields.io/nuget/dt/GemBox.Document?style=for-the-badge)](https://www.nuget.org/packages/GemBox.Document/) [![Visual Studio Marketplace rating](https://img.shields.io/visual-studio-marketplace/stars/GemBoxSoftware.GemBoxDocument?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=GemBoxSoftware.GemBoxDocument)
+GemBox.Document is a .NET component that enables you to read, write, convert, and print document files (DOCX, DOC, PDF, RTF, HTML, and ODT) from .NET applications.
 
-<img src="https://www.gemboxsoftware.com/images/NugetGbd.png" alt="GemBox.Document logo" align="left" />
+With GemBox.Document you get a fast and reliable component that’s easy to use and doesn't depend on Microsoft Word. It requires only .NET and it’s much faster than Microsoft Office Automation!
 
-GemBox.Document is a .NET component which enables developers to read, write, convert and print document files (DOCX, DOC, PDF, HTML, XPS, RTF and TXT) from .NET applications in a simple and efficient way.
 
-<br/>
+## GemBox.Document Features
 
-With GemBox.Document you get a standalone .NET component that doesn't dependent on Microsoft Word; that's fast and reliable; that's easy to install, use and deploy.
+-   [Read](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-open-read-word-file/301) Word (DOCX, DOC), ODT, HTML, RTF, XML (Flat OPC, WordML), TXT, and [PDF](https://www.gemboxsoftware.com/document/examples/c-sharp-read-extract-pdf-text/305) files.
+-   [Write / create](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-create-write-word-file/302) and [convert](https://www.gemboxsoftware.com/document/examples/c-sharp-convert-word-to-pdf/304) to DOCX, ODT, PDF, PDF/A, XPS, HTML, RTF, XML (Flat OPC, WordML), TXT, and image formats.
+-   View and edit documents in [WPF](https://www.gemboxsoftware.com/document/examples/word-xpsdocument-wpf/5201), [ASP.NET](https://www.gemboxsoftware.com/document/examples/word-editor-asp-net-mvc/5102), [ASP.NET Core](https://www.gemboxsoftware.com/document/examples/asp-net-core-create-word-docx-pdf/5601), and [Windows.Forms](https://www.gemboxsoftware.com/document/examples/word-editor-windows-forms/5301) applications.
+-   [Print](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-print-word/351) documents.
+-   [Protect](https://www.gemboxsoftware.com/document/examples/docx-write-protection/1101), [encrypt](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-docx-encryption/1102), and [digitally sign](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-pdf-digital-signature/1104) documents.
+-   Get, create, or edit [paragraphs](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-create-write-word-file/302), [text](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-create-write-word-file/302), [tables](https://www.gemboxsoftware.com/document/examples/word-table/1201), [hyperlinks](https://www.gemboxsoftware.com/document/examples/word-bookmarks-hyperlinks/204), [bookmarks](https://www.gemboxsoftware.com/document/examples/word-bookmarks-hyperlinks/204), [fields](https://www.gemboxsoftware.com/document/examples/word-fields/206), [sections](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-create-write-word-file/302), [headers, footers](https://www.gemboxsoftware.com/document/examples/word-header-footer/208), and [footnotes and endnotes](https://www.gemboxsoftware.com/document/examples/word-footnote-endnote/212).
+-   Get, create, or edit drawings like [shapes](https://www.gemboxsoftware.com/document/examples/word-shapes/203), [pictures](https://www.gemboxsoftware.com/document/examples/word-pictures/201), [charts](https://www.gemboxsoftware.com/document/examples/word-charts/213), and [text boxes](https://www.gemboxsoftware.com/document/examples/word-textboxes/202).
+-   Get, create, or edit [paragraph](https://www.gemboxsoftware.com/document/examples/word-paragraph-formatting/602), [character](https://www.gemboxsoftware.com/document/examples/word-character-formatting/601), [list](https://www.gemboxsoftware.com/document/examples/word-lists/603), [table](https://www.gemboxsoftware.com/document/examples/word-table-formatting/1204), [table row](https://www.gemboxsoftware.com/document/examples/word-table-formatting/1204), and [table cell](https://www.gemboxsoftware.com/document/examples/word-table-formatting/1204) formatting.
+-   Get, create, or edit [paragraph](https://www.gemboxsoftware.com/document/examples/word-styles/604), [list](https://www.gemboxsoftware.com/document/examples/word-lists/603), [character](https://www.gemboxsoftware.com/document/examples/word-styles/604), and [table](https://www.gemboxsoftware.com/document/examples/word-table-styles/1205) styles.
+-   Access or modify [section properties](https://www.gemboxsoftware.com/document/examples/word-page-setup/209), [picture properties](https://www.gemboxsoftware.com/document/examples/word-pictures/201), [default paragraph, character formatting](https://www.gemboxsoftware.com/document/examples/word-style-resolution/101), and more.
+-   Get and set [built-in and custom document properties](https://www.gemboxsoftware.com/document/examples/word-properties/211).
+-   [Clone](https://www.gemboxsoftware.com/document/examples/cloning/501) or [combine](https://www.gemboxsoftware.com/document/examples/combine-word-file-c-sharp-vb-net/502) document elements between documents.
+-   Replace or [set bookmark content](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-modify-word-bookmarks/102).
+-   Load [HTML](https://www.gemboxsoftware.com/document/examples/word-editor-asp-net-mvc/5102) / RTF / TXT into a specific document position.
+-   [Import data to your document](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-mail-merge-word/901) from various data sources and control the document [import region](https://www.gemboxsoftware.com/document/examples/mail-merge-ranges/903) and [import process](https://www.gemboxsoftware.com/document/examples/customize-mail-merge/904).
+-   [Create](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-create-word-form/701), [read](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-read-word-form/702), or [update](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-update-word-form/703) form fields.
+[Preserve](https://www.gemboxsoftware.com/document/docs/preservation.html) unsupported document content elements and properties when reading a document. 
 
-This repository contains the source code of GemBox.Document example projects for demos and live examples that are available on [Word and PDF Library in C# and VB.NET](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-word-pdf-library/801) ▶
 
-## Top Features
+## Get Started
 
-* [Create or Generate PDF file in C# and VB.NET](https://www.gemboxsoftware.com/document/articles/c-sharp-vb-net-create-generate-pdf)
-* [Create or Generate PDF / Word and export it in ASP.NET](https://www.gemboxsoftware.com/document/examples/asp-net-create-generate-export-pdf-word/5101)
-* [Create and save Word file (DOCX) in ASP.NET Core](https://www.gemboxsoftware.com/document/examples/asp-net-core-create-word-docx-pdf/5601)
-* [Create and write Word file (DOCX) in C# and VB.NET](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-create-write-word-file/302)
-* [Convert Word files to PDF in C# and VB.NET](https://www.gemboxsoftware.com/document/examples/c-sharp-convert-word-to-pdf/304)
-* [Convert HTML pages to PDF in C# and VB.NET](https://www.gemboxsoftware.com/document/examples/c-sharp-convert-html-to-pdf/307)
-* [Convert between Word files and HTML pages in C# and VB.NET](https://www.gemboxsoftware.com/document/examples/c-sharp-convert-word-to-from-html/105)
-* [Convert ASPX to PDF in C# and VB.NET](https://www.gemboxsoftware.com/document/articles/convert-aspx-to-pdf)
-* [Read and extract PDF text in C# and VB.NET](https://www.gemboxsoftware.com/document/examples/c-sharp-read-extract-pdf-text/305)
-* [Open and read Word file in C# and VB.NET](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-open-read-word-file/301)
-* [Edit and save Word template in C# and VB.NET](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-edit-save-word-template/303)
-* [Print Word files in C# and VB.NET](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-print-word/351)
-* [Mail Merge in Word with C# and VB.NET](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-mail-merge-word/901)
-* [Open, read, create, write DOCX in C# and VB.NET](https://www.gemboxsoftware.com/document/articles/c-sharp-vb-net-docx)
-* [Open, read, convert Word 2003 (DOC) in C# and VB.NET](https://www.gemboxsoftware.com/document/articles/c-sharp-vb-net-word-2003-doc)
-* [Open, read, create, write RTF in C# and VB.NET](https://www.gemboxsoftware.com/document/articles/c-sharp-vb-net-rtf)
+You are not sure how to start working with Word documents in .NET using GemBox.Document? Check the code below that shows how to create a DOCX file from scratch and write 'Hello World!' on it.
 
-## Examples
+```CSharp
+// If using Professional version, put your serial key below.
+ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
-| | |
-| --- | --- |
-| Hello World | [C#](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/C%23/Hello%20World), [VB.NET](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/VB.NET/Hello%20World) |
-| Common Uses | [C#](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/C%23/Common%20Uses), [VB.NET](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/VB.NET/Common%20Uses) |
-| Formatting | [C#](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/C%23/Formatting), [VB.NET](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/VB.NET/Formatting) |
-| Basic Features | [C#](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/C%23/Basic%20Features), [VB.NET](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/VB.NET/Basic%20Features) |
-| Advanced Features | [C#](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/C%23/Advanced%20Features), [VB.NET](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/VB.NET/Advanced%20Features) |
-| Table | [C#](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/C%23/Table), [VB.NET](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/VB.NET/Table) |
-| Element Manipulation | [C#](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/C%23/Element%20Manipulation), [VB.NET](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/VB.NET/Element%20Manipulation) |
-| Content Manipulation | [C#](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/C%23/Content%20Manipulation), [VB.NET](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/VB.NET/Content%20Manipulation) |
-| Mail Merge | [C#](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/C%23/Mail%20Merge), [VB.NET](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/VB.NET/Mail%20Merge) |
-| Forms | [C#](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/C%23/Forms), [VB.NET](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/VB.NET/Forms) |
-| Protection | [C#](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/C%23/Protection), [VB.NET](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/VB.NET/Protection) |
-| Platforms | [C#](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/C%23/Platforms), [VB.NET](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/VB.NET/Platforms) |
-| Preservation | [C#](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/C%23/Preservation), [VB.NET](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/VB.NET/Preservation) |
-| Performance | [C#](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/C%23/Performance), [VB.NET](https://github.com/GemBoxLtd/GemBox.Document.Examples/tree/master/VB.NET/Performance) |
-| COM | [PYTHON](https://github.com/GemBoxLtd/GemBox.Document.Examples/blob/master/PYTHON%2C%20PHP%2C%20VBSCRIPT/Program.py), [PHP](https://github.com/GemBoxLtd/GemBox.Document.Examples/blob/master/PYTHON%2C%20PHP%2C%20VBSCRIPT/Program.php), [VBSCRIPT](https://github.com/GemBoxLtd/GemBox.Document.Examples/blob/master/PYTHON%2C%20PHP%2C%20VBSCRIPT/Program.asp) |
+// Create a new empty document.
+var document = new DocumentModel();
 
-## System Requirement
+// Add a section with one paragraph and some text.
+document.Sections.Add(
+new Section(document,
+new Paragraph(document, "Hello World!")));
 
-* .NET Framework 3.5 - 4.8
-* .NET Core 3.1 (.NET 5 & 6 for Windows)
-* .NET Standard 2.0 (.NET 5 & 6 for Linux, macOS, Android, iOS, …)
+// Save the document as Word's DOCX file.
+document.Save("Output.docx");
+```
+
+For more GemBox.Document code examples and demos, please visit our [examples page](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-word-pdf-library/801).
+ 
 
 ## Installation
 
@@ -63,11 +55,14 @@ You can download GemBox.Document from [BugFixes 🛠️](https://www.gemboxsoftw
 
 ## Support
 
+* [Product Overview](https://www.gemboxsoftware.com/document)
+* [Documentation](https://www.gemboxsoftware.com/document/docs/introduction.html)
+* [API Reference](https://www.gemboxsoftware.com/document/docs/introduction.html)
 * [Contact Us](https://support.gemboxsoftware.com/new-ticket?ticket%5Bdepartment%5D=1&ticket%5Bproduct%5D=2)
 * [Forum](https://forum.gemboxsoftware.com/c/gembox-document/6)
 * [Blog](https://www.gemboxsoftware.com/gembox-document)
-* [API Reference](https://www.gemboxsoftware.com/document/docs/introduction.html)
+* [Examples](https://www.gemboxsoftware.com/document/examples/)
 
-## License
 
-You can download GemBox.Document's license agreement from [EULA.rtf 📝](https://www.gemboxsoftware.com/EULA.rtf).
+
+
