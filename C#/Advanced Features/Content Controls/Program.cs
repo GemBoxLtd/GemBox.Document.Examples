@@ -1,10 +1,8 @@
-using System.IO;
-using System.Xml;
+using System;
 using System.Linq;
-using System.Text.RegularExpressions;
+using System.Text;
 using GemBox.Document;
 using GemBox.Document.CustomMarkups;
-using System;
 
 class Program
 {
@@ -15,6 +13,7 @@ class Program
 
         Example1();
         Example2();
+        Example3();
     }
 
     static void Example1()
@@ -66,49 +65,50 @@ class Program
     {
         var document = DocumentModel.Load("XmlMapping.docx");
 
-        // Get the Content Control.
-        var contentControl = (InlineContentControl)document.GetChildElements(true, ElementType.InlineContentControl).First();
-        var xmlMapping = contentControl.Properties.XmlMapping;
+        // Edit mapped XML part.
+        document.CustomXmlParts[0].Data = Encoding.UTF8.GetBytes(
+@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
+<customer>
+    <firstName>Jane</firstName>
+    <lastName>Doe</lastName>
+    <birthday>2010-01-01T00:00:00</birthday>
+    <married>true</married>
+</customer>");
 
-        // Get the mapped XML part.
-        var xmlPart = xmlMapping.CustomXmlPart;
+        // Update Content Controls inlines or blocks based on the values from mapped XML part.
+        foreach (var contentControl in document.GetChildElements(true).OfType<IContentControl>())
+            contentControl.Update();
 
-        // Create XmlDocument from XML.
-        var xmlDocument = new XmlDocument();
-        xmlDocument.Load(new MemoryStream(xmlPart.Data));
+        document.Save("Updated ContentControls.docx");
+    }
 
-        // Create a namespace manager.
-        var namespaceManager = new XmlNamespaceManager(xmlDocument.NameTable);
+    static void Example3()
+    {
+        var document = DocumentModel.Load("XmlMapping.docx");
 
-        // If XmlMapping specifies prefixes, parse them and fill the namespace manager.
-        if (!string.IsNullOrEmpty(xmlMapping.PrefixMappings))
+        // Edit Content Controls.
+        foreach (var contentControl in document.GetChildElements(true).OfType<IContentControl>())
         {
-            var regex = new Regex("xmlns:(?<prefix>[\\S]+)='(?<namespace>[\\S]+)'");
-            foreach (Match match in regex.Matches(xmlMapping.PrefixMappings))
-                namespaceManager.AddNamespace(match.Groups["prefix"].Value, match.Groups["namespace"].Value);
+            switch (contentControl.Properties.Title)
+            {
+                case "FirstName":
+                    contentControl.Content.LoadText("Joe");
+                    break;
+                case "LastName":
+                    contentControl.Content.LoadText("Smith");
+                    break;
+                case "Birthday":
+                    contentControl.Properties.Date = new DateTime(2002, 2, 2);
+                    break;
+                case "Married":
+                    contentControl.Properties.Checked = true;
+                    break;
+            }
+
+            // Update mapped XML part based on the content from Content Control.
+            contentControl.UpdateSource();
         }
 
-        // Locate the node to which is the Content Control mapped using XPath.
-        var node = xmlDocument.SelectSingleNode(xmlMapping.XPath, namespaceManager);
-
-        // Change the node value.
-        node.InnerText = "Jonathan";
-
-        // Update the XmlPart Data.
-        var outputMemoryStream = new MemoryStream();
-        xmlDocument.Save(outputMemoryStream);
-        xmlPart.Data = outputMemoryStream.ToArray();
-
-        // Get the node value.
-        var nodeValue = node.InnerText;
-
-        // Update Content Control inlines.
-        contentControl.Inlines.Clear();
-        contentControl.Inlines.Add(new Run(document, nodeValue)
-        {
-            CharacterFormat = contentControl.Properties.CharacterFormat
-        });
-
-        document.Save("Xml Mapping.docx");
+        document.Save("Updated XmlMapping.docx");
     }
 }

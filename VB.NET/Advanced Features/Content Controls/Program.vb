@@ -1,7 +1,6 @@
-Imports System.IO
-Imports System.Xml
+Imports System
 Imports System.Linq
-Imports System.Text.RegularExpressions
+Imports System.Text
 Imports GemBox.Document
 Imports GemBox.Document.CustomMarkups
 
@@ -14,6 +13,7 @@ Module Program
 
         Example1()
         Example2()
+        Example3()
 
     End Sub
 
@@ -64,50 +64,45 @@ Module Program
     Sub Example2()
         Dim document = DocumentModel.Load("XmlMapping.docx")
 
-        ' Get the Content Control.
-        Dim contentControl = CType(document.GetChildElements(True, ElementType.InlineContentControl).First(), InlineContentControl)
-        Dim xmlMapping = contentControl.Properties.XmlMapping
+        ' Edit mapped XML part.
+        document.CustomXmlParts(0).Data = Encoding.UTF8.GetBytes(
+"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
+<customer>
+    <firstName>Jane</firstName>
+    <lastName>Doe</lastName>
+    <birthday>2010-01-01T00:00:00</birthday>
+    <married>true</married>
+</customer>")
 
-        ' Get the mapped XML part.
-        Dim xmlPart = xmlMapping.CustomXmlPart
+        ' Update Content Controls inlines or blocks based on the values from mapped XML part.
+        For Each contentControl In document.GetChildElements(True).OfType(Of IContentControl)()
+            contentControl.Update()
+        Next
 
-        ' Create XmlDocument from XML.
-        Dim xmlDocument = New XmlDocument()
-        xmlDocument.Load(New MemoryStream(xmlPart.Data))
+        document.Save("Updated ContentControls.docx")
+    End Sub
 
-        ' Create a namespace manager.
-        Dim namespaceManager = New XmlNamespaceManager(xmlDocument.NameTable)
+    Sub Example3()
+        Dim document = DocumentModel.Load("XmlMapping.docx")
 
-        ' If XmlMapping specifies prefixes, parse them and fill the namespace manager.
-        If Not String.IsNullOrEmpty(xmlMapping.PrefixMappings) Then
-            Dim regex = New Regex("xmlns:(?<prefix>[\\S]+)='(?<namespace>[\\S]+)'")
-            For Each match As Match In regex.Matches(xmlMapping.PrefixMappings)
-                namespaceManager.AddNamespace(match.Groups("prefix").Value, match.Groups("namespace").Value)
-            Next
-        End If
+        ' Edit Content Controls.
+        For Each contentControl In document.GetChildElements(True).OfType(Of IContentControl)()
+            Select Case contentControl.Properties.Title
+                Case "FirstName"
+                    contentControl.Content.LoadText("Joe")
+                Case "LastName"
+                    contentControl.Content.LoadText("Smith")
+                Case "Birthday"
+                    contentControl.Properties.Date = New DateTime(2002, 2, 2)
+                Case "Married"
+                    contentControl.Properties.Checked = True
+            End Select
 
-        ' Locate the node to which is the Content Control mapped using XPath.
-        Dim node = xmlDocument.SelectSingleNode(xmlMapping.XPath, namespaceManager)
+            ' Update mapped XML part based on the content from Content Control.
+            contentControl.UpdateSource()
+        Next
 
-        ' Change the node value.
-        node.InnerText = "Jonathan"
-
-        ' Update the XmlPart Data.
-        Dim outputMemoryStream = New MemoryStream()
-        xmlDocument.Save(outputMemoryStream)
-        xmlPart.Data = outputMemoryStream.ToArray()
-
-        ' Get the node value.
-        Dim nodeValue = node.InnerText
-
-        ' Update Content Control inlines.
-        contentControl.Inlines.Clear()
-        contentControl.Inlines.Add(New Run(document, nodeValue) With
-        {
-            .CharacterFormat = contentControl.Properties.CharacterFormat
-        })
-
-        document.Save("Xml Mapping.docx")
+        document.Save("Updated XmlMapping.docx")
     End Sub
 
 End Module
