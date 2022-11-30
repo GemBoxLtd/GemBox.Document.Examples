@@ -50,7 +50,7 @@ For more GemBox.Document code examples and demos, please visit our [examples pag
 
 ## Installation
 
-You can download GemBox.Document from [BugFixes 🛠️](https://www.gemboxsoftware.com/document/downloads/bugfixes.html) or from [NuGet 📦](https://www.nuget.org/packages/GemBox.Document/).
+You can download GemBox.Document from [NuGet 📦](https://www.nuget.org/packages/GemBox.Document/) or from [BugFixes 🛠️](https://www.gemboxsoftware.com/document/downloads/bugfixes.html).
 
 ## Resources
 
