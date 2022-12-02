@@ -12,7 +12,7 @@ namespace ExportToXpsDocument
         {
             this.InitializeComponent();
 
-            // If using Professional version, put your serial key below.
+            // If using the Professional version, put your serial key below.
             ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
             this.SetDocumentViewer("Reading.docx");

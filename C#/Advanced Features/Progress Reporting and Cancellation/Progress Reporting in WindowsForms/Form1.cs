@@ -8,7 +8,7 @@ public partial class MainForm : Form
 {
     public MainForm()
     {
-        // If using Professional version, put your serial key below
+        // If using the Professional version, put your serial key below
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
         // Use Trial Mode
         ComponentInfo.FreeLimitReached += (eventSender, args) => args.FreeLimitReachedAction = FreeLimitReachedAction.ContinueAsTrial;

@@ -13,7 +13,7 @@ class Program
 
     static void PAdES_B_B()
     {
-        // If using Professional version, put your serial key below.
+        // If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
         var document = DocumentModel.Load("Reading.docx");
@@ -41,7 +41,7 @@ class Program
 
     static void PAdES_B_LTA()
     {
-        // If using Professional version, put your serial key below.
+        // If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
         var document = DocumentModel.Load("Reading.docx");
@@ -53,7 +53,7 @@ class Program
         var lastSection = document.Sections[document.Sections.Count - 1];
         lastSection.Blocks.Add(new Paragraph(document, signature));
 
-        // If using Professional version, put your serial key below.
+        // If using the Professional version, put your serial key below.
         GemBox.Pdf.ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
         // Get a digital ID from PKCS#12/PFX file.

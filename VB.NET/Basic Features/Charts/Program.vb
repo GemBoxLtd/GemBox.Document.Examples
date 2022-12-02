@@ -7,10 +7,10 @@ Module Program
 
     Sub Main()
 
-        ' If using Professional version, put your GemBox.Document serial key below.
+        ' If using the Professional version, put your GemBox.Document serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
-        ' If using Professional version, put your GemBox.Spreadsheet serial key below.
+        ' If using the Professional version, put your GemBox.Spreadsheet serial key below.
         SpreadsheetInfo.SetLicense("FREE-LIMITED-KEY")
 
         Example1()

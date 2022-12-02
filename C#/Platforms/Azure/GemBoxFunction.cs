@@ -14,7 +14,7 @@ public static class GemBoxFunction
     public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req, ILogger log)
 #pragma warning restore CS1998
     {
-        // If using Professional version, put your serial key below.
+        // If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
         DocumentModel document = new DocumentModel();

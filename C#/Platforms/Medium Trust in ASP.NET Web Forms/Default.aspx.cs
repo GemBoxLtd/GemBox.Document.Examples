@@ -12,7 +12,7 @@ namespace MediumTrust
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            // If using Professional version, put your serial key below.
+            // If using the Professional version, put your serial key below.
             ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
             // In order to create a PDF file in Medium Trust environment you'll need to specify

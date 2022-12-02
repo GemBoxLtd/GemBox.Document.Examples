@@ -13,7 +13,7 @@ namespace AspNetWordEditor.Controllers
         [HttpPost]
         public FileResult Download(FileModel model)
         {
-            // If using Professional version, put your serial key below.
+            // If using the Professional version, put your serial key below.
             ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
             var templateFile = Server.MapPath("~/App_Data/DocumentTemplate.docx");

@@ -9,7 +9,7 @@ Namespace ExportToImageSource
 
             Me.InitializeComponent()
 
-            ' If using Professional version, put your serial key below.
+            ' If using the Professional version, put your serial key below.
             ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
             Dim path As String = "Reading.docx"

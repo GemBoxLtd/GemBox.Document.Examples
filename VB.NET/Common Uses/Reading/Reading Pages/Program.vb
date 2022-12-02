@@ -7,7 +7,7 @@ Module Program
     <STAThread>
     Sub Main()
 
-        ' If using Professional version, put your serial key below.
+        ' If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
         Dim document = DocumentModel.Load("Reading.docx")

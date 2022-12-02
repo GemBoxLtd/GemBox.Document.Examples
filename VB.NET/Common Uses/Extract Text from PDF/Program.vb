@@ -1,29 +1,49 @@
 Imports System
-Imports System.Text.RegularExpressions
+Imports System.Linq
 Imports GemBox.Document
+Imports GemBox.Document.Tables
 
 Module Program
 
     Sub Main()
 
-        ' If using Professional version, put your serial key below.
+        ' If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
-        Dim document As DocumentModel = DocumentModel.Load("CustomInvoice.pdf")
-        Dim properties As DocumentProperties = document.DocumentProperties
+        Dim document = DocumentModel.Load("CustomInvoice.pdf")
 
-        ' Read PDF file's properties.
+        ' Display file's properties.
+        Dim properties = document.DocumentProperties
+        Console.WriteLine($"Title: {properties.BuiltIn(BuiltInDocumentProperty.Title)}")
         Console.WriteLine($"Author: {properties.BuiltIn(BuiltInDocumentProperty.Author)}")
-        Console.WriteLine($"Created on: {properties.BuiltIn(BuiltInDocumentProperty.DateContentCreated)}")
         Console.WriteLine()
 
-        ' Read PDF file's text content and match specified regular expression.
-        Dim text = document.Content.ToString()
-        Dim regex As New Regex("(?<Hours>\d+)\s+(?<Unit>\d+\.\d{2})\s+(?<Price>\d+\.\d{2})")
+        ' Get paragraphs.
+        Dim paragraphs = document.GetChildElements(True, ElementType.Paragraph).Cast(Of Paragraph)()
 
-        For Each match As Match In regex.Matches(text)
-            Dim groups = match.Groups
-            Console.WriteLine($"Hours={groups("Hours")} | Unit={groups("Unit")} | Price={groups("Price")}")
+        ' Get tables.
+        Dim tables = document.GetChildElements(True, ElementType.Table).Cast(Of Table)()
+
+        ' Display paragraphs and tables count.
+        Console.WriteLine($"Paragraph count: {paragraphs.Count()}")
+        Console.WriteLine($"Table count: {tables.Count()}")
+        Console.WriteLine()
+
+        ' Display first paragraph's content.
+        Dim paragraph = paragraphs.First()
+        Console.WriteLine("Paragraph content:")
+        Console.WriteLine(paragraph.Content.ToString())
+
+        ' Display last table's content.
+        Dim table = tables.Last()
+        Console.WriteLine("Table content:")
+
+        For Each row In table.Rows
+            Console.WriteLine(New String("-"c, 56))
+            For Each cell In row.Cells
+                Console.Write($"{cell.Content.ToString().TrimEnd().PadRight(13)}|")
+            Next
+            Console.WriteLine()
         Next
 
     End Sub

@@ -7,7 +7,7 @@ class Program
     [STAThread]
     static void Main()
     {
-        // If using Professional version, put your serial key below.
+        // If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
         var document = DocumentModel.Load("Reading.docx");

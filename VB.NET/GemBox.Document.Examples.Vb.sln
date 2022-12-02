@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29709.97
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33122.133
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Hello World", "Hello World", "{B757C881-0FCD-4EDE-AA3C-1B1FB5F71777}"
 EndProject
@@ -202,6 +202,8 @@ EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "DocumentDocker", "Platforms\Docker\DocumentDocker.vbproj", "{5C26ADD2-ED27-4DBF-8953-4F4F29972D41}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Barcodes", "Basic Features\Barcodes\Barcodes.vbproj", "{50EA4EA7-C221-4F48-8833-BC06D7E309D9}"
+EndProject
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ConvertPdfToDocx", "Common Uses\Convert PDF to DOCX\ConvertPdfToDocx.vbproj", "{39214636-825C-4AD0-9913-8990C7623904}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -541,6 +543,10 @@ Global
 		{50EA4EA7-C221-4F48-8833-BC06D7E309D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{50EA4EA7-C221-4F48-8833-BC06D7E309D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{50EA4EA7-C221-4F48-8833-BC06D7E309D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39214636-825C-4AD0-9913-8990C7623904}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39214636-825C-4AD0-9913-8990C7623904}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39214636-825C-4AD0-9913-8990C7623904}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39214636-825C-4AD0-9913-8990C7623904}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -632,6 +638,7 @@ Global
 		{E94ABC17-4D5B-4BB1-87C3-73BE5AA49090} = {068A5C07-4F0B-4E3C-BC8C-5463BF912A34}
 		{5C26ADD2-ED27-4DBF-8953-4F4F29972D41} = {69907768-F5C3-432F-B335-A40B2D8F4AFC}
 		{50EA4EA7-C221-4F48-8833-BC06D7E309D9} = {380BC34D-9A13-4794-B498-A6B5C6B81305}
+		{39214636-825C-4AD0-9913-8990C7623904} = {068A5C07-4F0B-4E3C-BC8C-5463BF912A34}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3F9A0C8B-7A43-4F13-8C1E-91313E4DEB88}

@@ -22,7 +22,7 @@ public class Program
     [GlobalSetup]
     public void SetLicense()
     {
-        // If using Professional version, put your serial key below.
+        // If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
         // If using Free version and example exceeds its limitations, use Trial or Time Limited version:

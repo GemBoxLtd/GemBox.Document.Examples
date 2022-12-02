@@ -1,29 +1,49 @@
 using System;
-using System.Text.RegularExpressions;
+using System.Linq;
 using GemBox.Document;
+using GemBox.Document.Tables;
 
 class Program
 {
     static void Main()
     {
-        // If using Professional version, put your serial key below.
+        // If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
-        DocumentModel document = DocumentModel.Load("CustomInvoice.pdf");
-        DocumentProperties properties = document.DocumentProperties;
+        var document = DocumentModel.Load("CustomInvoice.pdf");
 
-        // Read PDF file's properties.
+        // Display file's properties.
+        var properties = document.DocumentProperties;
+        Console.WriteLine($"Title: {properties.BuiltIn[BuiltInDocumentProperty.Title]}");
         Console.WriteLine($"Author: {properties.BuiltIn[BuiltInDocumentProperty.Author]}");
-        Console.WriteLine($"Created on: {properties.BuiltIn[BuiltInDocumentProperty.DateContentCreated]}");
         Console.WriteLine();
 
-        // Read PDF file's text content and match specified regular expression.
-        var text = document.Content.ToString();
-        var regex = new Regex(@"(?<Hours>\d+)\s+(?<Unit>\d+\.\d{2})\s+(?<Price>\d+\.\d{2})");
-        foreach (Match match in regex.Matches(text))
+        // Get paragraphs.
+        var paragraphs = document.GetChildElements(true, ElementType.Paragraph).Cast<Paragraph>();
+
+        // Get tables.
+        var tables = document.GetChildElements(true, ElementType.Table).Cast<Table>();
+
+        // Display paragraphs and tables count.
+        Console.WriteLine($"Paragraph count: {paragraphs.Count()}");
+        Console.WriteLine($"Table count: {tables.Count()}");
+        Console.WriteLine();
+
+        // Display first paragraph's content.
+        var paragraph = paragraphs.First();
+        Console.WriteLine("Paragraph content:");
+        Console.WriteLine(paragraph.Content.ToString());
+
+        // Display last table's content.
+        var table = tables.Last();
+        Console.WriteLine("Table content:");
+
+        foreach (var row in table.Rows)
         {
-            var groups = match.Groups;
-            Console.WriteLine($"Hours={groups["Hours"]} | Unit={groups["Unit"]} | Price={groups["Price"]}");
+            Console.WriteLine(new string('-', 56));
+            foreach (var cell in row.Cells)
+                Console.Write($"{cell.Content.ToString().TrimEnd().PadRight(13)}|");
+            Console.WriteLine();
         }
     }
 }

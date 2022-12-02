@@ -21,7 +21,7 @@ namespace DocumentCorePages.Pages
             this.environment = environment;
             this.Invoice = new InvoiceModel();
 
-            // If using Professional version, put your serial key below.
+            // If using the Professional version, put your serial key below.
             ComponentInfo.SetLicense("FREE-LIMITED-KEY");
         }
 
