@@ -217,6 +217,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Barcodes", "Basic Features\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConvertPdfToDocx", "Common Uses\Convert PDF to DOCX\ConvertPdfToDocx.csproj", "{11C529F6-1C56-4E7B-BD4D-6B34E86F17B0}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VbaMacros", "Advanced Features\VBA Macros\VbaMacros.csproj", "{E43BC01E-1736-4D7A-AA7A-F63E7B550439}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -583,6 +585,10 @@ Global
 		{11C529F6-1C56-4E7B-BD4D-6B34E86F17B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{11C529F6-1C56-4E7B-BD4D-6B34E86F17B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{11C529F6-1C56-4E7B-BD4D-6B34E86F17B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E43BC01E-1736-4D7A-AA7A-F63E7B550439}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E43BC01E-1736-4D7A-AA7A-F63E7B550439}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E43BC01E-1736-4D7A-AA7A-F63E7B550439}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E43BC01E-1736-4D7A-AA7A-F63E7B550439}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -681,6 +687,7 @@ Global
 		{92B59E62-CFF9-487E-926B-DEC4156D0A42} = {B58668DC-064A-4F13-AA12-7CF2346FA9FE}
 		{E615F4F1-AC5F-4439-9B84-4488EAFF5558} = {1DA7C158-C1C9-4E2B-A31B-3DE822647F43}
 		{11C529F6-1C56-4E7B-BD4D-6B34E86F17B0} = {A727258F-2824-4299-A423-D49B94267705}
+		{E43BC01E-1736-4D7A-AA7A-F63E7B550439} = {6FE70688-6229-4255-A47B-EBCD1B6550C6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B77A3C47-0A11-4E2C-A780-DA1AA1200FA2}

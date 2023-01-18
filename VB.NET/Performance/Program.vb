@@ -1,4 +1,3 @@
-Imports System
 Imports System.Collections.Generic
 Imports System.IO
 Imports BenchmarkDotNet.Attributes
@@ -7,8 +6,8 @@ Imports BenchmarkDotNet.Jobs
 Imports BenchmarkDotNet.Running
 Imports GemBox.Document
 
+<SimpleJob(RuntimeMoniker.Net70)>
 <SimpleJob(RuntimeMoniker.Net48)>
-<SimpleJob(RuntimeMoniker.NetCoreApp31)>
 Public Class Program
 
     Private document As DocumentModel

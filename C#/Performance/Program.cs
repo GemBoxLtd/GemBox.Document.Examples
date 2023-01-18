@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using BenchmarkDotNet.Attributes;
@@ -7,8 +6,8 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using GemBox.Document;
 
+[SimpleJob(RuntimeMoniker.Net70)]
 [SimpleJob(RuntimeMoniker.Net48)]
-[SimpleJob(RuntimeMoniker.NetCoreApp31)]
 public class Program
 {
     private DocumentModel document;
