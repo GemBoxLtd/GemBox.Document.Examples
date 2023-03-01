@@ -12,7 +12,7 @@ namespace DocumentMaui
         {
             InitializeComponent();
         }
-        private async Task<string> CreateDocument()
+        private async Task<string> CreateDocumentAsync()
         {
             var document = new DocumentModel();
 
@@ -22,7 +22,7 @@ namespace DocumentMaui
 
             var filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Example.pdf");
 
-            document.Save(filePath);
+            await Task.Run(() => document.Save(filePath));
 
             return filePath;
         }
@@ -32,8 +32,15 @@ namespace DocumentMaui
             button.IsEnabled = false;
             activity.IsRunning = true;
 
-            var filePath = await CreateDocument();
-            await Launcher.OpenAsync(new OpenFileRequest(Path.GetFileName(filePath), new ReadOnlyFile(filePath)));
+            try
+            {
+                var filePath = await CreateDocumentAsync();
+                await Launcher.OpenAsync(new OpenFileRequest(Path.GetFileName(filePath), new ReadOnlyFile(filePath)));
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", ex.Message, "Close");
+            }
 
             activity.IsRunning = false;
             button.IsEnabled = true;
