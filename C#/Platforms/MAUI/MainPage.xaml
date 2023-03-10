@@ -9,7 +9,7 @@
             Padding="30"
             VerticalOptions="Center">
 
-            <Label Text="GemBox.Document Test"
+            <Label Text="GemBox.Document Example"
                HorizontalOptions="Center"
                FontSize="Large"
                Margin="0,0,0,30" />
