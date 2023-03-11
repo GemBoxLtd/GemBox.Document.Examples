@@ -20,7 +20,9 @@
             color: #514E52;
         }
 
-        form { max-width: 800px; }
+        form {
+            max-width: 800px;
+        }
 
         #file-generator * {
             padding: 10px;
@@ -41,14 +43,15 @@
             @Html.DropDownListFor(model => model.Extension,
                 new[]
                 {
-                    new SelectListItem() { Text = "DOCX", Value = ".docx" },
                     new SelectListItem() { Text = "PDF", Value = ".pdf", Selected = true },
-                    new SelectListItem() { Text = "XPS", Value = ".xps" },
+                    new SelectListItem() { Text = "DOCX", Value = ".docx" },
+                    new SelectListItem() { Text = "ODT", Value = ".odt" },
                     new SelectListItem() { Text = "HTML", Value = ".html" },
                     new SelectListItem() { Text = "MHTML", Value = ".mhtml" },
                     new SelectListItem() { Text = "RTF", Value = ".rtf" },
                     new SelectListItem() { Text = "XML", Value = ".xml" },
                     new SelectListItem() { Text = "TXT", Value = ".txt" },
+                    new SelectListItem() { Text = "XPS", Value = ".xps" },
                     new SelectListItem() { Text = "PNG", Value = ".png" },
                     new SelectListItem() { Text = "JPEG", Value = ".jpeg" },
                     new SelectListItem() { Text = "GIF", Value = ".gif" },

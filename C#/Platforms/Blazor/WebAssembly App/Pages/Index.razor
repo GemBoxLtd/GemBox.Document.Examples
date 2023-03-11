@@ -1,0 +1,56 @@
+﻿@page "/"
+@inject IJSRuntime JS
+@using BlazorWebAssemblyApp.Data
+@using System.IO
+@using System.Reflection
+@using GemBox.Document
+
+<h1>Invoice generator [Blazor WebAssembly App]</h1>
+
+<EditForm Model="model" OnSubmit="CreateDocument">
+    <p><label>Number: <InputNumber @bind-Value="model.Number" /></label></p>
+    <p><label>Date: <InputDate @bind-Value="model.Date" /></label></p>
+    <p><label>Company: <InputText @bind-Value="model.Company" /></label></p>
+    <p><label>Address: <InputText @bind-Value="model.Address" /></label></p>
+    <p><label>Name: <InputText @bind-Value="model.Name" /></label></p>
+    <p><label>Format:
+        <InputSelect @bind-Value="model.Format">
+            @foreach (string format in model.FormatMappingDictionary.Select(item => item.Key))
+            {
+                <option value="@format">@format</option>
+            }
+        </InputSelect>
+    </label></p>
+    <button class="btn btn-primary" type="submit">Create</button>
+</EditForm>
+
+@code {
+    private InvoiceModel model = new();
+
+    private async Task CreateDocument()
+    {
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
+        // Add embedded resource fonts, required for saving to PDF.
+        FontSettings.FontsBaseResourceLocation = "/Fonts/";
+
+        // Load template document.
+        using var inputStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("BlazorWebAssemblyApp.InvoiceWithPlaceholders.docx")!;
+        var document = DocumentModel.Load(inputStream, LoadOptions.DocxDefault);
+
+        // Execute find and replace operations.
+        document.Content.Replace("{{Number}}", this.model.Number.ToString("0000"));
+        document.Content.Replace("{{Date}}", this.model.Date.ToString("d MMM yyyy HH:mm"));
+        document.Content.Replace("{{Company}}", this.model.Company);
+        document.Content.Replace("{{Address}}", this.model.Address);
+        document.Content.Replace("{{Name}}", this.model.Name);
+
+        // Save document in specified file format.
+        var outputStream = new MemoryStream();
+        document.Save(outputStream, this.model.Options);
+
+        // Download file.
+        using var streamRef = new DotNetStreamReference(outputStream);
+        await JS.InvokeVoidAsync("downloadFileFromStream", $"BlazorWebAssemblyOutput.{this.model.Format.ToLower()}", streamRef);
+    }
+}

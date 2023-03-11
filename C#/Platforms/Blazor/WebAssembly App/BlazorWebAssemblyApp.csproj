@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <WasmBuildNative>true</WasmBuildNative>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GemBox.Document" Version="*" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HarfBuzzSharp.NativeAssets.WebAssembly" Version="2.8.2.3" />
+    <NativeFileReference Include="$(HarfBuzzSharpStaticLibraryPath)\3.1.12\*.a" />
+    <PackageReference Include="SkiaSharp.NativeAssets.WebAssembly" Version="2.88.3" />
+    <NativeFileReference Include="$(SkiaSharpStaticLibraryPath)\3.1.12\*.a" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Fonts\calibri.ttf" />
+    <EmbeddedResource Include="Fonts\calibrib.ttf" />
+    <EmbeddedResource Include="InvoiceWithPlaceholders.docx" />
+  </ItemGroup>
+
+</Project>

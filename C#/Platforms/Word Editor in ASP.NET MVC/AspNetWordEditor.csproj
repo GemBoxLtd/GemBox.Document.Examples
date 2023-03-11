@@ -1,5 +1,4 @@
 ﻿<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('..\..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -13,7 +12,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>AspNetWordEditor</RootNamespace>
     <AssemblyName>AspNetWordEditor</AssemblyName>
-    <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <UseIISExpress>true</UseIISExpress>
     <Use64BitIISExpress />
     <IISExpressSSLPort />
@@ -44,57 +43,71 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="GemBox.Document" Version="*" />
-    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=2.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="BouncyCastle.Crypto, Version=1.8.9.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
+      <HintPath>packages\BouncyCastle.1.8.9\lib\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="GemBox.Document, Version=35.0.0.1300, Culture=neutral, PublicKeyToken=b1b72c69714d4847, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\GemBox.Document.35.0.1300\lib\net35\GemBox.Document.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=3.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Web.Infrastructure, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Web.Infrastructure.2.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+    </Reference>
+    <Reference Include="Pkcs11Interop, Version=5.1.2.0, Culture=neutral, PublicKeyToken=c10e9c2d8c006d2a, processorArchitecture=MSIL">
+      <HintPath>packages\Pkcs11Interop.5.1.2\lib\net45\Pkcs11Interop.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="ReachFramework" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Printing" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.ServiceModel.Web" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.3.2.7\lib\net45\System.Web.Helpers.dll</HintPath>
+      <HintPath>packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.Helpers.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.Mvc, Version=5.2.7.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.AspNet.Mvc.5.2.7\lib\net45\System.Web.Mvc.dll</HintPath>
+    <Reference Include="System.Web.Mvc, Version=5.2.9.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.AspNet.Mvc.5.2.9\lib\net45\System.Web.Mvc.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.AspNet.Razor.3.2.7\lib\net45\System.Web.Razor.dll</HintPath>
+      <HintPath>packages\Microsoft.AspNet.Razor.3.2.9\lib\net45\System.Web.Razor.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.WebPages, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.3.2.7\lib\net45\System.Web.WebPages.dll</HintPath>
+      <HintPath>packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.WebPages.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.WebPages.Deployment, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.3.2.7\lib\net45\System.Web.WebPages.Deployment.dll</HintPath>
+      <HintPath>packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.WebPages.Deployment.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.WebPages.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.3.2.7\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
+      <HintPath>packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Web.Services" />
     <Reference Include="System.EnterpriseServices" />
     <Reference Include="System.Xml.Linq" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Microsoft.Web.Infrastructure">
-      <HintPath>..\..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
-    </Reference>
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Global.asax" />
     <Content Include="scripts\tinymce\icons\default\icons.js" />
     <Content Include="scripts\tinymce\icons\default\icons.min.js" />
-    <Content Include="scripts\tinymce\jquery.tinymce.min.js" />
     <Content Include="scripts\tinymce\license.txt" />
+    <Content Include="scripts\tinymce\models\dom\model.js" />
+    <Content Include="scripts\tinymce\models\dom\model.min.js" />
     <Content Include="scripts\tinymce\plugins\advlist\plugin.js" />
     <Content Include="scripts\tinymce\plugins\advlist\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\anchor\plugin.js" />
@@ -105,42 +118,30 @@
     <Content Include="scripts\tinymce\plugins\autoresize\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\autosave\plugin.js" />
     <Content Include="scripts\tinymce\plugins\autosave\plugin.min.js" />
-    <Content Include="scripts\tinymce\plugins\bbcode\plugin.js" />
-    <Content Include="scripts\tinymce\plugins\bbcode\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\charmap\plugin.js" />
     <Content Include="scripts\tinymce\plugins\charmap\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\codesample\plugin.js" />
     <Content Include="scripts\tinymce\plugins\codesample\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\code\plugin.js" />
     <Content Include="scripts\tinymce\plugins\code\plugin.min.js" />
-    <Content Include="scripts\tinymce\plugins\colorpicker\plugin.js" />
-    <Content Include="scripts\tinymce\plugins\colorpicker\plugin.min.js" />
-    <Content Include="scripts\tinymce\plugins\contextmenu\plugin.js" />
-    <Content Include="scripts\tinymce\plugins\contextmenu\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\directionality\plugin.js" />
     <Content Include="scripts\tinymce\plugins\directionality\plugin.min.js" />
+    <Content Include="scripts\tinymce\plugins\emoticons\js\emojiimages.js" />
+    <Content Include="scripts\tinymce\plugins\emoticons\js\emojiimages.min.js" />
     <Content Include="scripts\tinymce\plugins\emoticons\js\emojis.js" />
     <Content Include="scripts\tinymce\plugins\emoticons\js\emojis.min.js" />
     <Content Include="scripts\tinymce\plugins\emoticons\plugin.js" />
     <Content Include="scripts\tinymce\plugins\emoticons\plugin.min.js" />
-    <Content Include="scripts\tinymce\plugins\fullpage\plugin.js" />
-    <Content Include="scripts\tinymce\plugins\fullpage\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\fullscreen\plugin.js" />
     <Content Include="scripts\tinymce\plugins\fullscreen\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\help\plugin.js" />
     <Content Include="scripts\tinymce\plugins\help\plugin.min.js" />
-    <Content Include="scripts\tinymce\plugins\hr\plugin.js" />
-    <Content Include="scripts\tinymce\plugins\hr\plugin.min.js" />
-    <Content Include="scripts\tinymce\plugins\imagetools\plugin.js" />
-    <Content Include="scripts\tinymce\plugins\imagetools\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\image\plugin.js" />
     <Content Include="scripts\tinymce\plugins\image\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\importcss\plugin.js" />
     <Content Include="scripts\tinymce\plugins\importcss\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\insertdatetime\plugin.js" />
     <Content Include="scripts\tinymce\plugins\insertdatetime\plugin.min.js" />
-    <Content Include="scripts\tinymce\plugins\legacyoutput\plugin.js" />
-    <Content Include="scripts\tinymce\plugins\legacyoutput\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\link\plugin.js" />
     <Content Include="scripts\tinymce\plugins\link\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\lists\plugin.js" />
@@ -149,36 +150,20 @@
     <Content Include="scripts\tinymce\plugins\media\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\nonbreaking\plugin.js" />
     <Content Include="scripts\tinymce\plugins\nonbreaking\plugin.min.js" />
-    <Content Include="scripts\tinymce\plugins\noneditable\plugin.js" />
-    <Content Include="scripts\tinymce\plugins\noneditable\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\pagebreak\plugin.js" />
     <Content Include="scripts\tinymce\plugins\pagebreak\plugin.min.js" />
-    <Content Include="scripts\tinymce\plugins\paste\plugin.js" />
-    <Content Include="scripts\tinymce\plugins\paste\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\preview\plugin.js" />
     <Content Include="scripts\tinymce\plugins\preview\plugin.min.js" />
-    <Content Include="scripts\tinymce\plugins\print\plugin.js" />
-    <Content Include="scripts\tinymce\plugins\print\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\quickbars\plugin.js" />
     <Content Include="scripts\tinymce\plugins\quickbars\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\save\plugin.js" />
     <Content Include="scripts\tinymce\plugins\save\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\searchreplace\plugin.js" />
     <Content Include="scripts\tinymce\plugins\searchreplace\plugin.min.js" />
-    <Content Include="scripts\tinymce\plugins\spellchecker\plugin.js" />
-    <Content Include="scripts\tinymce\plugins\spellchecker\plugin.min.js" />
-    <Content Include="scripts\tinymce\plugins\tabfocus\plugin.js" />
-    <Content Include="scripts\tinymce\plugins\tabfocus\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\table\plugin.js" />
     <Content Include="scripts\tinymce\plugins\table\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\template\plugin.js" />
     <Content Include="scripts\tinymce\plugins\template\plugin.min.js" />
-    <Content Include="scripts\tinymce\plugins\textcolor\plugin.js" />
-    <Content Include="scripts\tinymce\plugins\textcolor\plugin.min.js" />
-    <Content Include="scripts\tinymce\plugins\textpattern\plugin.js" />
-    <Content Include="scripts\tinymce\plugins\textpattern\plugin.min.js" />
-    <Content Include="scripts\tinymce\plugins\toc\plugin.js" />
-    <Content Include="scripts\tinymce\plugins\toc\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\visualblocks\plugin.js" />
     <Content Include="scripts\tinymce\plugins\visualblocks\plugin.min.js" />
     <Content Include="scripts\tinymce\plugins\visualchars\plugin.js" />
@@ -191,30 +176,44 @@
     <Content Include="scripts\tinymce\skins\content\default\content.min.css" />
     <Content Include="scripts\tinymce\skins\content\document\content.css" />
     <Content Include="scripts\tinymce\skins\content\document\content.min.css" />
+    <Content Include="scripts\tinymce\skins\content\tinymce-5-dark\content.css" />
+    <Content Include="scripts\tinymce\skins\content\tinymce-5-dark\content.min.css" />
+    <Content Include="scripts\tinymce\skins\content\tinymce-5\content.css" />
+    <Content Include="scripts\tinymce\skins\content\tinymce-5\content.min.css" />
     <Content Include="scripts\tinymce\skins\content\writer\content.css" />
     <Content Include="scripts\tinymce\skins\content\writer\content.min.css" />
     <Content Include="scripts\tinymce\skins\ui\oxide-dark\content.css" />
     <Content Include="scripts\tinymce\skins\ui\oxide-dark\content.inline.css" />
     <Content Include="scripts\tinymce\skins\ui\oxide-dark\content.inline.min.css" />
     <Content Include="scripts\tinymce\skins\ui\oxide-dark\content.min.css" />
-    <Content Include="scripts\tinymce\skins\ui\oxide-dark\content.mobile.css" />
-    <Content Include="scripts\tinymce\skins\ui\oxide-dark\content.mobile.min.css" />
     <Content Include="scripts\tinymce\skins\ui\oxide-dark\skin.css" />
     <Content Include="scripts\tinymce\skins\ui\oxide-dark\skin.min.css" />
-    <Content Include="scripts\tinymce\skins\ui\oxide-dark\skin.mobile.css" />
-    <Content Include="scripts\tinymce\skins\ui\oxide-dark\skin.mobile.min.css" />
+    <Content Include="scripts\tinymce\skins\ui\oxide-dark\skin.shadowdom.css" />
+    <Content Include="scripts\tinymce\skins\ui\oxide-dark\skin.shadowdom.min.css" />
     <Content Include="scripts\tinymce\skins\ui\oxide\content.css" />
     <Content Include="scripts\tinymce\skins\ui\oxide\content.inline.css" />
     <Content Include="scripts\tinymce\skins\ui\oxide\content.inline.min.css" />
     <Content Include="scripts\tinymce\skins\ui\oxide\content.min.css" />
-    <Content Include="scripts\tinymce\skins\ui\oxide\content.mobile.css" />
-    <Content Include="scripts\tinymce\skins\ui\oxide\content.mobile.min.css" />
     <Content Include="scripts\tinymce\skins\ui\oxide\skin.css" />
     <Content Include="scripts\tinymce\skins\ui\oxide\skin.min.css" />
-    <Content Include="scripts\tinymce\skins\ui\oxide\skin.mobile.css" />
-    <Content Include="scripts\tinymce\skins\ui\oxide\skin.mobile.min.css" />
-    <Content Include="scripts\tinymce\themes\mobile\theme.js" />
-    <Content Include="scripts\tinymce\themes\mobile\theme.min.js" />
+    <Content Include="scripts\tinymce\skins\ui\oxide\skin.shadowdom.css" />
+    <Content Include="scripts\tinymce\skins\ui\oxide\skin.shadowdom.min.css" />
+    <Content Include="scripts\tinymce\skins\ui\tinymce-5-dark\content.css" />
+    <Content Include="scripts\tinymce\skins\ui\tinymce-5-dark\content.inline.css" />
+    <Content Include="scripts\tinymce\skins\ui\tinymce-5-dark\content.inline.min.css" />
+    <Content Include="scripts\tinymce\skins\ui\tinymce-5-dark\content.min.css" />
+    <Content Include="scripts\tinymce\skins\ui\tinymce-5-dark\skin.css" />
+    <Content Include="scripts\tinymce\skins\ui\tinymce-5-dark\skin.min.css" />
+    <Content Include="scripts\tinymce\skins\ui\tinymce-5-dark\skin.shadowdom.css" />
+    <Content Include="scripts\tinymce\skins\ui\tinymce-5-dark\skin.shadowdom.min.css" />
+    <Content Include="scripts\tinymce\skins\ui\tinymce-5\content.css" />
+    <Content Include="scripts\tinymce\skins\ui\tinymce-5\content.inline.css" />
+    <Content Include="scripts\tinymce\skins\ui\tinymce-5\content.inline.min.css" />
+    <Content Include="scripts\tinymce\skins\ui\tinymce-5\content.min.css" />
+    <Content Include="scripts\tinymce\skins\ui\tinymce-5\skin.css" />
+    <Content Include="scripts\tinymce\skins\ui\tinymce-5\skin.min.css" />
+    <Content Include="scripts\tinymce\skins\ui\tinymce-5\skin.shadowdom.css" />
+    <Content Include="scripts\tinymce\skins\ui\tinymce-5\skin.shadowdom.min.css" />
     <Content Include="scripts\tinymce\themes\silver\theme.js" />
     <Content Include="scripts\tinymce\themes\silver\theme.min.js" />
     <Content Include="scripts\tinymce\tinymce.js" />
@@ -235,10 +234,7 @@
     <Content Include="App_Data\DocumentTemplate.docx" />
     <None Include="packages.config" />
     <Content Include="Views\Home\Index.cshtml" />
-    <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
-    <Content Include="scripts\tinymce\skins\ui\oxide\fonts\tinymce-mobile.woff" />
-    <Content Include="scripts\tinymce\skins\ui\oxide-dark\fonts\tinymce-mobile.woff" />
-    <Content Include="scripts\tinymce\langs\readme.md" />
+    <Content Include="scripts\tinymce\langs\README.md" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -246,7 +242,12 @@
       <DependentUpon>Web.config</DependentUpon>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="scripts\tinymce\tinymce.d.ts" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -272,12 +273,17 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+  <Import Project="packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets" Condition="Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
+    <Error Condition="!Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.3.6.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets'))" />
+    <Error Condition="!Exists('packages\TinyMCE.6.3.1\build\TinyMCE.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\TinyMCE.6.3.1\build\TinyMCE.targets'))" />
+    <Error Condition="!Exists('..\..\packages\TinyMCE.6.3.2\build\TinyMCE.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\TinyMCE.6.3.2\build\TinyMCE.targets'))" />
   </Target>
+  <Import Project="packages\TinyMCE.6.3.1\build\TinyMCE.targets" Condition="Exists('packages\TinyMCE.6.3.1\build\TinyMCE.targets')" />
+  <Import Project="..\..\packages\TinyMCE.6.3.2\build\TinyMCE.targets" Condition="Exists('..\..\packages\TinyMCE.6.3.2\build\TinyMCE.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

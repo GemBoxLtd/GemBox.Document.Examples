@@ -63,16 +63,18 @@ namespace DocumentCorePages.Models
         public SaveOptions Options => this.FormatMappingDictionary[this.Format];
         public IDictionary<string, SaveOptions> FormatMappingDictionary => new Dictionary<string, SaveOptions>()
         {
-            ["DOCX"] = new DocxSaveOptions(),
-            ["HTML"] = new HtmlSaveOptions() { EmbedImages = true },
-            ["RTF"] = new RtfSaveOptions(),
-            ["TXT"] = new TxtSaveOptions(),
             ["PDF"] = new PdfSaveOptions(),
-            ["XPS"] = new XpsSaveOptions(),
+            ["DOCX"] = new DocxSaveOptions(),
+            ["ODT"] = new OdtSaveOptions(),
+            ["HTML"] = new HtmlSaveOptions() { EmbedImages = true },
+            ["MHTML"] = new HtmlSaveOptions() { HtmlType = HtmlType.Mhtml },
+            ["RTF"] = new RtfSaveOptions(),
             ["XML"] = new XmlSaveOptions(),
-            ["BMP"] = new ImageSaveOptions(ImageSaveFormat.Bmp),
+            ["TXT"] = new TxtSaveOptions(),
+            ["XPS"] = new XpsSaveOptions(),
             ["PNG"] = new ImageSaveOptions(ImageSaveFormat.Png),
             ["JPG"] = new ImageSaveOptions(ImageSaveFormat.Jpeg),
+            ["BMP"] = new ImageSaveOptions(ImageSaveFormat.Bmp),
             ["GIF"] = new ImageSaveOptions(ImageSaveFormat.Gif),
             ["TIF"] = new ImageSaveOptions(ImageSaveFormat.Tiff)
         };

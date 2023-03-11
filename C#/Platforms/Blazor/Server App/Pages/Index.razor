@@ -1,0 +1,47 @@
+﻿@page "/"
+@inject IJSRuntime JS
+@using BlazorServerApp.Data
+@using System.IO
+@using GemBox.Document
+
+<h1>Invoice generator [Blazor Server App]</h1>
+
+<EditForm Model="model" OnSubmit="CreateDocument">
+    <p><label>Number: <InputNumber @bind-Value="model.Number" /></label></p>
+    <p><label>Date: <InputDate @bind-Value="model.Date" /></label></p>
+    <p><label>Company: <InputText @bind-Value="model.Company" /></label></p>
+    <p><label>Address: <InputText @bind-Value="model.Address" /></label></p>
+    <p><label>Name: <InputText @bind-Value="model.Name" /></label></p>
+    <p><label>Format:
+        <InputSelect @bind-Value="model.Format">
+            @foreach (string format in model.FormatMappingDictionary.Select(item => item.Key))
+            {
+                <option value="@format">@format</option>
+            }
+        </InputSelect>
+    </label></p>
+    <button class="btn btn-primary" type="submit">Create</button>
+</EditForm>
+
+@code {
+    private InvoiceModel model = new();
+
+    private async Task CreateDocument()
+    {
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
+        // Load template document.
+        var document = DocumentModel.Load("InvoiceWithFields.docx");
+
+        // Execute mail merge process.
+        document.MailMerge.Execute(this.model);
+
+        // Save document in specified file format.
+        var stream = new MemoryStream();
+        document.Save(stream, this.model.Options);
+
+        // Download file.
+        using var streamRef = new DotNetStreamReference(stream);
+        await JS.InvokeVoidAsync("downloadFileFromStream", $"BlazorServerOutput.{this.model.Format.ToLower()}", streamRef);
+    }
+}

@@ -13,7 +13,7 @@ namespace AspNetWordEditor.Controllers
         [HttpPost]
         public FileResult Download(FileModel model)
         {
-            // If using the Professional version, put your serial key below.
+            // If using Professional version, put your serial key below.
             ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
             var templateFile = Server.MapPath("~/App_Data/DocumentTemplate.docx");
@@ -39,17 +39,18 @@ namespace AspNetWordEditor.Controllers
         {
             switch (extension)
             {
-                case ".docx": return SaveOptions.DocxDefault;
                 case ".pdf": return SaveOptions.PdfDefault;
-                case ".xps": return SaveOptions.XpsDefault;
+                case ".docx": return SaveOptions.DocxDefault;
+                case ".odt": return SaveOptions.OdtDefault;
                 case ".html": return SaveOptions.HtmlDefault;
                 case ".mhtml": return new HtmlSaveOptions() { HtmlType = HtmlType.Mhtml };
                 case ".rtf": return SaveOptions.RtfDefault;
                 case ".xml": return SaveOptions.XmlDefault;
+                case ".xps": return SaveOptions.XpsDefault;
                 case ".png": return SaveOptions.ImageDefault;
                 case ".jpeg": return new ImageSaveOptions(ImageSaveFormat.Jpeg);
-                case ".gif": return new ImageSaveOptions(ImageSaveFormat.Gif);
                 case ".bmp": return new ImageSaveOptions(ImageSaveFormat.Bmp);
+                case ".gif": return new ImageSaveOptions(ImageSaveFormat.Gif);
                 case ".tiff": return new ImageSaveOptions(ImageSaveFormat.Tiff);
                 case ".wmp": return new ImageSaveOptions(ImageSaveFormat.Wmp);
                 default: return SaveOptions.TxtDefault;

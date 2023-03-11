@@ -80,8 +80,9 @@
         <div>
             <asp:Label ID="lblFileFormat" runat="server" AssociatedControlId="ddlFileFormat" Text="File format" />
             <asp:DropDownList ID="ddlFileFormat" runat="server">
-                <asp:ListItem Value=".docx">DOCX</asp:ListItem>
                 <asp:ListItem Value=".pdf" Selected="true">PDF</asp:ListItem>
+                <asp:ListItem Value=".docx">DOCX</asp:ListItem>
+                <asp:ListItem Value=".odf">ODT</asp:ListItem>
                 <asp:ListItem Value=".html">HTML</asp:ListItem>
                 <asp:ListItem Value=".mhtml">MHTML</asp:ListItem>
                 <asp:ListItem Value=".rtf">RTF</asp:ListItem>
