@@ -223,6 +223,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorServerApp", "Platform
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWebAssemblyApp", "Platforms\Blazor\WebAssembly App\BlazorWebAssemblyApp.csproj", "{C845331F-DD71-410F-B6FE-B78974412B5F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocumentMaui", "Platforms\MAUI\DocumentMaui.csproj", "{939C6502-FCC0-41EE-8923-E8C0973F6EB6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -601,6 +603,12 @@ Global
 		{C845331F-DD71-410F-B6FE-B78974412B5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C845331F-DD71-410F-B6FE-B78974412B5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C845331F-DD71-410F-B6FE-B78974412B5F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{939C6502-FCC0-41EE-8923-E8C0973F6EB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{939C6502-FCC0-41EE-8923-E8C0973F6EB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{939C6502-FCC0-41EE-8923-E8C0973F6EB6}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{939C6502-FCC0-41EE-8923-E8C0973F6EB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{939C6502-FCC0-41EE-8923-E8C0973F6EB6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{939C6502-FCC0-41EE-8923-E8C0973F6EB6}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -702,6 +710,7 @@ Global
 		{E43BC01E-1736-4D7A-AA7A-F63E7B550439} = {6FE70688-6229-4255-A47B-EBCD1B6550C6}
 		{D222941F-659B-4992-B7A9-70FBB58B3946} = {B58668DC-064A-4F13-AA12-7CF2346FA9FE}
 		{C845331F-DD71-410F-B6FE-B78974412B5F} = {B58668DC-064A-4F13-AA12-7CF2346FA9FE}
+		{939C6502-FCC0-41EE-8923-E8C0973F6EB6} = {B58668DC-064A-4F13-AA12-7CF2346FA9FE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B77A3C47-0A11-4E2C-A780-DA1AA1200FA2}
