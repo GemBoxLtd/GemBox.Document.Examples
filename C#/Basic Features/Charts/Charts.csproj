@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -9,10 +9,14 @@
   <ItemGroup>
     <PackageReference Include="GemBox.Document" Version="*" />
     <PackageReference Include="GemBox.Spreadsheet" Version="*" />
+    <PackageReference Include="GemBox.Pdf" Version="*" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Charts.docx">
+    <None Update="Chart.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="placeholder.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
