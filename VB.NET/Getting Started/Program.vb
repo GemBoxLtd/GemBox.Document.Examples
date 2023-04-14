@@ -18,7 +18,7 @@ Module Program
         Dim run As New Run(document, "Hello World!")
         paragraph.Inlines.Add(run)
 
-        document.Save("Hello World.docx")
+        document.Save("HelloWorld.docx")
 
     End Sub
 

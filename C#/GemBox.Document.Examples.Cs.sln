@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33122.133
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Hello World", "Hello World", "{3F87E469-DB37-4008-B2B6-5DB04DCBBFEF}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Getting Started", "Getting Started", "{3F87E469-DB37-4008-B2B6-5DB04DCBBFEF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelloWorld", "Hello World\HelloWorld.csproj", "{E34DD221-B093-4D13-94AB-041925917FD9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GettingStarted", "Getting Started\GettingStarted.csproj", "{E34DD221-B093-4D13-94AB-041925917FD9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common Uses", "Common Uses", "{A727258F-2824-4299-A423-D49B94267705}"
 EndProject
@@ -224,6 +224,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWebAssemblyApp", "Platforms\Blazor\WebAssembly App\BlazorWebAssemblyApp.csproj", "{C845331F-DD71-410F-B6FE-B78974412B5F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocumentMaui", "Platforms\MAUI\DocumentMaui.csproj", "{939C6502-FCC0-41EE-8923-E8C0973F6EB6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MergeLabels", "Mail Merge\Merge Labels\MergeLabels.csproj", "{90829E9F-56FC-42DE-AB09-B8587B09680A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -609,6 +611,10 @@ Global
 		{939C6502-FCC0-41EE-8923-E8C0973F6EB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{939C6502-FCC0-41EE-8923-E8C0973F6EB6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{939C6502-FCC0-41EE-8923-E8C0973F6EB6}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{90829E9F-56FC-42DE-AB09-B8587B09680A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90829E9F-56FC-42DE-AB09-B8587B09680A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90829E9F-56FC-42DE-AB09-B8587B09680A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90829E9F-56FC-42DE-AB09-B8587B09680A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -711,6 +717,7 @@ Global
 		{D222941F-659B-4992-B7A9-70FBB58B3946} = {B58668DC-064A-4F13-AA12-7CF2346FA9FE}
 		{C845331F-DD71-410F-B6FE-B78974412B5F} = {B58668DC-064A-4F13-AA12-7CF2346FA9FE}
 		{939C6502-FCC0-41EE-8923-E8C0973F6EB6} = {B58668DC-064A-4F13-AA12-7CF2346FA9FE}
+		{90829E9F-56FC-42DE-AB09-B8587B09680A} = {4205912D-F830-4FD0-A5A8-208110F848C6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B77A3C47-0A11-4E2C-A780-DA1AA1200FA2}

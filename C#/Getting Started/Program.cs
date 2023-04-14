@@ -18,6 +18,6 @@ class Program
         Run run = new Run(document, "Hello World!");
         paragraph.Inlines.Add(run);
 
-        document.Save("Hello World.docx");
+        document.Save("HelloWorld.docx");
     }
 }

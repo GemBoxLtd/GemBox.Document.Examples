@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33122.133
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Hello World", "Hello World", "{B757C881-0FCD-4EDE-AA3C-1B1FB5F71777}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Getting Started", "Getting Started", "{B757C881-0FCD-4EDE-AA3C-1B1FB5F71777}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "HelloWorld", "Hello World\HelloWorld.vbproj", "{3A112B1D-994A-4A43-9702-559D4F199B7B}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "GettingStarted", "Getting Started\GettingStarted.vbproj", "{3A112B1D-994A-4A43-9702-559D4F199B7B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Advanced Features", "Advanced Features", "{35B156E4-67A4-4CCE-BAAF-15F2AB1EB95D}"
 EndProject
@@ -206,6 +206,8 @@ EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ConvertPdfToDocx", "Common Uses\Convert PDF to DOCX\ConvertPdfToDocx.vbproj", "{39214636-825C-4AD0-9913-8990C7623904}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "VbaMacros", "Advanced Features\VBA Macros\VbaMacros.vbproj", "{FFB6197D-3662-4A76-BFE0-70B5542BF5E0}"
+EndProject
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "MergeLabels", "Mail Merge\Merge Labels\MergeLabels.vbproj", "{78CB8D76-C457-40A2-B4EF-E77B2CDDCB31}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -553,6 +555,10 @@ Global
 		{FFB6197D-3662-4A76-BFE0-70B5542BF5E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FFB6197D-3662-4A76-BFE0-70B5542BF5E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FFB6197D-3662-4A76-BFE0-70B5542BF5E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78CB8D76-C457-40A2-B4EF-E77B2CDDCB31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78CB8D76-C457-40A2-B4EF-E77B2CDDCB31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78CB8D76-C457-40A2-B4EF-E77B2CDDCB31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78CB8D76-C457-40A2-B4EF-E77B2CDDCB31}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -646,6 +652,7 @@ Global
 		{50EA4EA7-C221-4F48-8833-BC06D7E309D9} = {380BC34D-9A13-4794-B498-A6B5C6B81305}
 		{39214636-825C-4AD0-9913-8990C7623904} = {068A5C07-4F0B-4E3C-BC8C-5463BF912A34}
 		{FFB6197D-3662-4A76-BFE0-70B5542BF5E0} = {35B156E4-67A4-4CCE-BAAF-15F2AB1EB95D}
+		{78CB8D76-C457-40A2-B4EF-E77B2CDDCB31} = {7E7E64A7-72CC-4B85-8B9D-F817301EBD7C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3F9A0C8B-7A43-4F13-8C1E-91313E4DEB88}
