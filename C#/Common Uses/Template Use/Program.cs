@@ -9,7 +9,10 @@ class Program
     {
         // If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
-        
+
+        // If using the Professional version, remove this FreeLimitReached event handler.
+        ComponentInfo.FreeLimitReached += (sender, e) => e.FreeLimitReachedAction = FreeLimitReachedAction.ContinueAsTrial;
+
         int numberOfItems = 10;
 
         DocumentModel document = DocumentModel.Load("Invoice.docx");

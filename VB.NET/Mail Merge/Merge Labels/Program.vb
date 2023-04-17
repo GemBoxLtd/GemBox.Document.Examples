@@ -7,7 +7,10 @@ Module Program
     Sub Main()
 
         ' If using the Professional version, put your serial key below.
-        ComponentInfo.SetLicense("DN-2023Apr13-XtlswQ30Ua/FqbsDIZzCR9HjIB0FccANeA9uJUm8Fu8xKLo//xMsyDrDFztBh0CqKEvYarPkDGYCenzpGznopWYJvHg==A")
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
+        ' If using the Professional version, remove this FreeLimitReached event handler.
+        AddHandler ComponentInfo.FreeLimitReached, Sub(sender, e) e.FreeLimitReachedAction = FreeLimitReachedAction.ContinueAsTrial
 
         Dim numberOfLabels As Integer = 10
         Dim document = DocumentModel.Load("MergeLabels.docx")
