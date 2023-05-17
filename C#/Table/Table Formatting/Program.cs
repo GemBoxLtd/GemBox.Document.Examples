@@ -1,5 +1,6 @@
 using GemBox.Document;
 using GemBox.Document.Tables;
+using System.Collections;
 
 class Program
 {
@@ -44,14 +45,36 @@ class Program
                 table.Rows[r].Cells.Add(cell);
 
                 // Set cell's vertical alignment.
-                cell.CellFormat.VerticalAlignment = (VerticalAlignment)r;
+                switch (r)
+                {
+                    case 0:
+                        cell.CellFormat.VerticalAlignment = VerticalAlignment.Top;
+                        break;
+                    case 1:
+                        cell.CellFormat.VerticalAlignment = VerticalAlignment.Center;
+                        break;
+                    case 2:
+                        cell.CellFormat.VerticalAlignment = VerticalAlignment.Bottom;
+                        break;
+                }
 
                 // Add cell content.
                 var paragraph = new Paragraph(document, $"Cell ({r + 1},{c + 1})");
                 cell.Blocks.Add(paragraph);
 
                 // Set cell content's horizontal alignment.
-                paragraph.ParagraphFormat.Alignment = (HorizontalAlignment)c;
+                switch (c)
+                {
+                    case 0:
+                        paragraph.ParagraphFormat.Alignment = HorizontalAlignment.Left;
+                        break;
+                    case 1:
+                        paragraph.ParagraphFormat.Alignment = HorizontalAlignment.Center;
+                        break;
+                    case 2:
+                        paragraph.ParagraphFormat.Alignment = HorizontalAlignment.Right;
+                        break;
+                }
 
                 if ((r + c) % 2 == 0)
                 {

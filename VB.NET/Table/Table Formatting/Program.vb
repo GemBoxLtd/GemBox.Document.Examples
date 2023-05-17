@@ -44,14 +44,28 @@ Module Program
                 table.Rows(r).Cells.Add(cell)
 
                 ' Set cell's vertical alignment.
-                cell.CellFormat.VerticalAlignment = CType(r, VerticalAlignment)
+                Select Case r
+                    Case 0
+                        cell.CellFormat.VerticalAlignment = VerticalAlignment.Top
+                    Case 1
+                        cell.CellFormat.VerticalAlignment = VerticalAlignment.Center
+                    Case 2
+                        cell.CellFormat.VerticalAlignment = VerticalAlignment.Bottom
+                End Select
 
                 ' Add cell content.
                 Dim paragraph As New Paragraph(document, $"Cell ({r + 1},{c + 1})")
                 cell.Blocks.Add(paragraph)
 
                 ' Set cell content's horizontal alignment.
-                paragraph.ParagraphFormat.Alignment = CType(c, HorizontalAlignment)
+                Select Case c
+                    Case 0
+                        paragraph.ParagraphFormat.Alignment = HorizontalAlignment.Left
+                    Case 1
+                        paragraph.ParagraphFormat.Alignment = HorizontalAlignment.Center
+                    Case 2
+                        paragraph.ParagraphFormat.Alignment = HorizontalAlignment.Right
+                End Select
 
                 If (r + c) Mod 2 = 0 Then
 

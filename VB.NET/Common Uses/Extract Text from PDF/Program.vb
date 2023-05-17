@@ -15,12 +15,6 @@ Module Program
 
         Dim document = DocumentModel.Load("CustomInvoice.pdf")
 
-        ' Display file's properties.
-        Dim properties = document.DocumentProperties
-        Console.WriteLine($"Title: {properties.BuiltIn(BuiltInDocumentProperty.Title)}")
-        Console.WriteLine($"Author: {properties.BuiltIn(BuiltInDocumentProperty.Author)}")
-        Console.WriteLine()
-
         ' Get paragraphs.
         Dim paragraphs = document.GetChildElements(True, ElementType.Paragraph).Cast(Of Paragraph)()
 
@@ -33,21 +27,23 @@ Module Program
         Console.WriteLine()
 
         ' Display first paragraph's content.
-        Dim paragraph = paragraphs.First()
-        Console.WriteLine("Paragraph content:")
-        Console.WriteLine(paragraph.Content.ToString())
+        Dim paragraph = paragraphs.FirstOrDefault()
+        If paragraph IsNot Nothing Then
+            Console.WriteLine("Paragraph content:")
+            Console.WriteLine(paragraph.Content.ToString())
+        End If
 
         ' Display last table's content.
-        Dim table = tables.Last()
-        Console.WriteLine("Table content:")
-
-        For Each row In table.Rows
-            Console.WriteLine(New String("-"c, 56))
-            For Each cell In row.Cells
-                Console.Write($"{cell.Content.ToString().TrimEnd().PadRight(13)}|")
+        Dim table = tables.LastOrDefault()
+        If paragraph IsNot Nothing Then
+            Console.WriteLine("Table content:")
+            For Each row In table.Rows
+                For Each cell In row.Cells
+                    Console.Write($"{cell.Content.ToString().TrimEnd().PadRight(15)}|")
+                Next
+                Console.WriteLine()
             Next
-            Console.WriteLine()
-        Next
+        End If
 
     End Sub
 End Module

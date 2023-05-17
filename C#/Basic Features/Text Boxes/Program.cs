@@ -32,7 +32,9 @@ class Program
                 new VerticalPosition(VerticalPositionType.Bottom, VerticalPositionAnchor.Margin),
                 new Size(6, 3, LengthUnit.Centimeter)),
             new Paragraph(document, "A floating TextBox created with GemBox.Document."),
-            new Paragraph(document, "It has default fill and outline."));
+            new Paragraph(document, "It's rotated and has a default fill and outline."));
+
+        textBox2.Layout.Transform.Rotation = 30;
 
         paragraph.Inlines.Add(textBox2);
 

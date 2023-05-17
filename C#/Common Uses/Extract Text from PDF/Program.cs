@@ -15,12 +15,6 @@ class Program
 
         var document = DocumentModel.Load("CustomInvoice.pdf");
 
-        // Display file's properties.
-        var properties = document.DocumentProperties;
-        Console.WriteLine($"Title: {properties.BuiltIn[BuiltInDocumentProperty.Title]}");
-        Console.WriteLine($"Author: {properties.BuiltIn[BuiltInDocumentProperty.Author]}");
-        Console.WriteLine();
-
         // Get paragraphs.
         var paragraphs = document.GetChildElements(true, ElementType.Paragraph).Cast<Paragraph>();
 
@@ -33,20 +27,24 @@ class Program
         Console.WriteLine();
 
         // Display first paragraph's content.
-        var paragraph = paragraphs.First();
-        Console.WriteLine("Paragraph content:");
-        Console.WriteLine(paragraph.Content.ToString());
+        var paragraph = paragraphs.FirstOrDefault();
+        if (paragraph != null)
+        {
+            Console.WriteLine("Paragraph content:");
+            Console.WriteLine(paragraph.Content.ToString());
+        }
 
         // Display last table's content.
-        var table = tables.Last();
-        Console.WriteLine("Table content:");
-
-        foreach (var row in table.Rows)
+        var table = tables.LastOrDefault();
+        if (table != null)
         {
-            Console.WriteLine(new string('-', 56));
-            foreach (var cell in row.Cells)
-                Console.Write($"{cell.Content.ToString().TrimEnd().PadRight(13)}|");
-            Console.WriteLine();
+            Console.WriteLine("Table content:");
+            foreach (var row in table.Rows)
+            {
+                foreach (var cell in row.Cells)
+                    Console.Write($"{cell.Content.ToString().TrimEnd().PadRight(15)}|");
+                Console.WriteLine();
+            }
         }
     }
 }

@@ -10,10 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Reading.docx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="PropertiesAndVariables.docx">
+    <None Update="Input.mhtml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

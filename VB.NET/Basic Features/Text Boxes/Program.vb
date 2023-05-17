@@ -32,7 +32,9 @@ Module Program
                 New VerticalPosition(VerticalPositionType.Bottom, VerticalPositionAnchor.Margin),
                 New Size(6, 3, LengthUnit.Centimeter)),
             New Paragraph(document, "A floating TextBox created with GemBox.Document."),
-            New Paragraph(document, "It has default fill and outline."))
+            New Paragraph(document, "It's rotated and has a default fill and outline."))
+
+        textBox2.Layout.Transform.Rotation = 30
 
         paragraph.Inlines.Add(textBox2)
 
