@@ -53,13 +53,13 @@ class Program
         document.Variables["Variable1"] = "Updated variable value 1!";
         document.Variables["Variable2"] = "Updated variable value 2!";
 
-        // Update DOCPROPERTY and DOCVARIABLE fields.
-        foreach (Field field in document.GetChildElements(true, ElementType.Field)
+        var fields = document.GetChildElements(true, ElementType.Field)
             .OfType<Field>()
-            .Where(f => f.FieldType == FieldType.DocProperty || f.FieldType == FieldType.DocVariable))
-        {
+            .Where(f => f.FieldType == FieldType.DocProperty || f.FieldType == FieldType.DocVariable);
+
+        // Update DOCPROPERTY and DOCVARIABLE fields.
+        foreach (var field in fields)
             field.Update();
-        }
 
         document.Save("UpdatedPropertiesAndVariables.docx");
     }

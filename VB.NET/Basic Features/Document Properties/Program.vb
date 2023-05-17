@@ -54,10 +54,12 @@ Module Program
         document.Variables("Variable1") = "Updated variable value 1!"
         document.Variables("Variable2") = "Updated variable value 2!"
 
-        ' Update DOCPROPERTY and DOCVARIABLE fields.
-        For Each field As Field In document.GetChildElements(True, ElementType.Field) _
+        Dim fields = document.GetChildElements(True, ElementType.Field) _
             .OfType(Of Field)() _
             .Where(Function(f) f.FieldType = FieldType.DocProperty OrElse f.FieldType = FieldType.DocVariable)
+        
+        ' Update DOCPROPERTY and DOCVARIABLE fields.
+        For Each field In fields
             field.Update()
         Next
 
