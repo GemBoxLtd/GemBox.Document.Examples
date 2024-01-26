@@ -7,6 +7,9 @@ Module Program
         ' If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
+        ' Set the directory path where the component will look for additional font files.
+        ' The "." targets the current directory, so besides the installed fonts,
+        ' the component will be able to use the fonts within the specified directory.
         FontSettings.FontsBaseDirectory = "."
 
         Dim document As New DocumentModel()

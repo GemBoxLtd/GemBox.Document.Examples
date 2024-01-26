@@ -1,40 +1,40 @@
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 using GemBox.Document;
 
-public static class GemBoxFunction
+public class GemBoxFunction
 {
-    [FunctionName("GemBoxFunction")]
-#pragma warning disable CS1998 // Async method lacks 'await' operators.
-    public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req, ILogger log)
-#pragma warning restore CS1998
+    [Function("GemBoxFunction")]
+    public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequestData req)
     {
         // If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
-        DocumentModel document = new DocumentModel();
+        var document = new DocumentModel();
 
-        Section section = new Section(document);
+        var section = new Section(document);
         document.Sections.Add(section);
 
-        Paragraph paragraph = new Paragraph(document);
+        var paragraph = new Paragraph(document);
         section.Blocks.Add(paragraph);
 
-        Run run = new Run(document, "Hello World!");
+        var run = new Run(document, "Hello World!");
         paragraph.Inlines.Add(run);
 
-        var fileName = "Output.docx";
+        string fileName = "Output.docx";
         var options = SaveOptions.DocxDefault;
 
-        using (var stream = new MemoryStream())
-        {
-            document.Save(stream, options);
-            return new FileContentResult(stream.ToArray(), options.ContentType) { FileDownloadName = fileName };
-        }
+        using var stream = new MemoryStream();
+        document.Save(stream, options);
+        var bytes = stream.ToArray();
+
+        var response = req.CreateResponse(HttpStatusCode.OK);
+        response.Headers.Add("Content-Type", options.ContentType);
+        response.Headers.Add("Content-Disposition", "attachment; filename=" + fileName);
+        await response.Body.WriteAsync(bytes, 0, bytes.Length);
+        return response;
     }
 }

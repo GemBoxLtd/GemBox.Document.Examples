@@ -1,8 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net7.0-maccatalyst;net7.0-android33.0;net7.0-ios15.4</TargetFrameworks>
-        <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net7.0-windows10.0.22621.0</TargetFrameworks>
+        <TargetFrameworks>net8.0-maccatalyst;net8.0-android33.0;net8.0-ios15.4</TargetFrameworks>
+        <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.22621.0</TargetFrameworks>
         <!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
         <!-- <TargetFrameworks>$(TargetFrameworks);net6.0-tizen</TargetFrameworks> -->
         <OutputType>Exe</OutputType>
@@ -53,11 +53,11 @@
       <PackageReference Include="SkiaSharp" Version="*" />
     </ItemGroup>
 
-    <ItemGroup Condition="'$(TargetFramework)' == 'net7.0-android33.0'">
+    <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-android33.0'">
       <PackageReference Include="SkiaSharp.NativeAssets.Android" Version="*" />
     </ItemGroup>
 
-    <ItemGroup Condition="'$(TargetFramework)' == 'net7.0-ios15.4'">
+    <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-ios15.4'">
       <PackageReference Include="SkiaSharp.NativeAssets.iOS" Version="*" />
     </ItemGroup>
 

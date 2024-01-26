@@ -53,6 +53,7 @@ namespace AspNetWordEditor.Controllers
                 case ".gif": return new ImageSaveOptions(ImageSaveFormat.Gif);
                 case ".tiff": return new ImageSaveOptions(ImageSaveFormat.Tiff);
                 case ".wmp": return new ImageSaveOptions(ImageSaveFormat.Wmp);
+                case ".svg": return new ImageSaveOptions(ImageSaveFormat.Svg);
                 default: return SaveOptions.TxtDefault;
             }
         }

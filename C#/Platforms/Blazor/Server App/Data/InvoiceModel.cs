@@ -28,7 +28,8 @@ namespace BlazorServerApp.Data
             ["JPG"] = new ImageSaveOptions(ImageSaveFormat.Jpeg),
             ["BMP"] = new ImageSaveOptions(ImageSaveFormat.Bmp),
             ["GIF"] = new ImageSaveOptions(ImageSaveFormat.Gif),
-            ["TIF"] = new ImageSaveOptions(ImageSaveFormat.Tiff)
+            ["TIF"] = new ImageSaveOptions(ImageSaveFormat.Tiff),
+            ["SVG"] = new ImageSaveOptions(ImageSaveFormat.Svg)
         };
     }
 }

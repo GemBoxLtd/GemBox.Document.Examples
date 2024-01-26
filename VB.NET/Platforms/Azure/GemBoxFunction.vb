@@ -1,16 +1,13 @@
 Imports System.IO
-Imports Microsoft.AspNetCore.Mvc
-Imports Microsoft.Azure.WebJobs
-Imports Microsoft.Azure.WebJobs.Extensions.Http
-Imports Microsoft.AspNetCore.Http
-Imports Microsoft.Extensions.Logging
+Imports System.Net
+Imports System.Threading.Tasks
+Imports Microsoft.Azure.Functions.Worker
+Imports Microsoft.Azure.Functions.Worker.Http
 Imports GemBox.Document
 
-Module GemBoxFunction
-#Disable Warning BC42356 ' This async method lacks 'Await'.
-    <FunctionName("GemBoxFunction")>
-    Async Function Run(<HttpTrigger(AuthorizationLevel.Anonymous, "get", Route:=Nothing)> req As HttpRequest, log As ILogger) As Task(Of IActionResult)
-#Enable Warning BC42356
+Public Class GemBoxFunction
+    <[Function]("GemBoxFunction")>
+    Public Async Function Run(<HttpTrigger(AuthorizationLevel.Anonymous, "get")> req As HttpRequestData) As Task(Of HttpResponseData)
 
         ' If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
@@ -31,8 +28,14 @@ Module GemBoxFunction
 
         Using stream As New MemoryStream()
             document.Save(stream, options)
-            Return New FileContentResult(stream.ToArray(), options.ContentType) With {.FileDownloadName = fileName}
+            Dim bytes = stream.ToArray()
+
+            Dim response = req.CreateResponse(HttpStatusCode.OK)
+            response.Headers.Add("Content-Type", options.ContentType)
+            response.Headers.Add("Content-Disposition", "attachment; filename=" & fileName)
+            Await response.Body.WriteAsync(bytes, 0, bytes.Length)
+            Return response
         End Using
 
     End Function
-End Module
+End Class

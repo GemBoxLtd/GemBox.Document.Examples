@@ -71,12 +71,13 @@ namespace DocumentCorePages.Models
             ["RTF"] = new RtfSaveOptions(),
             ["XML"] = new XmlSaveOptions(),
             ["TXT"] = new TxtSaveOptions(),
-            ["XPS"] = new XpsSaveOptions(),
+            ["XPS"] = new XpsSaveOptions(), // XPS is supported only on Windows.
             ["PNG"] = new ImageSaveOptions(ImageSaveFormat.Png),
             ["JPG"] = new ImageSaveOptions(ImageSaveFormat.Jpeg),
             ["BMP"] = new ImageSaveOptions(ImageSaveFormat.Bmp),
             ["GIF"] = new ImageSaveOptions(ImageSaveFormat.Gif),
-            ["TIF"] = new ImageSaveOptions(ImageSaveFormat.Tiff)
+            ["TIF"] = new ImageSaveOptions(ImageSaveFormat.Tiff),
+            ["SVG"] = new ImageSaveOptions(ImageSaveFormat.Svg)
         };
     }
 }
