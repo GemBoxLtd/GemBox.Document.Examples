@@ -4,15 +4,15 @@ Module Program
 
     Sub Main()
 
-        ' If using the Professional version, put your serial key below.
-        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
-
         Example1()
         Example2()
 
     End Sub
 
     Sub Example1()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         ' Create new empty document.
         Dim document As New DocumentModel()
 
@@ -30,6 +30,9 @@ Module Program
     End Sub
 
     Sub Example2()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         ' Create new empty document.
         Dim document As New DocumentModel()
 

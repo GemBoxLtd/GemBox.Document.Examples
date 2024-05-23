@@ -1,24 +1,19 @@
+Imports GemBox.Document
 Imports System.IO
 Imports System.IO.Compression
-Imports GemBox.Document
 
 Module Program
 
     Sub Main()
-
-        ' If using the Professional version, put your serial key below.
-        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
-
-        ' If using the Professional version, remove this FreeLimitReached event handler.
-        AddHandler ComponentInfo.FreeLimitReached, Sub(sender, e) e.FreeLimitReachedAction = FreeLimitReachedAction.ContinueAsTrial
-
         Example1()
         Example2()
         Example3()
-
     End Sub
 
     Sub Example1()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         ' Load a Word file into the DocumentModel object.
         Dim document = DocumentModel.Load("Input.docx")
 
@@ -34,6 +29,9 @@ Module Program
     End Sub
 
     Sub Example2()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         ' Load a Word file.
         Dim document = DocumentModel.Load("Input.docx")
 
@@ -48,6 +46,9 @@ Module Program
     End Sub
 
     Sub Example3()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         ' Load a Word file.
         Dim document = DocumentModel.Load("Input.docx")
 

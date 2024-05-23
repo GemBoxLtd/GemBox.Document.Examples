@@ -1,6 +1,6 @@
-Imports System.Linq
 Imports GemBox.Document
 Imports GemBox.Document.MailMerging
+Imports System.Linq
 
 Module Program
 
@@ -8,9 +8,6 @@ Module Program
 
         ' If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
-
-        ' If using the Professional version, remove this FreeLimitReached event handler.
-        AddHandler ComponentInfo.FreeLimitReached, Sub(sender, e) e.FreeLimitReachedAction = FreeLimitReachedAction.ContinueAsTrial
 
         Dim numberOfLabels As Integer = 10
         Dim document = DocumentModel.Load("MergeLabels.docx")
@@ -28,4 +25,5 @@ Module Program
         document.Save("MergeLabelsOutput.docx")
 
     End Sub
+
 End Module

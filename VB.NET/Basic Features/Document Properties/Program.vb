@@ -1,13 +1,10 @@
+Imports GemBox.Document
 Imports System
 Imports System.Linq
-Imports GemBox.Document
 
 Module Program
 
     Sub Main()
-
-        ' If using the Professional version, put your serial key below.
-        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
         Example1()
         Example2()
@@ -15,6 +12,9 @@ Module Program
     End Sub
 
     Sub Example1()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         Dim document As DocumentModel = DocumentModel.Load("Reading.docx")
         Dim documentProperties = document.DocumentProperties
 
@@ -43,6 +43,9 @@ Module Program
     End Sub
 
     Sub Example2()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         Dim document = DocumentModel.Load("PropertiesAndVariables.docx")
 
         ' Update built-in and custom document properties.

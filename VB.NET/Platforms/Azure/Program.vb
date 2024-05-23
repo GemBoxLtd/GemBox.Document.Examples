@@ -1,4 +1,4 @@
-﻿Imports Microsoft.Extensions.Hosting
+Imports Microsoft.Extensions.Hosting
 
 Public Class Program
 

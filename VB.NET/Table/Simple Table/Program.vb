@@ -8,9 +8,6 @@ Module Program
         ' If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
-        ' If using the Professional version, remove this FreeLimitReached event handler.
-        AddHandler ComponentInfo.FreeLimitReached, Sub(sender, e) e.FreeLimitReachedAction = FreeLimitReachedAction.ContinueAsTrial
-
         Dim rowCount As Integer = 10
         Dim columnCount As Integer = 5
 
@@ -47,4 +44,5 @@ Module Program
         document.Save("Simple Table.docx")
 
     End Sub
+
 End Module

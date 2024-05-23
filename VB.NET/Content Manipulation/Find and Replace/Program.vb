@@ -1,14 +1,11 @@
-Imports System.Linq
-Imports System.Text.RegularExpressions
 Imports GemBox.Document
 Imports GemBox.Document.Tables
+Imports System.Linq
+Imports System.Text.RegularExpressions
 
 Module Program
 
     Sub Main()
-
-        ' If using the Professional version, put your serial key below.
-        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
         Example1()
         Example2()
@@ -16,6 +13,9 @@ Module Program
     End Sub
 
     Sub Example1()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         Dim document = DocumentModel.Load("FindAndReplaceText.docx")
 
         ' The easiest way how you can find and replace text is with "Replace" method.
@@ -76,6 +76,9 @@ Module Program
     End Sub
 
     Sub Example2()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         Dim document = DocumentModel.Load("FindAndReplaceContent.docx")
 
         Dim dummyText = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas porttitor congue massa."

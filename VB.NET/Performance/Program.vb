@@ -1,10 +1,10 @@
-Imports System.Collections.Generic
-Imports System.IO
 Imports BenchmarkDotNet.Attributes
 Imports BenchmarkDotNet.Engines
 Imports BenchmarkDotNet.Jobs
 Imports BenchmarkDotNet.Running
 Imports GemBox.Document
+Imports System.Collections.Generic
+Imports System.IO
 
 <SimpleJob(RuntimeMoniker.Net80)>
 <SimpleJob(RuntimeMoniker.Net48)>

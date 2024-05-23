@@ -1,5 +1,5 @@
-Imports System
 Imports GemBox.Document
+Imports System
 
 Module Program
 
@@ -7,9 +7,6 @@ Module Program
 
         ' If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
-
-        ' If using the Professional version, remove this FreeLimitReached event handler.
-        AddHandler ComponentInfo.FreeLimitReached, Sub(sender, e) e.FreeLimitReachedAction = FreeLimitReachedAction.ContinueAsTrial
 
         Dim document As DocumentModel = DocumentModel.Load("Invoice.docx")
 
@@ -26,4 +23,5 @@ Module Program
         Next
 
     End Sub
+
 End Module

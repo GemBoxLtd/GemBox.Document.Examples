@@ -5,15 +5,15 @@ Module Program
 
     Sub Main()
 
-        ' If using the Professional version, put your serial key below.
-        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
-
         Example1()
         Example2()
 
     End Sub
 
     Sub Example1()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         Dim document As New DocumentModel()
 
         Dim section As New Section(document)
@@ -31,6 +31,9 @@ End Sub"
     End Sub
 
     Sub Example2()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         Dim document = DocumentModel.Load("SampleVba.docm")
 
         ' Get the module.

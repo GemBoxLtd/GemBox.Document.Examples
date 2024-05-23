@@ -8,9 +8,6 @@ Module Program
         ' If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
-        ' If using the Professional version, remove this FreeLimitReached event handler.
-        AddHandler ComponentInfo.FreeLimitReached, Sub(sender, e) e.FreeLimitReachedAction = FreeLimitReachedAction.ContinueAsTrial
-
         Dim document = DocumentModel.Load("MergeClearOptions.docx")
 
         ' Data source with "Populated" value, but no "Empty" value.
@@ -39,4 +36,5 @@ Module Program
         document.Save("Merged Clear Options Output.docx")
 
     End Sub
+
 End Module

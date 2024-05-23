@@ -1,25 +1,20 @@
+Imports GemBox.Document
 Imports System
 Imports System.IO
 Imports System.IO.Compression
-Imports GemBox.Document
 
 Module Program
 
     Sub Main()
-
-        ' If using the Professional version, put your serial key below.
-        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
-
-        ' If using the Professional version, remove this FreeLimitReached event handler.
-        AddHandler ComponentInfo.FreeLimitReached, Sub(sender, e) e.FreeLimitReachedAction = FreeLimitReachedAction.ContinueAsTrial
-
         Example1()
         Example2()
         Example3()
-
     End Sub
 
     Sub Example1()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         ' In order to convert Word to PDF, we just need to:
         ' 1. Load DOC or DOCX file into DocumentModel object.
         ' 2. Save DocumentModel object to PDF file.
@@ -28,6 +23,9 @@ Module Program
     End Sub
 
     Sub Example2()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         ' Load Word file.
         Dim document As DocumentModel = DocumentModel.Load("Input.docx")
 
@@ -61,6 +59,9 @@ Module Program
     End Sub
 
     Sub Example3()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         Dim conformanceLevel As PdfConformanceLevel = PdfConformanceLevel.PdfA1a
 
         ' Load Word file.

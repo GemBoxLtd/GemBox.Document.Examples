@@ -1,6 +1,6 @@
+Imports GemBox.Document
 Imports System
 Imports System.Linq
-Imports GemBox.Document
 
 Module Program
 

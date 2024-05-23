@@ -1,15 +1,12 @@
+Imports GemBox.Document
+Imports GemBox.Document.CustomMarkups
 Imports System
 Imports System.Linq
 Imports System.Text
-Imports GemBox.Document
-Imports GemBox.Document.CustomMarkups
 
 Module Program
 
     Sub Main()
-
-        ' If using the Professional version, put your serial key below.
-        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
         Example1()
         Example2()
@@ -18,6 +15,9 @@ Module Program
     End Sub
 
     Sub Example1()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         Dim document As New DocumentModel()
 
         Dim section As New Section(document)
@@ -62,6 +62,9 @@ Module Program
     End Sub
 
     Sub Example2()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         Dim document = DocumentModel.Load("XmlMapping.docx")
 
         ' Edit mapped XML part.
@@ -83,6 +86,9 @@ Module Program
     End Sub
 
     Sub Example3()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         Dim document = DocumentModel.Load("XmlMapping.docx")
 
         ' Edit Content Controls.

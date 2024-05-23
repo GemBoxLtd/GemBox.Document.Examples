@@ -1,4 +1,4 @@
-﻿Imports GemBox.Document
+Imports GemBox.Document
 
 Module Program
 

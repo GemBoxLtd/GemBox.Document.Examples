@@ -5,15 +5,15 @@ Module Program
 
     Sub Main()
 
-        ' If using the Professional version, put your serial key below.
-        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
-
         Example1()
         Example2()
 
     End Sub
 
     Sub Example1()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         Dim document = DocumentModel.Load("Reading.docx")
 
         Dim saveOptions As New DocxSaveOptions()
@@ -27,6 +27,9 @@ Module Program
     End Sub
 
     Sub Example2()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         Dim document = DocumentModel.Load("Reading.docx")
 
         Dim signature1 As New DocxDigitalSignatureSaveOptions() With

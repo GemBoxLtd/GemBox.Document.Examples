@@ -8,9 +8,6 @@ Module Program
         ' If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
-        ' If using the Professional version, remove this FreeLimitReached event handler.
-        AddHandler ComponentInfo.FreeLimitReached, Sub(sender, e) e.FreeLimitReachedAction = FreeLimitReachedAction.ContinueAsTrial
-
         Dim document As New DocumentModel()
         document.DefaultParagraphFormat.SpaceAfter = 0
 
@@ -70,4 +67,5 @@ Module Program
         document.Save("Table Styles.docx")
 
     End Sub
+
 End Module

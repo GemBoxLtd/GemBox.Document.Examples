@@ -1,7 +1,7 @@
-Imports System
-Imports System.Linq
 Imports GemBox.Document
 Imports GemBox.Document.Tables
+Imports System
+Imports System.Linq
 
 Module Program
 
@@ -9,9 +9,6 @@ Module Program
 
         ' If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
-
-        ' If using the Professional version, remove this FreeLimitReached event handler.
-        AddHandler ComponentInfo.FreeLimitReached, Sub(sender, e) e.FreeLimitReachedAction = FreeLimitReachedAction.ContinueAsTrial
 
         Dim numberOfItems As Integer = 10
 
@@ -65,4 +62,5 @@ Module Program
         document.Save("Template Use.docx")
 
     End Sub
+
 End Module

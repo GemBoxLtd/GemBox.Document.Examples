@@ -1,14 +1,11 @@
-Imports System
 Imports GemBox.Document
 Imports GemBox.Document.Tables
 Imports GemBox.Document.Tracking
+Imports System
 
 Module Program
 
     Sub Main()
-
-        ' If using the Professional version, put your serial key below.
-        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
         Example1()
         Example2()
@@ -17,6 +14,9 @@ Module Program
     End Sub
 
     Sub Example1()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         Dim document = DocumentModel.Load("Revisions.docx")
         Dim acceptRevisions = True
 
@@ -30,6 +30,9 @@ Module Program
     End Sub
 
     Sub Example2()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         Dim document = DocumentModel.Load("Revisions.docx")
 
         ' Iterate through all runs in the document.
@@ -57,6 +60,9 @@ Module Program
     End Sub
 
     Sub Example3()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         Dim document = DocumentModel.Load("NoRevisions.docx")
         Dim section = document.Sections(0)
 
