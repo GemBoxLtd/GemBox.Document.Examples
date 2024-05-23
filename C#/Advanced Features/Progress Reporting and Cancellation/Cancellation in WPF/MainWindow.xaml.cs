@@ -1,8 +1,8 @@
-﻿using System;
+﻿using GemBox.Document;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using GemBox.Document;
 
 public partial class MainWindow : Window
 {
@@ -12,23 +12,21 @@ public partial class MainWindow : Window
     {
         // If using the Professional version, put your serial key below
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
-        // Use Trial Mode
-        ComponentInfo.FreeLimitReached += (eventSender, args) => args.FreeLimitReachedAction = FreeLimitReachedAction.ContinueAsTrial;
         InitializeComponent();
     }
 
     private async void loadButton_Click(object sender, RoutedEventArgs e)
     {
-        // Capture the current context on the UI thread
+        // Capture the current context on the UI thread.
         var context = SynchronizationContext.Current;
 
         var loadOptions = new DocxLoadOptions();
         loadOptions.ProgressChanged += (eventSender, args) =>
         {
-            // Show progress
+            // Show progress.
             context.Post(progressPercentage => this.progressBar.Value = (int)progressPercentage, args.ProgressPercentage);
 
-            // Cancel if requested
+            // Cancel if requested.
             if (this.cancellationRequested)
                 args.CancelOperation();
         };
@@ -39,7 +37,7 @@ public partial class MainWindow : Window
         }
         catch (OperationCanceledException)
         {
-            // Operation cancelled
+            // Operation cancelled.
         }
     }
 
