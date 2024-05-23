@@ -1,20 +1,20 @@
+using GemBox.Document;
 using System;
 using System.IO;
-using GemBox.Document;
 
 class Program
 {
     static void Main()
     {
-        // If using the Professional version, put your serial key below.
-        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
-
         Example1();
         Example2();
     }
 
     static void Example1()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         var document = DocumentModel.Load("MergePictures.docx");
 
         // Using picture's path, stream and byte array as a data source.
@@ -32,6 +32,9 @@ class Program
 
     static void Example2()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         var document = DocumentModel.Load("MergePicturesWithTemplates.docx");
 
         var dataSource = new

@@ -1,22 +1,22 @@
+using GemBox.Document;
+using GemBox.Document.Tables;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
-using GemBox.Document;
-using GemBox.Document.Tables;
 
 class Program
 {
     static void Main()
     {
-        // If using the Professional version, put your serial key below.
-        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
-
         Example1();
         Example2();
     }
 
     static void Example1()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         var document = DocumentModel.Load("FindAndReplaceText.docx");
 
         // The easiest way how you can find and replace text is with "Replace" method.
@@ -79,6 +79,9 @@ class Program
 
     static void Example2()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         var document = DocumentModel.Load("FindAndReplaceContent.docx");
 
         var dummyText = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas porttitor congue massa.";

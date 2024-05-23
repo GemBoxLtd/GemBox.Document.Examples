@@ -1,24 +1,21 @@
+using GemBox.Document;
 using System;
 using System.Data;
 using System.Linq;
-using GemBox.Document;
 
 class Program
 {
     static void Main()
     {
-        // If using the Professional version, put your serial key below.
-        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
-
-        // If using the Professional version, remove this FreeLimitReached event handler.
-        ComponentInfo.FreeLimitReached += (sender, e) => e.FreeLimitReachedAction = FreeLimitReachedAction.ContinueAsTrial;
-
         Example1();
         Example2();
     }
 
     static void Example1()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         int numberOfProjects = 3;
         int itemsPerProject = 8;
 
@@ -89,6 +86,9 @@ class Program
 
     static void Example2()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         int numberOfProjects = 3;
         int itemsPerProject = 8;
 

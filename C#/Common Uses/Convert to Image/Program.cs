@@ -1,17 +1,11 @@
+using GemBox.Document;
 using System.IO;
 using System.IO.Compression;
-using GemBox.Document;
 
 class Program
 {
     static void Main()
     {
-        // If using the Professional version, put your serial key below.
-        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
-
-        // If using the Professional version, remove this FreeLimitReached event handler.
-        ComponentInfo.FreeLimitReached += (sender, e) => e.FreeLimitReachedAction = FreeLimitReachedAction.ContinueAsTrial;
-
         Example1();
         Example2();
         Example3();
@@ -19,6 +13,9 @@ class Program
 
     static void Example1()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         // Load a Word file into the DocumentModel object.
         var document = DocumentModel.Load("Input.docx");
 
@@ -35,6 +32,9 @@ class Program
 
     static void Example2()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         // Load a Word file.
         var document = DocumentModel.Load("Input.docx");
 
@@ -50,6 +50,9 @@ class Program
 
     static void Example3()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         // Load a Word file.
         var document = DocumentModel.Load("Input.docx");
 

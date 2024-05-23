@@ -1,20 +1,15 @@
+Imports GemBox.Document
 Imports System
 Imports System.Diagnostics
-Imports GemBox.Document
 
 Module Program
 
     Sub Main()
 
-        ' If using the Professional version, put your serial key below
+        ' If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
-        ' Use Trial Mode
-        AddHandler ComponentInfo.FreeLimitReached,
-            Sub(eventSender, args)
-                args.FreeLimitReachedAction = FreeLimitReachedAction.ContinueAsTrial
-            End Sub
 
-        ' Create document
+        ' Create document.
         Dim document As New DocumentModel()
         Dim section As New Section(document)
         document.Sections.Add(section)
@@ -25,11 +20,11 @@ Module Program
         Dim stopwatch = New Stopwatch()
         stopwatch.Start()
 
-        ' Create save options
+        ' Create save options.
         Dim saveOptions = New DocxSaveOptions()
         AddHandler saveOptions.ProgressChanged,
             Sub(eventSender, args)
-                ' Cancel operation after five seconds
+                ' Cancel operation after five seconds.
                 If stopwatch.Elapsed.Seconds >= 5 Then
                     args.CancelOperation()
                 End If
@@ -41,5 +36,7 @@ Module Program
         Catch ex As OperationCanceledException
             Console.WriteLine("Operation was cancelled")
         End Try
+
     End Sub
+
 End Module

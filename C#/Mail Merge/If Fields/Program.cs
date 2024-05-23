@@ -4,15 +4,15 @@ class Program
 {
     static void Main()
     {
-        // If using the Professional version, put your serial key below.
-        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
-
         Example1();
         Example2();
     }
 
     static void Example1()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         var document = DocumentModel.Load("MergeIfFields.docx");
 
         var data = new
@@ -30,6 +30,9 @@ class Program
 
     static void Example2()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         var document = DocumentModel.Load("MergeConditionalFields.docx");
 
         var data = new

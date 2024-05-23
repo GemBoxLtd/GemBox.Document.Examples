@@ -1,14 +1,11 @@
-﻿using System.Globalization;
 using GemBox.Document;
 using GemBox.Document.Hyphenation;
+using System.Globalization;
 
 class Program
 {
     static void Main()
     {
-        // If using the Professional version, put your serial key below.
-        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
-
         Example1();
         Example2();
         Example3();
@@ -16,6 +13,9 @@ class Program
 
     static void Example1()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         // Load Word document from file's path.
         var document = DocumentModel.Load("AutoHyphenation.docx");
 
@@ -34,6 +34,9 @@ class Program
 
     static void Example2()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         // Load Word document from file's path.
         var document = DocumentModel.Load("AutoHyphenation.docx");
 
@@ -52,6 +55,9 @@ class Program
 
     static void Example3()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         // Load Word document from file's path.
         var document = DocumentModel.Load("AutoHyphenationML.docx");
 

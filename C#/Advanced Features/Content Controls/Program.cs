@@ -1,16 +1,13 @@
+using GemBox.Document;
+using GemBox.Document.CustomMarkups;
 using System;
 using System.Linq;
 using System.Text;
-using GemBox.Document;
-using GemBox.Document.CustomMarkups;
 
 class Program
 {
     static void Main()
     {
-        // If using the Professional version, put your serial key below.
-        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
-
         Example1();
         Example2();
         Example3();
@@ -18,6 +15,9 @@ class Program
 
     static void Example1()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         var document = new DocumentModel();
 
         var section = new Section(document);
@@ -63,6 +63,9 @@ class Program
 
     static void Example2()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         var document = DocumentModel.Load("XmlMapping.docx");
 
         // Edit mapped XML part.
@@ -84,6 +87,9 @@ class Program
 
     static void Example3()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         var document = DocumentModel.Load("XmlMapping.docx");
 
         // Edit Content Controls.

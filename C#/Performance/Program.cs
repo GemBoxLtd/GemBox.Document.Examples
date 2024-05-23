@@ -1,10 +1,10 @@
-using System.Collections.Generic;
-using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using GemBox.Document;
+using System.Collections.Generic;
+using System.IO;
 
 [SimpleJob(RuntimeMoniker.Net80)]
 [SimpleJob(RuntimeMoniker.Net48)]

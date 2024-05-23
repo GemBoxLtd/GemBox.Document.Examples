@@ -1,7 +1,7 @@
+using GemBox.Document;
 using System;
 using System.Data;
 using System.Linq;
-using GemBox.Document;
 
 class Program
 {
@@ -9,9 +9,6 @@ class Program
     {
         // If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
-
-        // If using the Professional version, remove this FreeLimitReached event handler.
-        ComponentInfo.FreeLimitReached += (sender, e) => e.FreeLimitReachedAction = FreeLimitReachedAction.ContinueAsTrial;
 
         int numberOfItems = 10;
 

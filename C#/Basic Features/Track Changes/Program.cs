@@ -1,15 +1,12 @@
-using System;
 using GemBox.Document;
 using GemBox.Document.Tables;
 using GemBox.Document.Tracking;
+using System;
 
 class Program
 {
     static void Main()
     {
-        // If using the Professional version, put your serial key below.
-        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
-
         Example1();
         Example2();
         Example3();
@@ -17,6 +14,9 @@ class Program
 
     static void Example1()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         var document = DocumentModel.Load("Revisions.docx");
         var acceptRevisions = true;
 
@@ -30,6 +30,9 @@ class Program
 
     static void Example2()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         var document = DocumentModel.Load("Revisions.docx");
 
         // Iterate through all runs in the document.
@@ -57,6 +60,9 @@ class Program
 
     static void Example3()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         var document = DocumentModel.Load("NoRevisions.docx");
         var section = document.Sections[0];
 

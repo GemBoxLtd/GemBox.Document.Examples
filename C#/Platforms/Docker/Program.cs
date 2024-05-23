@@ -1,4 +1,4 @@
-﻿using GemBox.Document;
+using GemBox.Document;
 
 class Program
 {

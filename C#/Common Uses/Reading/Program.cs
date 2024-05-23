@@ -1,15 +1,12 @@
+using GemBox.Document;
 using System;
 using System.IO;
 using System.Linq;
-using GemBox.Document;
 
 class Program
 {
     static void Main()
     {
-        // If using the Professional version, put your serial key below.
-        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
-
         Example1();
         Example2();
         Example3();
@@ -17,6 +14,9 @@ class Program
 
     static void Example1()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         // Load Word document from file's path.
         var document = DocumentModel.Load("Reading.docx");
 
@@ -42,6 +42,9 @@ class Program
 
     static void Example2()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         var document = DocumentModel.Load("Reading.docx");
         using (var writer = File.CreateText("Output.txt"))
         {
@@ -74,6 +77,9 @@ class Program
 
     static void Example3()
     {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         var document = DocumentModel.Load("Reading.docx");
         var pages = document.GetPaginator().Pages;
 
