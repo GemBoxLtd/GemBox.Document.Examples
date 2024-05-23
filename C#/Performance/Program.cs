@@ -6,7 +6,7 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using GemBox.Document;
 
-[SimpleJob(RuntimeMoniker.Net70)]
+[SimpleJob(RuntimeMoniker.Net80)]
 [SimpleJob(RuntimeMoniker.Net48)]
 public class Program
 {

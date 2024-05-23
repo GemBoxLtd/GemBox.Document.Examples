@@ -1,11 +1,11 @@
-﻿using System;
+﻿using DocumentCoreMvc.Models;
+using GemBox.Document;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
-using DocumentCoreMvc.Models;
-using GemBox.Document;
 
 namespace DocumentCoreMvc.Controllers
 {
@@ -13,18 +13,12 @@ namespace DocumentCoreMvc.Controllers
     {
         private readonly IWebHostEnvironment environment;
 
-        public HomeController(IWebHostEnvironment environment)
-        {
-            this.environment = environment;
+        // If using the Professional version, put your serial key below.
+        static HomeController() => ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
-            // If using the Professional version, put your serial key below.
-            ComponentInfo.SetLicense("FREE-LIMITED-KEY");
-        }
+        public HomeController(IWebHostEnvironment environment) => this.environment = environment;
 
-        public IActionResult Index()
-        {
-            return View(new InvoiceModel());
-        }
+        public IActionResult Index() => this.View(new InvoiceModel());
 
         public FileStreamResult Download(InvoiceModel model)
         {
@@ -44,10 +38,8 @@ namespace DocumentCoreMvc.Controllers
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel() { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
+        public IActionResult Error() => 
+            this.View(new ErrorViewModel() { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 }
 

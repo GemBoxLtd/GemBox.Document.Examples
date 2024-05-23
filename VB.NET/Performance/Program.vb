@@ -6,7 +6,7 @@ Imports BenchmarkDotNet.Jobs
 Imports BenchmarkDotNet.Running
 Imports GemBox.Document
 
-<SimpleJob(RuntimeMoniker.Net70)>
+<SimpleJob(RuntimeMoniker.Net80)>
 <SimpleJob(RuntimeMoniker.Net48)>
 Public Class Program
 

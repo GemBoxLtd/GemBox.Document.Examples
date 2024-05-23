@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using DocumentCorePages.Models;
+using GemBox.Document;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using DocumentCorePages.Models;
-using GemBox.Document;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace DocumentCorePages.Pages
 {
@@ -16,13 +16,13 @@ namespace DocumentCorePages.Pages
         [BindProperty]
         public InvoiceModel Invoice { get; set; }
 
+        // If using the Professional version, put your serial key below.
+        static IndexModel() => ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
         public IndexModel(IWebHostEnvironment environment)
         {
             this.environment = environment;
             this.Invoice = new InvoiceModel();
-
-            // If using the Professional version, put your serial key below.
-            ComponentInfo.SetLicense("FREE-LIMITED-KEY");
         }
 
         public void OnGet() { }
