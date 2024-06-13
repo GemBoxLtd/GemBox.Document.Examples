@@ -1,5 +1,5 @@
-﻿using System.Windows;
-using GemBox.Document;
+﻿using GemBox.Document;
+using System.Windows;
 
 namespace ExportToImageSource
 {
@@ -12,10 +12,7 @@ namespace ExportToImageSource
             // If using the Professional version, put your serial key below.
             ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
-            string path = "Reading.docx";
-            int pageIndex = 0;
-
-            this.SetImageControl(path, pageIndex);
+            this.SetImageControl("Reading.docx", 0);
         }
 
         private void SetImageControl(string path, int pageIndex)

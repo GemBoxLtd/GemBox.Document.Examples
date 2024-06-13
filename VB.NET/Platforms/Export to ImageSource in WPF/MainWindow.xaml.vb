@@ -1,5 +1,5 @@
-﻿Imports System.Windows
-Imports GemBox.Document
+﻿Imports GemBox.Document
+Imports System.Windows
 
 Namespace ExportToImageSource
     Partial Public Class MainWindow

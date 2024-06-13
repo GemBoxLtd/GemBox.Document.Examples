@@ -4,13 +4,14 @@ Imports System.Text
 Module Program
 
     Sub Main()
-
         Example1()
         Example2()
-
     End Sub
 
-    Sub Example1
+    Sub Example1()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         Dim document As New DocumentModel()
 
         Dim qrCodeValue = "1234567890"
@@ -23,7 +24,10 @@ Module Program
         document.Save("QR Code Output.pdf")
     End Sub
 
-    Sub Example2
+    Sub Example2()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
         Dim document As New DocumentModel()
 
         Dim ean13 = CreateBarcodeField(

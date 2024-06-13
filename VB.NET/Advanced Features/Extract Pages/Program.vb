@@ -42,6 +42,7 @@ Module Program
         document.Save("Output.docx")
     End Sub
 
+    ' A floating textbox that will be inserted at the start of every page.
     Function CreateTextBox(ByVal document As DocumentModel, ByVal page As Integer) As TextBox
         Dim run = New Run(document, "Inserted textbox on page " & (page + 1))
         run.CharacterFormat.Size = 25

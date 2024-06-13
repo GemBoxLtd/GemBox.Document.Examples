@@ -1,6 +1,6 @@
-﻿using System.Windows;
+﻿using GemBox.Document;
+using System.Windows;
 using System.Windows.Xps.Packaging; // Add reference for 'ReachFramework'.
-using GemBox.Document;
 
 namespace ExportToXpsDocument
 {

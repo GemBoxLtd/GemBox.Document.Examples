@@ -16,7 +16,7 @@ Public Class MainForm
         ' Capture the current context on the UI thread.
         Dim context = SynchronizationContext.Current
 
-        ' Create load options
+        ' Create load options.
         Dim loadOptions = New DocxLoadOptions()
         AddHandler loadOptions.ProgressChanged,
             Sub(eventSender, args)

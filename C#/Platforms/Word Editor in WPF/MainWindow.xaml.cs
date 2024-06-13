@@ -23,7 +23,7 @@ namespace WpfRichTextEditor
             {
                 AddExtension = true,
                 Filter =
-                    "All Documents (*.docx;*.docm;*.doc;*.dotx;*.dotm;*.dot;*.htm;*.html;*.rtf;*.txt)|*.docx;*.docm;*.dotx;*.dotm;*.doc;*.dot;*.htm;*.html;*.rtf;*.txt|" +
+                    "All Documents (*.docx;*.docm;*.doc;*.dotx;*.dotm;*.dot;*.htm;*.html;*.rtf;*.xml;*.txt)|*.docx;*.docm;*.dotx;*.dotm;*.doc;*.dot;*.htm;*.html;*.rtf;*.xml;*.txt|" +
                     "Word Documents (*.docx)|*.docx|" +
                     "Word Macro-Enabled Documents (*.docm)|*.docm|" +
                     "Word 97-2003 Documents (*.doc)|*.doc|" +
@@ -32,7 +32,8 @@ namespace WpfRichTextEditor
                     "Word 97-2003 Templates (*.dot)|*.dot|" +
                     "Web Pages (*.htm;*.html)|*.htm;*.html|" +
                     "Rich Text Format (*.rtf)|*.rtf|" +
-                    "Text Files (*.txt)|*.txt"
+                    "Flat OPC (*.xml)|*.xml|" +
+                    "Plain Text (*.txt)|*.txt"
             };
 
             if (dialog.ShowDialog() == true)
@@ -64,8 +65,9 @@ namespace WpfRichTextEditor
                     "Web Page (*.htm;*.html)|*.htm;*.html|" +
                     "Single File Web Page (*.mht;*.mhtml)|*.mht;*.mhtml|" +
                     "Rich Text Format (*.rtf)|*.rtf|" +
+                    "Flat OPC (*.xml)|*.xml|" +
                     "Plain Text (*.txt)|*.txt|" +
-                    "Image (*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.tif;*.tiff;*.wdp)|*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.tif;*.tiff;*.wdp"
+                    "Image (*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.tif;*.tiff;*.wdp,*.svg)|*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.tif;*.tiff;*.wdp;*.svg"
             };
 
             if (dialog.ShowDialog(this) == true)
