@@ -1,7 +1,8 @@
 ﻿<Window x:Class="WpfRichTextEditor.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Rich Text Editor" WindowState="Maximized">
+        Title="Word Editor"
+        WindowState="Maximized">
 
     <DockPanel>
 

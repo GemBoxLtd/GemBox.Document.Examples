@@ -1,10 +1,10 @@
+using GemBox.Document;
+using Microsoft.Win32;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
-using GemBox.Document;
-using Microsoft.Win32;
 
 namespace WpfRichTextEditor
 {
@@ -14,6 +14,7 @@ namespace WpfRichTextEditor
         {
             InitializeComponent();
 
+            // If using the Professional version, put your serial key below.
             ComponentInfo.SetLicense("FREE-LIMITED-KEY");
         }
 
