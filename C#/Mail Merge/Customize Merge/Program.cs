@@ -79,7 +79,7 @@ class Program
             if (e.FieldName.StartsWith("Html:"))
                 e.Field.Content.End.LoadText((string)e.Value, new HtmlLoadOptions() { InheritCharacterFormat = true });
             else if (e.FieldName.StartsWith("Rtf:"))
-                e.Field.Content.End.LoadText((string)e.Value, LoadOptions.RtfDefault);
+                e.Field.Content.End.LoadText((string)e.Value, new RtfLoadOptions());
             else if (e.FieldName.StartsWith("Docx:"))
                 e.Field.Content.End.InsertRange(DocumentModel.Load((string)e.Value).Sections[0].Blocks.Content);
             else

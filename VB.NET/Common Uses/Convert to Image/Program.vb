@@ -52,7 +52,7 @@ Module Program
         ' Load a Word file.
         Dim document = DocumentModel.Load("Input.docx")
 
-        Dim imageOptions As New ImageSaveOptions()
+        Dim imageOptions As New ImageSaveOptions(ImageSaveFormat.Png)
 
         ' Get Word pages.
         Dim pages = document.GetPaginator().Pages

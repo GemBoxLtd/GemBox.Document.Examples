@@ -1,6 +1,6 @@
-﻿Imports System.Windows
+﻿Imports GemBox.Document
+Imports System.Windows
 Imports System.Windows.Xps.Packaging ' Add reference for 'ReachFramework'.
-Imports GemBox.Document
 
 Namespace ExportToXpsDocument
     Partial Public Class MainWindow

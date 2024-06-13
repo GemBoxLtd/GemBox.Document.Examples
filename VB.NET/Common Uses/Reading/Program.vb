@@ -9,6 +9,7 @@ Module Program
 
         Example1()
         Example2()
+        Example3()
 
     End Sub
 
@@ -72,6 +73,32 @@ Module Program
                 writer.WriteLine()
             Next
         End Using
+    End Sub
+
+    Sub Example3()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
+        Dim document = DocumentModel.Load("Reading.docx")
+        Dim pages = document.GetPaginator().Pages
+
+        Dim pageNumber As Integer = 1
+        For Each page As DocumentModelPage In pages
+
+            Console.WriteLine(New String("-"c, 50))
+            Console.WriteLine($"Page {pageNumber} of {pages.Count}")
+            pageNumber += 1
+            Console.WriteLine(New String("-"c, 50))
+
+            Using stream As New MemoryStream()
+                ' Save Word document's page to TXT file.
+                Dim txtSaveOptions = SaveOptions.TxtDefault
+                page.Save(stream, txtSaveOptions)
+
+                ' Display page's extracted text.
+                Console.WriteLine(txtSaveOptions.Encoding.GetString(stream.ToArray()))
+            End Using
+        Next
     End Sub
 
 End Module

@@ -43,8 +43,8 @@ Module Program
             document,
             barcodeType:="Code128",
             barcodeValue:="012345678",
-            foregroundColor:="0x2572FF",
-            backgroundColor:="0xffb225")
+            foregroundColor:="0xff7225",
+            backgroundColor:="0x25b2ff")
 
         document.Sections.Add(
             New Section(document,

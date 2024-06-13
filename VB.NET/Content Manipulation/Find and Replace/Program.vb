@@ -1,5 +1,6 @@
 Imports GemBox.Document
 Imports GemBox.Document.Tables
+Imports System
 Imports System.Linq
 Imports System.Text.RegularExpressions
 

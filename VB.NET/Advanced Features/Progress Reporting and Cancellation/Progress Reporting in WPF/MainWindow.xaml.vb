@@ -1,7 +1,7 @@
 ﻿Imports GemBox.Document
-Imports System.Windows
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports System.Windows
 
 Class MainWindow
 

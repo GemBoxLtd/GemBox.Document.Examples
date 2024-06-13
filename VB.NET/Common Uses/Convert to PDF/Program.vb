@@ -69,7 +69,7 @@ Module Program
         ' Create PDF save options.
         Dim options As New PdfSaveOptions() With
         {
-            .conformanceLevel = conformanceLevel
+            .ConformanceLevel = conformanceLevel
         }
 
         ' Save to PDF file.

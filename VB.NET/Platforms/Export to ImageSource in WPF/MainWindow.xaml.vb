@@ -12,10 +12,7 @@ Namespace ExportToImageSource
             ' If using the Professional version, put your serial key below.
             ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
-            Dim path As String = "Reading.docx"
-            Dim pageIndex As Integer = 0
-
-            Me.SetImageControl(path, pageIndex)
+            Me.SetImageControl("Reading.docx", 0)
 
         End Sub
 
