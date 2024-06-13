@@ -23,9 +23,9 @@ Module Program
 
         Next
 
-        ' Print Word document to default printer.
-        Dim printer As String = Nothing
-        document.Print(printer)
+        ' Print Word document to default printer (e.g. 'Microsoft Print to Pdf').
+        Dim printerName As String = Nothing
+        document.Print(printerName)
 
     End Sub
 End Module

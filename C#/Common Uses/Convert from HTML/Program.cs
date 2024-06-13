@@ -25,7 +25,7 @@ class Program
         pageMargins.Top = pageMargins.Bottom = pageMargins.Left = pageMargins.Right = 0;
 
         // Save output PDF file.
-        document.Save("Output1.pdf");
+        document.Save("Output.pdf");
     }
 
     static void Example2()
@@ -85,7 +85,7 @@ class Program
             // Load input HTML text as stream.
             var document = DocumentModel.Load(htmlStream, htmlLoadOptions);
             // Save output PDF file.
-            document.Save("Output2.pdf");
+            document.Save("OutputWithHeaderFooter.pdf");
         }
     }
 }

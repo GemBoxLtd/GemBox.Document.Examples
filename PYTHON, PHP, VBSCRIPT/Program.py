@@ -3,7 +3,7 @@ import win32com.client as COM
 
 # Create ComHelper object.
 comHelper = COM.Dispatch("GemBox.Document.ComHelper")
-# If using Professional version, put your serial key below.
+# If using the Professional version, put your serial key below.
 comHelper.ComSetLicense("FREE-LIMITED-KEY")
 
 # Read Word document.

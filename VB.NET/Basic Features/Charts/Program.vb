@@ -12,24 +12,19 @@ Imports System.Text.RegularExpressions
 Module Program
 
     Sub Main()
+        Example1()
+        Example2()
+        Example3()
+        Example4()
+    End Sub
 
+    Sub Example1()
         ' If using the Professional version, put your GemBox.Document serial key below.
         GemBox.Document.ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
         ' If using the Professional version, put your GemBox.Spreadsheet serial key below.
         SpreadsheetInfo.SetLicense("FREE-LIMITED-KEY")
 
-        ' If using the Professional version, put your GemBox.Pdf serial key below.
-        GemBox.Pdf.ComponentInfo.SetLicense("FREE-LIMITED-KEY")
-
-        Example1()
-        Example2()
-        Example3()
-        Example4()
-
-    End Sub
-
-    Sub Example1()
         Dim document As New DocumentModel()
 
         ' Create Word chart and add it to document.
@@ -68,6 +63,12 @@ Module Program
     End Sub
 
     Sub Example2()
+        ' If using the Professional version, put your GemBox.Document serial key below.
+        GemBox.Document.ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
+        ' If using the Professional version, put your GemBox.Spreadsheet serial key below.
+        SpreadsheetInfo.SetLicense("FREE-LIMITED-KEY")
+
         Dim document = DocumentModel.Load("Chart.docx")
 
         ' Get Word chart.
@@ -91,6 +92,12 @@ Module Program
     End Sub
 
     Sub Example3()
+        ' If using the Professional version, put your GemBox.Document serial key below.
+        GemBox.Document.ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
+        ' If using the Professional version, put your GemBox.Spreadsheet serial key below.
+        SpreadsheetInfo.SetLicense("FREE-LIMITED-KEY")
+
         Dim document As New DocumentModel()
 
         Dim chart As New Chart(document, GemBox.Document.ChartType.Column,
@@ -118,6 +125,11 @@ Module Program
     End Sub
 
     Sub Example4()
+        ' If using the Professional versions, put your serial keys below.
+        GemBox.Document.ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+        GemBox.Pdf.ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+        GemBox.Spreadsheet.SpreadsheetInfo.SetLicense("FREE-LIMITED-KEY")
+
         Dim document = DocumentModel.Load("Chart.docx")
         Dim placeholdersMapping = ReplaceChartsWithPlaceholders(document)
         document.Save("Chart.pdf")
@@ -209,4 +221,5 @@ Module Program
 
         Return placeholders
     End Function
+
 End Module

@@ -14,8 +14,8 @@ class Program
         document.Sections[0].Blocks.Insert(0,
             new Paragraph(document, "You can preserve unsupported features when modifying a document!"));
 
-        // Save Word document to output file of same format together with
-        // preserved information (unsupported features) from input file.
+        // Save Word document to an output file of the same format together with
+        // preserved information (unsupported features) from the input file.
         document.Save("PreservedOutput.docx");
     }
 }

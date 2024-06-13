@@ -90,7 +90,7 @@ class Program
         var picturePlaceholder = document.Content.Find("%Portrait%").First();
         var picture = new Picture(document, "avatar.png");
 
-        // Replace the placeholder text with the image.
+        // Replace the placeholder text with image.
         picturePlaceholder.Set(picture.Content);
 
         // Find an HTML placeholder.

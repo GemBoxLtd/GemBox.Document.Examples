@@ -1,10 +1,10 @@
+Imports GemBox.Document
+Imports Microsoft.Win32
 Imports System.Diagnostics
 Imports System.IO
 Imports System.Windows
 Imports System.Windows.Documents
 Imports System.Windows.Input
-Imports GemBox.Document
-Imports Microsoft.Win32
 
 Namespace WpfRichTextEditor
 
@@ -15,6 +15,7 @@ Namespace WpfRichTextEditor
 
             InitializeComponent()
 
+            ' If using the Professional version, put your serial key below.
             ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
         End Sub
@@ -24,16 +25,17 @@ Namespace WpfRichTextEditor
             Dim dialog = New OpenFileDialog() With {
                 .AddExtension = True,
                 .Filter =
-                    "All Documents (*.docx;*.docm;*.doc;*.dotx;*.dotm;*.dot;*.htm;*.html;*.rtf;*.txt)|*.docx;*.docm;*.dotx;*.dotm;*.doc;*.dot;*.htm;*.html;*.rtf;*.txt|" +
-                    "Word Documents (*.docx)|*.docx|" +
-                    "Word Macro-Enabled Documents (*.docm)|*.docm|" +
-                    "Word 97-2003 Documents (*.doc)|*.doc|" +
-                    "Word Templates (*.dotx)|*.dotx|" +
-                    "Word Macro-Enabled Templates (*.dotm)|*.dotm|" +
-                    "Word 97-2003 Templates (*.dot)|*.dot|" +
-                    "Web Pages (*.htm;*.html)|*.htm;*.html|" +
-                    "Rich Text Format (*.rtf)|*.rtf|" +
-                    "Text Files (*.txt)|*.txt"
+                    "All Documents (*.docx;*.docm;*.doc;*.dotx;*.dotm;*.dot;*.htm;*.html;*.rtf;*.xml;*.txt)|*.docx;*.docm;*.dotx;*.dotm;*.doc;*.dot;*.htm;*.html;*.rtf;*.xml;*.txt|" &
+                    "Word Documents (*.docx)|*.docx|" &
+                    "Word Macro-Enabled Documents (*.docm)|*.docm|" &
+                    "Word 97-2003 Documents (*.doc)|*.doc|" &
+                    "Word Templates (*.dotx)|*.dotx|" &
+                    "Word Macro-Enabled Templates (*.dotm)|*.dotm|" &
+                    "Word 97-2003 Templates (*.dot)|*.dot|" &
+                    "Web Pages (*.htm;*.html)|*.htm;*.html|" &
+                    "Rich Text Format (*.rtf)|*.rtf|" &
+                    "Flat OPC (*.xml)|*.xml|" &
+                    "Plain Text (*.txt)|*.txt"
             }
 
             If dialog.ShowDialog() = True Then
@@ -58,16 +60,18 @@ Namespace WpfRichTextEditor
             Dim dialog = New SaveFileDialog() With {
                 .AddExtension = True,
                 .Filter =
-                    "Word Document (*.docx)|*.docx|" +
-                    "Word Macro-Enabled Document (*.docm)|*.docm|" +
+                    "Word Document (*.docx)|*.docx|" &
+                    "Word Macro-Enabled Document (*.docm)|*.docm|" &
                     "Word Template (*.dotx)|*.dotx|" +
-                    "Word Macro-Enabled Template (*.dotm)|*.dotm|" +
-                    "PDF (*.pdf)|*.pdf|" +
-                    "XPS Document (*.xps)|*.xps|" +
-                    "Web Page (*.htm;*.html)|*.htm;*.html|" +
-                    "Single File Web Page (*.mht;*.mhtml)|*.mht;*.mhtml|" +
-                    "Rich Text Format (*.rtf)|*.rtf|" + "Plain Text (*.txt)|*.txt|" +
-                    "Image (*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.tif;*.tiff;*.wdp)|*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.tif;*.tiff;*.wdp"
+                    "Word Macro-Enabled Template (*.dotm)|*.dotm|" &
+                    "PDF (*.pdf)|*.pdf|" &
+                    "XPS Document (*.xps)|*.xps|" &
+                    "Web Page (*.htm;*.html)|*.htm;*.html|" &
+                    "Single File Web Page (*.mht;*.mhtml)|*.mht;*.mhtml|" &
+                    "Rich Text Format (*.rtf)|*.rtf|" &
+                    "Flat OPC (*.xml)|*.xml|" &
+                    "Plain Text (*.txt)|*.txt|" &
+                    "Image (*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.tif;*.tiff;*.wdp,*.svg)|*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.tif;*.tiff;*.wdp;*.svg"
             }
 
             If dialog.ShowDialog(Me) = True Then

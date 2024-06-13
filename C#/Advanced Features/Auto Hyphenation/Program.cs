@@ -29,7 +29,7 @@ class Program
         hyphenationOptions.HyphenateCaps = false;
 
         // Save output file.
-        document.Save("Output1.pdf");
+        document.Save("Output.docx");
     }
 
     static void Example2()
@@ -44,13 +44,13 @@ class Program
         document.HyphenationOptions.AutoHyphenation = true;
 
         // Load hyphenation dictionary from file's path.
-        var hyphenationDictionary = TexHyphenationDictionary.Load("hyph-en-gb.tex");
+        var hyphenationDictionary = TexHyphenationDictionary.Load("HyphDictEnGb.tex");
 
         // Set loaded hyphenation dictionary for specified language.
         DocumentModel.HyphenationDictionaries[new CultureInfo("en-GB")] = hyphenationDictionary;
 
         // Save output file.
-        document.Save("Output2.pdf");
+        document.Save("OutputCustomHyphenation.pdf");
     }
 
     static void Example3()
@@ -71,18 +71,18 @@ class Program
                 switch (e.CultureInfo.Name)
                 {
                     case "en-GB":
-                        e.HyphenationDictionary = TexHyphenationDictionary.Load("hyph-en-gb.tex");
+                        e.HyphenationDictionary = TexHyphenationDictionary.Load("HyphDictEnGb.tex");
                         break;
                     case "de-DE":
-                        e.HyphenationDictionary = TexHyphenationDictionary.Load("hyph-de-1901.tex");
+                        e.HyphenationDictionary = TexHyphenationDictionary.Load("HyphDictDe.tex");
                         break;
                     case "es-ES":
-                        e.HyphenationDictionary = TexHyphenationDictionary.Load("hyph-es.tex");
+                        e.HyphenationDictionary = TexHyphenationDictionary.Load("HyphDictEs.tex");
                         break;
                 }
             };
 
         // Save output file.
-        document.Save("Output3.pdf");
+        document.Save("OutputMultiLanguage.pdf");
     }
 }

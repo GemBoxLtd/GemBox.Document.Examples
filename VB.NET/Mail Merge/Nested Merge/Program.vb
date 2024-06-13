@@ -81,7 +81,7 @@ Module Program
         ' Execute nested mail merge.
         document.MailMerge.Execute(data, Nothing)
 
-        document.Save("Merged Nested Ranges Output1.docx")
+        document.Save("MergedNestedRangesOutput.docx")
     End Sub
 
     Sub Example2()
@@ -133,7 +133,7 @@ Module Program
         ' Execute nested mail merge.
         document.MailMerge.Execute(projects, "Projects")
 
-        document.Save("Merged Nested Ranges Output2.docx")
+        document.Save("MergedNestedRangesOutputWithObject.docx")
     End Sub
 
 End Module

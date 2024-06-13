@@ -6,12 +6,11 @@ class Program
 {
     static void Main()
     {
-        PAdES_B_B();
-
-        PAdES_B_LTA();
+        Example1();
+        Example2();
     }
 
-    static void PAdES_B_B()
+    static void Example1()
     {
         // If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
@@ -39,7 +38,7 @@ class Program
         document.Save("PDF Digital Signature.pdf", options);
     }
 
-    static void PAdES_B_LTA()
+    static void Example2()
     {
         // If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");

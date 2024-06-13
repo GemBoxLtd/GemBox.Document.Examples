@@ -1,8 +1,8 @@
-﻿using System.Windows;
+﻿using GemBox.Document;
+using Microsoft.Win32;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Xps.Packaging;
-using Microsoft.Win32;
-using GemBox.Document;
 
 public partial class MainWindow : Window
 {
@@ -23,6 +23,7 @@ public partial class MainWindow : Window
             "|RTF files (*.rtf)|*.rtf" +
             "|HTML files (*.html, *.htm)|*.html;*.htm" +
             "|PDF files (*.pdf)|*.pdf" +
+            "|Word XML files (*.xml)|*.xml" +
             "|TXT files (*.txt)|*.txt";
 
         if (openFileDialog.ShowDialog() == true)

@@ -1,5 +1,4 @@
 Imports GemBox.Document
-Imports System
 Imports System.IO
 Imports System.IO.Compression
 
@@ -16,10 +15,10 @@ Module Program
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
         ' In order to convert Word to PDF, we just need to:
-        ' 1. Load DOC or DOCX file into DocumentModel object.
-        ' 2. Save DocumentModel object to PDF file.
+        '   1. Load DOC or DOCX file into DocumentModel object.
+        '   2. Save DocumentModel object to PDF file.
         Dim document As DocumentModel = DocumentModel.Load("Input.docx")
-        document.Save("Output1.pdf")
+        document.Save("Output.pdf")
     End Sub
 
     Sub Example2()
@@ -36,7 +35,7 @@ Module Program
         Dim pdfSaveOptions As New PdfSaveOptions() With {.ImageDpi = 220}
 
         ' Create ZIP file for storing PDF files.
-        Using archiveStream = File.OpenWrite("Output2.zip")
+        Using archiveStream = File.OpenWrite("Output.zip")
             Using archive As New ZipArchive(archiveStream, ZipArchiveMode.Create)
                 ' Iterate through Word pages.
                 For pageIndex As Integer = 0 To pages.Count - 1
@@ -74,7 +73,7 @@ Module Program
         }
 
         ' Save to PDF file.
-        document.Save("Output3.pdf", options)
+        document.Save("OutputWithConformance.pdf", options)
     End Sub
 
 End Module

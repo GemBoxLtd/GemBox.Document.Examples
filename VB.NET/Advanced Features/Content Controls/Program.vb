@@ -52,6 +52,7 @@ Module Program
         comboBoxControl.Properties.ListItems.Add(New ContentControlListItem("GemBox.Pdf", "GBA"))
         comboBoxControl.Properties.ListItems.Add(New ContentControlListItem("GemBox.Presentation", "GBP"))
         comboBoxControl.Properties.ListItems.Add(New ContentControlListItem("GemBox.Email", "GBE"))
+        comboBoxControl.Properties.ListItems.Add(New ContentControlListItem("GemBox.Imaging", "GBI"))
 
         section.Blocks.Add(New Paragraph(document,
             checkBoxControl,

@@ -27,8 +27,8 @@ class Program
                         new Run(document, "Read more about GemBox.Document on "),
                         new Hyperlink(document, "https://www.gemboxsoftware.com/document", "overview page"),
                         new Run(document, "."))),
-                new Run(document, " is a .NET component that enables developers to read, write, convert and print document files (DOCX, DOC, PDF, HTML, XPS, RTF and TXT)"),
-                new Note(document, NoteType.Footnote, "Image formats like PNG, JPEG, GIF, BMP, TIFF and WMP are also supported."),
+                new Run(document, " is a .NET component that enables developers to read, write, convert and print document files (DOCX, DOC, PDF, HTML, XPS, RTF, ODT, and TXT)"),
+                new Note(document, NoteType.Footnote, "Image formats like PNG, JPEG, GIF, BMP, TIFF, and WMP are also supported."),
                 new Run(document, " from .NET"),
                 new Note(document, NoteType.Endnote, "GemBox.Document works on .NET Framework 3.5 or higher and platforms that implement .NET Standard 2.0 or higher."),
                 new Run(document, " applications in a simple and efficient way.")));
@@ -46,7 +46,7 @@ class Program
                 new Note(document, NoteType.Endnote,
                     new Paragraph(document,
                         new Run(document, "The latest fixes for all GemBox.Document versions can be downloaded from "),
-                        new Hyperlink(document, "https://www.gemboxsoftware.com/document/downloads/BugFixes.htm", "here"),
+                        new Hyperlink(document, "https://www.gemboxsoftware.com/document/downloads/bugfixes.html", "here"),
                         new Run(document, "."))),
                 new Run(document, ".")));
 

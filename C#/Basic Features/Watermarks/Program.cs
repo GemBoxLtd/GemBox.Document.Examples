@@ -9,25 +9,27 @@ class Program
 
         var document = new DocumentModel();
 
-        // First section
+        // Add the first section.
         var section1 = new Section(document);
         document.Sections.Add(section1);
 
         var header1 = new HeaderFooter(document, HeaderFooterType.HeaderDefault);
         section1.HeadersFooters.Add(header1);
 
+        // Create a picture watermark and scale it to fit the page.
         var pictureWatermark = new PictureWatermark(document, new Picture(document, "Acme.jpg"));
-        header1.Watermark = pictureWatermark; // Assign watermark to the header.
-        pictureWatermark.AutoScale(); // Scale the picture to fit the page.
+        header1.Watermark = pictureWatermark;
+        pictureWatermark.AutoScale();
         pictureWatermark.Washout = true;
 
-        // Second section
+        // Add the second section.
         var section2 = new Section(document);
         document.Sections.Add(section2);
 
         var header2 = new HeaderFooter(document, HeaderFooterType.HeaderDefault);
         section2.HeadersFooters.Add(header2);
 
+        // Create a text watermark and rotate it diagonally.
         var textWatermark = new TextWatermark(document, "Acme corporation");
         header2.Watermark = textWatermark;
         textWatermark.SetDiagonal();

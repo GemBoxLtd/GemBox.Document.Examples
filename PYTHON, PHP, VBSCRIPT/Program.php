@@ -1,7 +1,7 @@
 <?php
   // Create ComHelper object.
   $comHelper = new Com("GemBox.Document.ComHelper", null, CP_UTF8);
-  // If using Professional version, put your serial key below.
+  // If using the Professional version, put your serial key below.
   $comHelper->ComSetLicense("FREE-LIMITED-KEY");
   
   // Read Word document.

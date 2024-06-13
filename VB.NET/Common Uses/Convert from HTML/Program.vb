@@ -28,7 +28,7 @@ Module Program
         End With
 
         ' Save output PDF file.
-        document.Save("Output1.pdf")
+        document.Save("Output.pdf")
     End Sub
 
     Sub Example2()
@@ -87,7 +87,7 @@ Module Program
             ' Load input HTML text as stream.
             Dim document = DocumentModel.Load(htmlStream, htmlLoadOptions)
             ' Save output PDF file.
-            document.Save("Output2.pdf")
+            document.Save("OutputWithHeaderFooter.pdf")
 
         End Using
     End Sub

@@ -1,8 +1,15 @@
 using GemBox.Document;
+using System;
 
 class Program
 {
     static void Main()
+    {
+        Example1();
+        Example2();
+    }
+
+    static void Example1()
     {
         // If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
@@ -42,5 +49,37 @@ class Program
         paragraph.Inlines.Add(picture3);
 
         document.Save("Pictures.docx");
+    }
+
+    static void Example2()
+    {
+        // If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
+        var document = new DocumentModel();
+
+        var section = new Section(document);
+        document.Sections.Add(section);
+
+        var picture = new Picture(document, "Jellyfish.jpg");
+        section.Blocks.Add(new Paragraph(document, picture));
+
+        var pictureLayout = picture.Layout;
+        var pictureSize = pictureLayout.Size;
+
+        var pageSetup = section.PageSetup;
+        var pageSize = new Size(
+            pageSetup.PageWidth - pageSetup.PageMargins.Left - pageSetup.PageMargins.Right,
+            pageSetup.PageHeight - pageSetup.PageMargins.Top - pageSetup.PageMargins.Bottom);
+
+        double ratioX = pageSize.Width / pictureSize.Width;
+        double ratioY = pageSize.Height / pictureSize.Height;
+        double ratio = Math.Min(ratioX, ratioY);
+
+        // Resize picture element's size.
+        if (ratio < 1)
+            pictureLayout.Size = new Size(pictureSize.Width * ratio, pictureSize.Height * ratio);
+
+        document.Save("LargePicture.docx");
     }
 }

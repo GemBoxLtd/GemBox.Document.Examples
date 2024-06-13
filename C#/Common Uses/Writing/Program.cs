@@ -26,7 +26,7 @@ class Program
                 new Paragraph(document, "This is our second paragraph.")));
 
         // Save Word document to file's path.
-        document.Save("Writing1.docx");
+        document.Save("Writing.docx");
     }
 
     static void Example2()
@@ -49,6 +49,6 @@ class Program
             LoadOptions.HtmlDefault);
 
         // Save Word document to file's path.
-        document.Save("Writing2.docx");
+        document.Save("WritingWithRichText.docx");
     }
 }

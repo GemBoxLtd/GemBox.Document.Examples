@@ -16,13 +16,13 @@
     <None Update="AutoHyphenationML.docx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="hyph-de-1901.tex">
+    <None Update="HyphDictDe.tex">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="hyph-en-gb.tex">
+    <None Update="HyphDictEnGb.tex">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="hyph-es.tex">
+    <None Update="HyphDictEs.tex">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

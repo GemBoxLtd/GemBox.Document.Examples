@@ -75,7 +75,7 @@ Module Program
                 Dim customImport As Boolean = True
 
                 If e.FieldName.StartsWith("Html:") Then
-                    e.Field.Content.End.LoadText(CStr(e.Value), LoadOptions.HtmlDefault)
+                    e.Field.Content.End.LoadText(CStr(e.Value), New HtmlLoadOptions() With {.InheritCharacterFormat = True})
                 ElseIf e.FieldName.StartsWith("Rtf:") Then
                     e.Field.Content.End.LoadText(CStr(e.Value), LoadOptions.RtfDefault)
                 ElseIf e.FieldName.StartsWith("Docx:") Then

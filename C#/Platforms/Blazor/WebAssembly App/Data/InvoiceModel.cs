@@ -1,6 +1,6 @@
+using GemBox.Document;
 using System;
 using System.Collections.Generic;
-using GemBox.Document;
 
 namespace BlazorWebAssemblyApp.Data
 {

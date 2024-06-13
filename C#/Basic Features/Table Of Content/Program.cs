@@ -56,7 +56,7 @@ class Program
         // Update TOC entries page numbers.
         // This is not needed when saving to PDF, XPS and image format or when printing.
         // Page numbers are automatically updated in that case.
-        /* document.GetPaginator(new PaginatorOptions() { UpdateFields = true }); */
+        document.GetPaginator(new PaginatorOptions() { UpdateFields = true });
 
         document.Save("TOC.docx");
     }

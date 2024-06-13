@@ -1,9 +1,9 @@
-﻿Imports System
+﻿Imports GemBox.Document
+Imports System
 Imports System.Drawing
 Imports System.Drawing.Printing
 Imports System.IO
 Imports System.Windows.Forms
-Imports GemBox.Document
 
 Partial Public Class Form1
     Inherits Form
@@ -24,6 +24,7 @@ Partial Public Class Form1
             "|RTF files (*.rtf)|*.rtf" &
             "|HTML files (*.html, *.htm)|*.html;*.htm" &
             "|PDF files (*.pdf)|*.pdf" &
+            "|Word XML files (*.xml)|*.xml" &
             "|TXT files (*.txt)|*.txt"
 
         If (openFileDialog.ShowDialog() = DialogResult.OK) Then

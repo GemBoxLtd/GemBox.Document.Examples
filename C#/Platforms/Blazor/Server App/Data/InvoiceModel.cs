@@ -1,6 +1,6 @@
+using GemBox.Document;
 using System;
 using System.Collections.Generic;
-using GemBox.Document;
 
 namespace BlazorServerApp.Data
 {
@@ -23,7 +23,7 @@ namespace BlazorServerApp.Data
             ["RTF"] = new RtfSaveOptions(),
             ["XML"] = new XmlSaveOptions(),
             ["TXT"] = new TxtSaveOptions(),
-            ["XPS"] = new XpsSaveOptions(),
+            ["XPS"] = new XpsSaveOptions(), // XPS is supported only on Windows.
             ["PNG"] = new ImageSaveOptions(ImageSaveFormat.Png),
             ["JPG"] = new ImageSaveOptions(ImageSaveFormat.Jpeg),
             ["BMP"] = new ImageSaveOptions(ImageSaveFormat.Bmp),

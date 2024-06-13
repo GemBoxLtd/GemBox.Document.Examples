@@ -7,28 +7,30 @@ Module Program
         ' If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
-        Dim document = New DocumentModel()
+        Dim document As New DocumentModel()
 
-        ' First section
-        Dim section1 = New Section(document)
+        ' Add the first section.
+        Dim section1 As New Section(document)
         document.Sections.Add(section1)
 
-        Dim header1 = New HeaderFooter(document, HeaderFooterType.HeaderDefault)
+        Dim header1 As New HeaderFooter(document, HeaderFooterType.HeaderDefault)
         section1.HeadersFooters.Add(header1)
 
-        Dim pictureWatermark = New PictureWatermark(document, New Picture(document, "Acme.jpg"))
-        header1.Watermark = pictureWatermark ' Assign watermark to the header.
-        pictureWatermark.AutoScale() ' Scale the picture to fit the page.
+        ' Create a picture watermark and scale it to fit the page.
+        Dim pictureWatermark As New PictureWatermark(document, New Picture(document, "Acme.jpg"))
+        header1.Watermark = pictureWatermark
+        pictureWatermark.AutoScale()
         pictureWatermark.Washout = True
 
-        ' Second section
-        Dim section2 = New Section(document)
+        ' Add the second section.
+        Dim section2 As New Section(document)
         document.Sections.Add(section2)
 
-        Dim header2 = New HeaderFooter(document, HeaderFooterType.HeaderDefault)
+        Dim header2 As New HeaderFooter(document, HeaderFooterType.HeaderDefault)
         section2.HeadersFooters.Add(header2)
 
-        Dim textWatermark = New TextWatermark(document, "Acme corporation")
+        ' Create a text watermark and rotate it diagonally.
+        Dim textWatermark As New TextWatermark(document, "Acme corporation")
         header2.Watermark = textWatermark
         textWatermark.SetDiagonal()
         textWatermark.Color = Color.Red

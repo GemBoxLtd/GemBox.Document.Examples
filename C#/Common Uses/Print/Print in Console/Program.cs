@@ -22,8 +22,8 @@ class Program
             pageMargins.Left = 100;
         }
 
-        // Print Word document to default printer.
-        string printer = null;
-        document.Print(printer);
+        // Print Word document to default printer (e.g. 'Microsoft Print to Pdf').
+        string printerName = null;
+        document.Print(printerName);
     }
 }

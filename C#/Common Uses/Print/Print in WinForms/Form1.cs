@@ -1,9 +1,9 @@
-﻿using System;
+﻿using GemBox.Document;
+using System;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.IO;
 using System.Windows.Forms;
-using GemBox.Document;
 
 public partial class Form1 : Form
 {
@@ -24,6 +24,7 @@ public partial class Form1 : Form
             "|RTF files (*.rtf)|*.rtf" +
             "|HTML files (*.html, *.htm)|*.html;*.htm" +
             "|PDF files (*.pdf)|*.pdf" +
+            "|Word XML files (*.xml)|*.xml" +
             "|TXT files (*.txt)|*.txt";
 
         if (openFileDialog.ShowDialog() == DialogResult.OK)

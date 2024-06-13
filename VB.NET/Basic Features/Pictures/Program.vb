@@ -1,9 +1,14 @@
 Imports GemBox.Document
+Imports System
 
 Module Program
 
     Sub Main()
+        Example1()
+        Example2()
+    End Sub
 
+    Sub Example1()
         ' If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
@@ -42,6 +47,38 @@ Module Program
         paragraph.Inlines.Add(picture3)
 
         document.Save("Pictures.docx")
-
     End Sub
+
+    Sub Example2()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
+        Dim document As New DocumentModel()
+
+        Dim section As New Section(document)
+        document.Sections.Add(section)
+
+        Dim picture As New Picture(document, "Jellyfish.jpg")
+        section.Blocks.Add(New Paragraph(document, picture))
+
+        Dim pictureLayout = picture.Layout
+        Dim pictureSize = pictureLayout.Size
+
+        Dim pageSetup = section.PageSetup
+        Dim pageSize = New Size(
+            pageSetup.PageWidth - pageSetup.PageMargins.Left - pageSetup.PageMargins.Right,
+            pageSetup.PageHeight - pageSetup.PageMargins.Top - pageSetup.PageMargins.Bottom)
+
+        Dim ratioX As Double = pageSize.Width / pictureSize.Width
+        Dim ratioY As Double = pageSize.Height / pictureSize.Height
+        Dim ratio As Double = Math.Min(ratioX, ratioY)
+
+        ' Resize picture element's size.
+        If ratio < 1 Then
+            pictureLayout.Size = New Size(pictureSize.Width * ratio, pictureSize.Height * ratio)
+        End If
+
+        document.Save("LargePicture.docx")
+    End Sub
+
 End Module

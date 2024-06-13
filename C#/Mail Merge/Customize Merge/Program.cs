@@ -77,7 +77,7 @@ class Program
             bool customImport = true;
 
             if (e.FieldName.StartsWith("Html:"))
-                e.Field.Content.End.LoadText((string)e.Value, LoadOptions.HtmlDefault);
+                e.Field.Content.End.LoadText((string)e.Value, new HtmlLoadOptions() { InheritCharacterFormat = true });
             else if (e.FieldName.StartsWith("Rtf:"))
                 e.Field.Content.End.LoadText((string)e.Value, LoadOptions.RtfDefault);
             else if (e.FieldName.StartsWith("Docx:"))

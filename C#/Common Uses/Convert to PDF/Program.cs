@@ -1,5 +1,4 @@
 using GemBox.Document;
-using System;
 using System.IO;
 using System.IO.Compression;
 
@@ -18,10 +17,10 @@ class Program
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
         // In order to convert Word to PDF, we just need to:
-        // 1. Load DOC or DOCX file into DocumentModel object.
-        // 2. Save DocumentModel object to PDF file.
+        //   1. Load DOC or DOCX file into DocumentModel object.
+        //   2. Save DocumentModel object to PDF file.
         DocumentModel document = DocumentModel.Load("Input.docx");
-        document.Save("Output1.pdf");
+        document.Save("Output.pdf");
     }
 
     static void Example2()
@@ -39,7 +38,7 @@ class Program
         var pdfSaveOptions = new PdfSaveOptions() { ImageDpi = 220 };
 
         // Create ZIP file for storing PDF files.
-        using (var archiveStream = File.OpenWrite("Output2.zip"))
+        using (var archiveStream = File.OpenWrite("Output.zip"))
         using (var archive = new ZipArchive(archiveStream, ZipArchiveMode.Create))
             // Iterate through Word pages.
             for (int pageIndex = 0; pageIndex < pages.Count; pageIndex++)
@@ -76,6 +75,6 @@ class Program
         };
 
         // Save to PDF file.
-        document.Save("Output3.pdf", options);
+        document.Save("OutputWithConformance.pdf", options);
     }
 }

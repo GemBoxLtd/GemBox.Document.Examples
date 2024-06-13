@@ -5,11 +5,9 @@ Imports System.Globalization
 Module Program
 
     Sub Main()
-
         Example1()
         Example2()
         Example3()
-
     End Sub
 
     Sub Example1()
@@ -29,7 +27,7 @@ Module Program
         hyphenationOptions.HyphenateCaps = False
 
         ' Save output file.
-        document.Save("Output1.pdf")
+        document.Save("Output.docx")
     End Sub
 
     Sub Example2()
@@ -43,13 +41,13 @@ Module Program
         document.HyphenationOptions.AutoHyphenation = True
 
         ' Load hyphenation dictionary from file's path.
-        Dim hyphenationDictionary = TexHyphenationDictionary.Load("hyph-en-gb.tex")
+        Dim hyphenationDictionary = TexHyphenationDictionary.Load("HyphDictEnGb.tex")
 
         ' Set loaded hyphenation dictionary for specified language.
         DocumentModel.HyphenationDictionaries(New CultureInfo("en-GB")) = hyphenationDictionary
 
         ' Save output file.
-        document.Save("Output2.pdf")
+        document.Save("OutputCustomHyphenation.pdf")
     End Sub
 
     Sub Example3()
@@ -68,21 +66,21 @@ Module Program
                 Select Case e.CultureInfo.Name
 
                     Case "en-GB"
-                        e.HyphenationDictionary = TexHyphenationDictionary.Load("hyph-en-gb.tex")
+                        e.HyphenationDictionary = TexHyphenationDictionary.Load("HyphDictEnGb.tex")
                         Exit Select
 
                     Case "de-DE"
-                        e.HyphenationDictionary = TexHyphenationDictionary.Load("hyph-de-1901.tex")
+                        e.HyphenationDictionary = TexHyphenationDictionary.Load("HyphDictDe.tex")
                         Exit Select
 
                     Case "es-ES"
-                        e.HyphenationDictionary = TexHyphenationDictionary.Load("hyph-es.tex")
+                        e.HyphenationDictionary = TexHyphenationDictionary.Load("HyphDictEs.tex")
                         Exit Select
                 End Select
             End Sub
 
         ' Save output file.
-        document.Save("Output3.pdf")
+        document.Save("OutputMultiLanguage.pdf")
     End Sub
 
 End Module

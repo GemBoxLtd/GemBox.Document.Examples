@@ -5,14 +5,11 @@ Imports GemBox.Pdf.Security
 Module Program
 
     Sub Main()
-
-        PAdES_B_B()
-
-        PAdES_B_LTA()
+        Example1()
+        Example2()
     End Sub
 
-    Sub PAdES_B_B()
-
+    Sub Example1()
         ' If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
@@ -39,8 +36,7 @@ Module Program
         document.Save("PDF Digital Signature.pdf", options)
     End Sub
 
-    Sub PAdES_B_LTA()
-
+    Sub Example2()
         ' If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
@@ -106,4 +102,5 @@ Module Program
             pdfDocument.Save()
         End Using
     End Sub
+
 End Module

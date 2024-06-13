@@ -1,8 +1,8 @@
-﻿Imports System.Windows
+﻿Imports GemBox.Document
+Imports Microsoft.Win32
+Imports System.Windows
 Imports System.Windows.Controls
 Imports System.Windows.Xps.Packaging
-Imports Microsoft.Win32
-Imports GemBox.Document
 
 Partial Public Class MainWindow
     Inherits Window
@@ -23,6 +23,7 @@ Partial Public Class MainWindow
             "|RTF files (*.rtf)|*.rtf" &
             "|HTML files (*.html, *.htm)|*.html;*.htm" &
             "|PDF files (*.pdf)|*.pdf" &
+            "|Word XML files (*.xml)|*.xml" &
             "|TXT files (*.txt)|*.txt"
 
         If (openFileDialog.ShowDialog() = True) Then

@@ -25,7 +25,7 @@ public class Program
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
         // If using Free version and example exceeds its limitations, use Trial or Time Limited version:
-        // https://www.gemboxsoftware.com/document/examples/free-trial-professional-modes/1301
+        // https://www.gemboxsoftware.com/document/examples/free-trial-professional/1301
 
         this.document = DocumentModel.Load("RandomSections.docx");
     }
