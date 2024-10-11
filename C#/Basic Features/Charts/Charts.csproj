@@ -1,22 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net8.0-windows;net48</TargetFrameworks>
-    <UseWPF>true</UseWPF>
+    <TargetFrameworks>net8.0;net48</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="GemBox.Document" Version="35.0.1886" />
     <PackageReference Include="GemBox.Spreadsheet" Version="49.0.1839" />
-    <PackageReference Include="GemBox.Pdf" Version="17.0.1611" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="Chart.docx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="placeholder.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
