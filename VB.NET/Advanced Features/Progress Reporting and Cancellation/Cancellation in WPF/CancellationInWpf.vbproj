@@ -136,7 +136,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="GemBox.Document">
-      <Version>35.0.1852</Version>
+      <Version>35.0.1886</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />

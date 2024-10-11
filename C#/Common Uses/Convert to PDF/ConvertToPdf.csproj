@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GemBox.Document" Version="*" />
+    <PackageReference Include="GemBox.Document" Version="35.0.1886" />
     <Reference Include="System.IO.Compression" Condition=" '$(TargetFramework)' == 'net48' " />
     <PackageReference Include="System.IO.Compression" Condition=" '$(TargetFramework)' != 'net48' " Version="*" />
   </ItemGroup>

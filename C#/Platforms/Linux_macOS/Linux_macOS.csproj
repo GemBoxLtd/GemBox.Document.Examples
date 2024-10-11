@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GemBox.Document" Version="*" />
+    <PackageReference Include="GemBox.Document" Version="35.0.1886" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="*" />
     <PackageReference Include="HarfBuzzSharp.NativeAssets.Linux" Version="*" />
   </ItemGroup>

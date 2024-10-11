@@ -74,7 +74,7 @@
     </StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="GemBox.Document" Version="35.0.1631" />
+    <PackageReference Include="GemBox.Document" Version="35.0.1886" />
     <Reference Include="System.Core" />
     <Reference Include="System" />
     <Reference Include="System.Xml" />

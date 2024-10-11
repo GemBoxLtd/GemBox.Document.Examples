@@ -63,7 +63,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContentControls", "Advanced
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HtmlImportAndExport", "Advanced Features\Html Import and Export\HtmlImportAndExport.csproj", "{B9ACC7F4-A07A-440E-B38C-BF598E9E5986}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrivateFonts", "Advanced Features\Private Fonts\PrivateFonts.csproj", "{ECAB873E-38AE-4772-A790-593E3627017D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fonts", "Advanced Features\Fonts\Fonts.csproj", "{ECAB873E-38AE-4772-A790-593E3627017D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RightToLeftText", "Advanced Features\Right to Left Text\RightToLeftText.csproj", "{01227087-933A-4CEB-98A9-DEF59CC03ACE}"
 EndProject

@@ -13,7 +13,7 @@ Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "ContentControls", "Advanced
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "HtmlImportAndExport", "Advanced Features\Html Import and Export\HtmlImportAndExport.vbproj", "{A235A4EA-B335-47FB-94C8-6DF919D216CC}"
 EndProject
-Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "PrivateFonts", "Advanced Features\Private Fonts\PrivateFonts.vbproj", "{C1D095F8-66EE-498E-9D76-A4D7F03144A4}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Fonts", "Advanced Features\Fonts\Fonts.vbproj", "{C1D095F8-66EE-498E-9D76-A4D7F03144A4}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "RightToLeftText", "Advanced Features\Right to Left Text\RightToLeftText.vbproj", "{E732E963-5B49-434C-90B6-A0F308879122}"
 EndProject
