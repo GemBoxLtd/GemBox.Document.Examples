@@ -1,13 +1,7 @@
 Imports GemBox.Document
-Imports GemBox.Pdf
-Imports GemBox.Pdf.Content
 Imports GemBox.Spreadsheet
 Imports GemBox.Spreadsheet.Charts
-Imports System
-Imports System.Collections.Generic
-Imports System.IO
 Imports System.Linq
-Imports System.Text.RegularExpressions
 
 Module Program
 
@@ -15,12 +9,11 @@ Module Program
         Example1()
         Example2()
         Example3()
-        Example4()
     End Sub
 
     Sub Example1()
         ' If using the Professional version, put your GemBox.Document serial key below.
-        GemBox.Document.ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
         ' If using the Professional version, put your GemBox.Spreadsheet serial key below.
         SpreadsheetInfo.SetLicense("FREE-LIMITED-KEY")
@@ -64,7 +57,7 @@ Module Program
 
     Sub Example2()
         ' If using the Professional version, put your GemBox.Document serial key below.
-        GemBox.Document.ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
         ' If using the Professional version, put your GemBox.Spreadsheet serial key below.
         SpreadsheetInfo.SetLicense("FREE-LIMITED-KEY")
@@ -93,7 +86,7 @@ Module Program
 
     Sub Example3()
         ' If using the Professional version, put your GemBox.Document serial key below.
-        GemBox.Document.ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
 
         ' If using the Professional version, put your GemBox.Spreadsheet serial key below.
         SpreadsheetInfo.SetLicense("FREE-LIMITED-KEY")
@@ -123,103 +116,5 @@ Module Program
 
         document.Save("Created Chart from Array.docx")
     End Sub
-
-    Sub Example4()
-        ' If using the Professional versions, put your serial keys below.
-        GemBox.Document.ComponentInfo.SetLicense("FREE-LIMITED-KEY")
-        GemBox.Pdf.ComponentInfo.SetLicense("FREE-LIMITED-KEY")
-        GemBox.Spreadsheet.SpreadsheetInfo.SetLicense("FREE-LIMITED-KEY")
-
-        Dim document = DocumentModel.Load("Chart.docx")
-        Dim placeholdersMapping = ReplaceChartsWithPlaceholders(document)
-        document.Save("Chart.pdf")
-
-        Using pdf = PdfDocument.Load("Chart.pdf")
-            ReplacePlaceholdersWithCharts(pdf, placeholdersMapping)
-            pdf.Save()
-        End Using
-    End Sub
-
-    ReadOnly PlaceholderNameFormat As String = "GemBox_Chart_Placeholder_{0}"
-    ReadOnly PlaceholderNameRegex As Regex = New Regex("GemBox_Chart_Placeholder_\d+")
-    ReadOnly PlaceholderImage As MemoryStream = New MemoryStream(File.ReadAllBytes("placeholder.png"))
-
-    Function ReplaceChartsWithPlaceholders(document As DocumentModel) As Dictionary(Of String, MemoryStream)
-        Dim placeholdersMapping = New Dictionary(Of String, MemoryStream)()
-        Dim counter As Integer = 0
-
-        For Each chart As Chart In document.GetChildElements(True, ElementType.Chart).Reverse()
-            ' Replace Word chart with placeholder image that has specific title.
-            Dim placeholder = New Picture(document, PlaceholderImage, PictureFormat.Png, chart.Layout)
-            counter += 1
-            Dim placeholderName As String = String.Format(PlaceholderNameFormat, counter)
-            placeholder.Metadata.Title = placeholderName
-            chart.Content.Start.InsertRange(placeholder.Content)
-            chart.Content.Delete()
-
-            ' Retrieve Excel chart and export it as PDF.
-            Dim excelChart = CType(chart.ExcelChart, ExcelChart)
-            excelChart.Position.Width = chart.Layout.Size.Width
-            excelChart.Position.Height = chart.Layout.Size.Height
-            Dim chartAsPdfStream = New MemoryStream()
-            excelChart.Format().Save(chartAsPdfStream, GemBox.Spreadsheet.SaveOptions.PdfDefault)
-
-            ' Map PDF that contains Excel chart to placeholder name.
-            placeholdersMapping.Add(placeholderName, chartAsPdfStream)
-        Next
-
-        Return placeholdersMapping
-    End Function
-
-    Sub ReplacePlaceholdersWithCharts(pdfDocument As PdfDocument, placeholdersMapping As Dictionary(Of String, MemoryStream))
-        Dim chartAsPdfStream As MemoryStream = Nothing
-
-        For Each page In pdfDocument.Pages
-            ' Find placeholders by searching for images with specific title.
-            Dim placeholders = FindPlaceholders(page)
-
-            For Each placeholder In placeholders
-                If Not placeholdersMapping.TryGetValue(placeholder.Key, chartAsPdfStream) Then Continue For
-
-                Dim image As PdfImageContent = placeholder.Value.Item1
-                Dim bounds As PdfQuad = placeholder.Value.Item2
-
-                ' Replace placeholder image with PDF that contains Excel chart.
-                Using excelDocument = PdfDocument.Load(chartAsPdfStream)
-                    Dim form = excelDocument.Pages(0).ConvertToForm(pdfDocument)
-                    Dim formContentGroup = page.Content.Elements.AddGroup()
-                    Dim formContent = formContentGroup.Elements.AddForm(form)
-                    formContent.Transform = PdfMatrix.CreateTranslation(bounds.Left, bounds.Bottom)
-                End Using
-
-                image.Collection.Remove(image)
-            Next
-        Next
-    End Sub
-
-    Function FindPlaceholders(page As PdfPage) As Dictionary(Of String, Tuple(Of PdfImageContent, PdfQuad))
-        Dim placeholders = New Dictionary(Of String, Tuple(Of PdfImageContent, PdfQuad))()
-        Dim enumerator = page.Content.Elements.All(page.Transform).GetEnumerator()
-
-        While enumerator.MoveNext()
-
-            Dim element = enumerator.Current
-            If element.ElementType <> PdfContentElementType.Image Then Continue While
-
-            Dim imageElement = CType(element, PdfImageContent)
-            Dim metadata = imageElement.Image.Metadata?.Value
-            If metadata Is Nothing Then Continue While
-
-            Dim match = PlaceholderNameRegex.Match(metadata)
-            If Not match.Success Then Continue While
-
-            Dim bounds = imageElement.Bounds
-            enumerator.Transform.Transform(bounds)
-            placeholders.Add(match.Value, Tuple.Create(imageElement, bounds))
-
-        End While
-
-        Return placeholders
-    End Function
 
 End Module
