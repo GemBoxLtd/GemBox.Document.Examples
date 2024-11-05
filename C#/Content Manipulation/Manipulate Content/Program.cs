@@ -16,16 +16,26 @@ class Program
         // If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
-        var document = DocumentModel.Load("Invoice.docx");
+        var document = DocumentModel.Load("ManipulateContent.docx");
+        var section = document.Sections[0];
 
-        // Get content from each paragraph.
-        foreach (Paragraph paragraph in document.GetChildElements(true, ElementType.Paragraph))
-            Console.WriteLine($"Paragraph: {paragraph.Content.ToString()}");
+        // Set content of 1st paragraph using plain text.
+        section.Blocks[0].Content.LoadText("Inserted plain text to first paragraph.");
 
-        // Get content from each bold run.
-        foreach (Run run in document.GetChildElements(true, ElementType.Run))
-            if (run.CharacterFormat.Bold)
-                Console.WriteLine($"Bold run: {run.Content.ToString()}");
+        // Set content of 2nd paragraph using hyperlink.
+        var hyperlink = new Hyperlink(document, "https://www.gemboxsoftware.com/", "Inserted hyperlink.");
+        section.Blocks[1].Content.Set(hyperlink.Content);
+
+        // Insert HTML text at the end of 3rd paragraph.
+        section.Blocks[2].Content.End
+            .LoadText("<p style='color:orange'>Inserted HTML text with orange color.</p>",
+                new HtmlLoadOptions() { InheritCharacterFormat = true, InheritParagraphFormat = true });
+
+        // Insert picture at the beginning of last paragraph.
+        var picture = new Picture(document, "Dices.png", 40, 30);
+        section.Blocks.Last().Content.Start.InsertRange(picture.Content);
+
+        document.Save("InsertContent.docx");
     }
 
     static void Example2()
@@ -33,24 +43,18 @@ class Program
         // If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
-        var document = DocumentModel.Load("Reading.docx");
+        var document = DocumentModel.Load("ManipulateContent.docx");
+        var section = document.Sections[0];
 
-        // Delete 1st paragraph's inlines.
-        var paragraph1 = document.Sections[0].Blocks.Cast<Paragraph>(0);
-        paragraph1.Inlines.Content.Delete();
+        // Get content from 1st paragraph.
+        ContentRange firstParagraphContent = section.Blocks[0].Content;
+        Console.WriteLine(firstParagraphContent.ToString());
 
-        // Delete 3rd and 4th run from the 2nd paragraph.
-        var paragraph2 = document.Sections[0].Blocks.Cast<Paragraph>(1);
-        var runsContent = new ContentRange(
-            paragraph2.Inlines[2].Content.Start,
-            paragraph2.Inlines[3].Content.End);
-        runsContent.Delete();
-
-        // Delete specified text content.
-        var bracketContent = document.Content.Find("(").First();
-        bracketContent.Delete();
-
-        document.Save("Delete Content.docx");
+        // Get content from 2nd and 3rd paragraphs.
+        ContentRange multipleParagraphsContent = new ContentRange(
+            section.Blocks[1].Content.Start,
+            section.Blocks[2].Content.End);
+        Console.WriteLine(multipleParagraphsContent.ToString());
     }
 
     static void Example3()
@@ -58,31 +62,19 @@ class Program
         // If using the Professional version, put your serial key below.
         ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
-        var document = new DocumentModel();
-
-        // Create the whole document using fluent API.
-        document.Content.Start
-            .LoadText("First paragraph.")
-            .InsertRange(new Paragraph(document, "Second paragraph.").Content)
-            .LoadText("\n")
-            .LoadText("Paragraph with bold text.", new CharacterFormat() { Bold = true });
-
+        var document = DocumentModel.Load("ManipulateContent.docx");
         var section = document.Sections[0];
 
-        // Prepend text to second paragraph.
-        section.Blocks[1].Content.Start.LoadText(" Some Prefix ", new CharacterFormat() { Subscript = true });
+        // Delete content from 1st and 2nd paragraph.
+        ContentRange multipleParagraphsContent = new ContentRange(
+            section.Blocks[0].Content.Start,
+            section.Blocks[1].Content.End);
+        multipleParagraphsContent.Delete();
 
-        // Append text to second paragraph.
-        section.Blocks[1].Content.End.LoadText(" Some Suffix ", new CharacterFormat() { Superscript = true });
+        // Delete content from last (4th) paragraph.
+        ContentRange lastParagraphContent = section.Blocks.Last().Content;
+        lastParagraphContent.Delete();
 
-        // Insert HTML paragraph before third paragraph.
-        section.Blocks[2].Content.Start.LoadText("<p style='font:italic 11pt Calibri;color:royalblue;'>Paragraph from HTML content with blue and italic text.</p>",
-            new HtmlLoadOptions());
-
-        // Insert RTF paragraph after fourth paragraph.
-        section.Blocks[3].Content.End.LoadText(@"{\rtf1\ansi\deff0{\colortbl ;\red255\green128\blue64;}\cf1 Paragraph from RTF content with orange text.\par\par}",
-            new RtfLoadOptions());
-
-        document.Save("Insert Content.docx");
+        document.Save("DeleteContent.docx");
     }
 }

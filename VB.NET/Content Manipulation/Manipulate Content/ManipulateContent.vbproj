@@ -10,10 +10,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Invoice.docx">
+    <None Update="ManipulateContent.docx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Reading.docx">
+    <None Update="Dices.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
