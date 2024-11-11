@@ -39,8 +39,8 @@ class Program
         section.Blocks.Add(plainTextControl);
 
         // Create CheckBox Content Control.
-        var checkBoxControl = new InlineContentControl(document, ContentControlType.CheckBox,
-           new Run(document, "☒") { CharacterFormat = { FontName = "MS Gothic" } });
+        var checkBoxControl = new InlineContentControl(document, ContentControlType.CheckBox);
+        checkBoxControl.Properties.CharacterFormat = new CharacterFormat() { FontName = "MS Gothic" };
         checkBoxControl.Properties.Checked = true;
 
         // Create ComboBox Content Control.

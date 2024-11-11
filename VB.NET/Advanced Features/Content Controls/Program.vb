@@ -39,8 +39,8 @@ Module Program
         section.Blocks.Add(plainTextControl)
 
         ' Create CheckBox Content Control.
-        Dim checkBoxControl As New InlineContentControl(document, ContentControlType.CheckBox,
-           New Run(document, "☒") With {.CharacterFormat = New CharacterFormat() With {.FontName = "MS Gothic"}})
+        Dim checkBoxControl As New InlineContentControl(document, ContentControlType.CheckBox)
+        checkBoxControl.Properties.CharacterFormat = New CharacterFormat() With {.FontName = "MS Gothic"}
         checkBoxControl.Properties.Checked = True
 
         ' Create ComboBox Content Control.
