@@ -100,12 +100,6 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Fonts\calibri.ttf" />
-    <Content Include="Fonts\calibrib.ttf" />
-    <Content Include="Fonts\calibrii.ttf" />
-    <Content Include="Fonts\calibril.ttf" />
-    <Content Include="Fonts\calibrili.ttf" />
-    <Content Include="Fonts\calibriz.ttf" />
     <Content Include="Images\logo.svg" />
     <Content Include="InvoiceTemplate.docx" />
     <None Include="packages.config" />
