@@ -53,7 +53,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Charts", "Elements\Charts\C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContentControls", "Elements\Content Controls\ContentControls.csproj", "{071242E4-B642-4427-907A-62C5345581F9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TableOfContent", "Elements\Table Of Content\TableOfContent.csproj", "{0FC1AFB6-415B-4B63-A3D1-AF7FBC5FB6E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TableOfContents", "Elements\Table of Contents\TableOfContents.csproj", "{0FC1AFB6-415B-4B63-A3D1-AF7FBC5FB6E3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Watermarks", "Elements\Watermarks\Watermarks.csproj", "{A368B924-EE8D-44F1-AB2B-891FBBB28CE5}"
 EndProject

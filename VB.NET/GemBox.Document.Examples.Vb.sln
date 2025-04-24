@@ -51,7 +51,7 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Pictures", "Elements\Pictur
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Shapes", "Elements\Shapes\Shapes.vbproj", "{0CCD48FD-E880-70E9-5CE6-D3C3B62AA93B}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "TableOfContent", "Elements\Table Of Content\TableOfContent.vbproj", "{33AB265C-0624-1FAB-D58E-D090E39A49FA}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "TableOfContents", "Elements\Table of Contents\TableOfContents.vbproj", "{33AB265C-0624-1FAB-D58E-D090E39A49FA}"
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "TextBoxes", "Elements\Text Boxes\TextBoxes.vbproj", "{5822B88F-E49C-648D-D776-A54BEEF94C15}"
 EndProject
