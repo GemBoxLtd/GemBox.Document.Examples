@@ -13,11 +13,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Writing", "Introduction\Wri
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Printing", "Printing", "{91BF1671-383A-4CED-A915-C6084EFEE62B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrintInConsole", "Introduction\Printing\Printing in Console\PrintInConsole.csproj", "{F8F9B7C9-6056-E24E-8292-8A8633F0A70C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrintInConsole", "Introduction\Printing\Print in Console\PrintInConsole.csproj", "{F8F9B7C9-6056-E24E-8292-8A8633F0A70C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrintInWinForms", "Introduction\Printing\Printing in WinForms\PrintInWinForms.csproj", "{30D008E0-37F4-2BD2-FFC9-05EF16B73C58}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrintInWinForms", "Introduction\Printing\Print in WinForms\PrintInWinForms.csproj", "{30D008E0-37F4-2BD2-FFC9-05EF16B73C58}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrintInWpf", "Introduction\Printing\Printing in WPF\PrintInWpf.csproj", "{195877B0-03D7-BB08-A19A-46B9F46614C4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrintInWpf", "Introduction\Printing\Print in WPF\PrintInWpf.csproj", "{195877B0-03D7-BB08-A19A-46B9F46614C4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Templates", "Introduction\Templates\Templates.csproj", "{9D819A78-1323-B420-6A29-0B7F7425A834}"
 EndProject

@@ -19,11 +19,11 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Performance", "Introduction
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Printing", "Printing", "{DDB22414-AFA2-4E17-9A65-0C1CEF8D0685}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "PrintInConsole", "Introduction\Printing\Printing in Console\PrintInConsole.vbproj", "{9D69E972-C31C-AA4F-B667-DF08462C2F5A}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "PrintInConsole", "Introduction\Printing\Print in Console\PrintInConsole.vbproj", "{9D69E972-C31C-AA4F-B667-DF08462C2F5A}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "PrintInWinForms", "Introduction\Printing\Printing in WinForms\PrintInWinForms.vbproj", "{523769AE-9A52-43F5-8120-02E857821B1D}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "PrintInWinForms", "Introduction\Printing\Print in WinForms\PrintInWinForms.vbproj", "{523769AE-9A52-43F5-8120-02E857821B1D}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "PrintInWpf", "Introduction\Printing\Printing in WPF\PrintInWpf.vbproj", "{7373C27D-2732-4C39-9272-BCD3355905E2}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "PrintInWpf", "Introduction\Printing\Print in WPF\PrintInWpf.vbproj", "{7373C27D-2732-4C39-9272-BCD3355905E2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Elements", "Elements", "{528D7B74-4684-403A-97F9-358BC9D429F6}"
 EndProject
