@@ -49,7 +49,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="GemBox.Document" Version="35.0.1886" />
+      <PackageReference Include="GemBox.Document" Version="2025.4.107" />
       <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
       <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
     </ItemGroup>

@@ -52,7 +52,7 @@ document.Sections.Add(
 document.Save("Output.docx");
 ```
 
-For more GemBox.Document code examples and demos, please visit our [examples page](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-word-pdf-library/801).
+For more GemBox.Document code examples and demos, please visit our [examples page](https://www.gemboxsoftware.com/document/examples/getting-started/801).
 
 ## Installation
 

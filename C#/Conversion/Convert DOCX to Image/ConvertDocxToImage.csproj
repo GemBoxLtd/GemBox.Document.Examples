@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net8.0-windows;net48</TargetFrameworks>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GemBox.Document" Version="2025.4.107" />
+    <Reference Include="System.IO.Compression" Condition=" '$(TargetFramework)' == 'net48' " />
+    <PackageReference Include="System.IO.Compression" Condition=" '$(TargetFramework)' != 'net48' " Version="*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Input.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

@@ -9,7 +9,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>WpfRichTextEditor</RootNamespace>
     <AssemblyName>WpfRichTextEditor</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <MyType>Custom</MyType>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
@@ -74,7 +74,7 @@
     </StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="GemBox.Document" Version="35.0.1886" />
+    <PackageReference Include="GemBox.Document" Version="2025.4.107" />
     <Reference Include="System.Core" />
     <Reference Include="System" />
     <Reference Include="System.Xml" />
@@ -142,6 +142,7 @@
       <LastGenOutput>Resources.Designer.vb</LastGenOutput>
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
     </EmbeddedResource>
+    <None Include="app.config" />
     <None Include="My Project\app.manifest" />
     <None Include="My Project\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
