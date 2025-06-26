@@ -68,10 +68,10 @@ class Program
         complexField.Update();
 
         // Get the result, which for simpleField will be a simple Run with "The result is true." as text.
-        Run simpleResult = simpleField.ResultInlines.First() as Run;
+        Run simpleResult = simpleField.ResultElements.OfType<Run>().First();
 
         // Get the result, which will be a Run with FontColor Green and Bold set to true.
-        Run complexResult = complexField.ResultInlines.First() as Run;
+        Run complexResult = complexField.ResultElements.OfType<Run>().First();
 
         document.Save("FieldsUpdated.docx");
     }

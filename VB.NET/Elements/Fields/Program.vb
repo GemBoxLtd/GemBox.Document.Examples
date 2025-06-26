@@ -65,10 +65,10 @@ Module Program
         complexField.Update()
 
         ' Get the result, which for simpleField will be a simple Run with "The result is true." as text.
-        Dim simpleResult = TryCast(simpleField.ResultInlines.First(), Run)
+        Dim simpleResult = simpleField.ResultElements.OfType(Of Run)().First()
 
         ' Get the result, which will be a Run with FontColor Green And Bold set to true.
-        Dim complexResult = TryCast(complexField.ResultInlines.First(), Run)
+        Dim complexResult = complexField.ResultElements.OfType(Of Run)().First()
 
         document.Save("FieldsUpdated.docx")
     End Sub
