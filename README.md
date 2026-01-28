@@ -57,6 +57,10 @@ For more GemBox.Document code examples and demos, please visit our [examples pag
 
 You can download GemBox.Document from [NuGet 📦](https://www.nuget.org/packages/GemBox.Document/) or from [Downloads 🛠️](https://www.gemboxsoftware.com/document/downloads/).
 
+## AI Coding
+
+CLI coding agents such as GitHub Copilot, Claude Code, and OpenAI Codex can write valid GemBox code [when enabled with our gembox-skill](https://www.gemboxsoftware.com/support/ai-coding).
+
 ## Resources
 
 - [Product Page](https://www.gemboxsoftware.com/document)
