@@ -2,9 +2,9 @@
 
 ## What is GemBox.Document?
 
-GemBox.Document is a .NET component that enables you to read, write, convert, and print document files (DOCX, DOC, PDF, RTF, HTML, and ODT) from .NET applications.
+GemBox.Document is a .NET library that enables you to read, write, convert, and print document files (DOCX, DOC, PDF, RTF, HTML, and ODT) from .NET applications.
 
-With GemBox.Document you get a fast and reliable component that's easy to use and doesn't depend on Microsoft Word. It requires only .NET and it's much faster than Microsoft Office Automation!
+With GemBox.Document you get a fast and reliable library that's easy to use and doesn't depend on Microsoft Word. It requires only .NET and it's much faster than Microsoft Office Automation!
 
 ## GemBox.Document Features
 
