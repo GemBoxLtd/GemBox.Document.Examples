@@ -4,14 +4,14 @@
 
 ## What is GemBox.Document?
 
-GemBox.Document is a .NET library that enables you to read, write, convert, and print document files (DOCX, DOC, PDF, RTF, HTML, and ODT) from .NET applications.
+GemBox.Document is a .NET library that enables you to read, write, convert, and print document files (DOCX, DOC, PDF, RTF, HTML, MD, and ODT) from .NET applications.
 
 With GemBox.Document you get a fast and reliable library that's easy to use and doesn't depend on Microsoft Word. It requires only .NET and it's much faster than Microsoft Office Automation!
 
 ## GemBox.Document Features
 
-- [Read](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-open-read-word-file/301) DOC, DOCX, ODT, HTML, MHTML, RTF, TXT, Flat OPC, WordML, and [PDF](https://www.gemboxsoftware.com/document/examples/c-sharp-read-extract-pdf-tables/305) documents.
-- [Create or write](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-create-write-word-file/302) and [convert](https://www.gemboxsoftware.com/document/examples/c-sharp-convert-word-to-pdf/304) to DOCX, ODT, HTML, MHTML, RTF, TXT, Flat OPC, PDF, XPS, and image formats (SVG, PNG, JPEG, GIF, BMP, TIFF, WMP).
+- [Read](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-open-read-word-file/301) DOC, DOCX, ODT, HTML, MHTML, MD, RTF, TXT, Flat OPC, WordML, and [PDF](https://www.gemboxsoftware.com/document/examples/c-sharp-read-extract-pdf-tables/305) documents.
+- [Create or write](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-create-write-word-file/302) and [convert](https://www.gemboxsoftware.com/document/examples/c-sharp-convert-word-to-pdf/304) to DOCX, ODT, HTML, MHTML, MD, RTF, TXT, Flat OPC, PDF, XPS, and image formats (SVG, PNG, JPEG, GIF, BMP, TIFF, WMP).
 - View and edit documents in [Azure Functions](https://www.gemboxsoftware.com/document/examples/create-word-pdf-on-azure-functions-app-service/5901), [Blazor](https://www.gemboxsoftware.com/document/examples/blazor-create-word/5602), [ASP.NET Core](https://www.gemboxsoftware.com/document/examples/asp-net-core-create-word-docx-pdf/5601), [ASP.NET](https://www.gemboxsoftware.com/document/examples/word-editor-asp-net-mvc/5102), [MAUI](https://www.gemboxsoftware.com/document/examples/create-word-file-maui/5802), [WPF](https://www.gemboxsoftware.com/document/examples/word-wpf-xpsdocument-imagesource/5201), and [Windows Forms](https://www.gemboxsoftware.com/document/examples/word-editor-windows-forms/5301) applications.
 - Process documents on Windows, [Linux, macOS](https://www.gemboxsoftware.com/document/examples/create-word-file-xamarin/5801), [Android, and iOS](https://www.gemboxsoftware.com/document/examples/create-word-file-xamarin/5801) operating systems.
 - [Print](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-print-word/351) documents.
@@ -26,7 +26,7 @@ With GemBox.Document you get a fast and reliable library that's easy to use and 
 - [Clone](https://www.gemboxsoftware.com/document/examples/cloning/501) or [import](https://www.gemboxsoftware.com/document/examples/combine-word-file-c-sharp-vb-net/502) document elements between documents.
 - Find, highlight, or [replace document content](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-find-replace-word/405).
 - Replace or [set bookmark content](https://www.gemboxsoftware.com/document/examples/word-bookmarks-hyperlinks/204).
-- [Insert](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-manipulate-content-word/403) HTML, RTF, or TXT string into specific document position.
+- [Insert](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-manipulate-content-word/403) HTML, MD, RTF, or TXT string into specific document position.
 - [Execute mail merge](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-mail-merge-word/901) to import data into a document from various data sources and control the document [import region](https://www.gemboxsoftware.com/document/examples/mail-merge-ranges/903), and [import process](https://www.gemboxsoftware.com/document/examples/customize-mail-merge/904).
 - Create or read [form fields](https://www.gemboxsoftware.com/document/examples/c-sharp-vb-net-create-word-form/701).
 - [Track progress or cancel](https://www.gemboxsoftware.com/document/examples/progress-reporting-and-cancellation/108) long-running operations like loading and saving large documents.
