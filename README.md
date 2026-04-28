@@ -1,4 +1,4 @@
-[![NuGet version](https://img.shields.io/nuget/v/GemBox.Document?style=for-the-badge)](https://www.nuget.org/packages/GemBox.Document/) [![NuGet downloads](https://img.shields.io/nuget/dt/GemBox.Document?style=for-the-badge)](https://www.nuget.org/packages/GemBox.Document/) [![Visual Studio Marketplace rating](https://img.shields.io/visual-studio-marketplace/stars/GemBoxSoftware.GemBoxDocument?style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=GemBoxSoftware.GemBoxDocument)
+[![NuGet version](https://img.shields.io/nuget/v/GemBox.Document?style=for-the-badge)](https://www.nuget.org/packages/GemBox.Document/) [![NuGet downloads](https://img.shields.io/nuget/dt/GemBox.Document?style=for-the-badge)](https://www.nuget.org/packages/GemBox.Document/)
 
 [![GemBox.Document .NET Word library](https://www.gemboxsoftware.com/img/banners/gembox-gbd-banner.png)](https://www.gemboxsoftware.com/document/examples/getting-started/801)
 
