@@ -1,11 +1,12 @@
 Imports GemBox.Document
-Imports System.Text
+Imports System.Collections.Generic
 
 Module Program
 
     Sub Main()
         Example1()
         Example2()
+        Example3()
     End Sub
 
     Sub Example1()
@@ -30,25 +31,47 @@ Module Program
 
         Dim document As New DocumentModel()
 
-        Dim ean13 = CreateBarcodeField(
-            document,
-            barcodeType:="EAN13",
-            barcodeValue:="5901234123457",
-            heightInPoints:=100,
-            showLabel:=True)
+        Dim barcodeType = "CODE39"
 
-        Dim upca = CreateBarcodeField(
-            document,
-            barcodeType:="UPCA",
-            barcodeValue:="123456789104",
-            showLabel:=True)
+        Dim barcodeValues As New Dictionary(Of String, String)() From
+        {
+            {"CODE39", "GEMBOX123"},
+            {"CODE128", "GemBox-Document-123"},
+            {"EAN8", "9638507"},
+            {"EAN13", "490123456789"},
+            {"JAN8", "9638507"},
+            {"JAN13", "490123456789"},
+            {"UPCA", "036000291452"},
+            {"NW7", "123456"}
+        }
+        Dim barcodeValue = barcodeValues(barcodeType)
 
-        Dim code128 = CreateBarcodeField(
-            document,
-            barcodeType:="Code128",
-            barcodeValue:="012345678",
-            foregroundColor:="0xff7225",
-            backgroundColor:="0x25b2ff")
+        Dim barcodeField As New Field(document, FieldType.DisplayBarcode, $"{barcodeValue} {barcodeType}")
+
+        document.Sections.Add(
+            New Section(document,
+                New Paragraph(document, $"Barcode '{barcodeType}' with value '{barcodeValue}':"),
+                New Paragraph(document, barcodeField)))
+
+        document.Save("Barcode Output.docx")
+    End Sub
+
+    Sub Example3()
+        ' If using the Professional version, put your serial key below.
+        ComponentInfo.SetLicense("FREE-LIMITED-KEY")
+
+        Dim document As New DocumentModel()
+
+        Dim foregroundSwitch = "\f 800000"
+        Dim backgroundSwitch = "\b D3D3D3"
+        Dim showTextSwitch = "\t"
+        Dim heightSwitch = "\h 3000"
+
+        Dim barcodeSwitches = $" {foregroundSwitch} {backgroundSwitch} {showTextSwitch} {heightSwitch}"
+
+        Dim ean13 = New Field(document, FieldType.DisplayBarcode, "5901234123457 EAN13" & barcodeSwitches)
+        Dim upca = New Field(document, FieldType.DisplayBarcode, "123456789104 UPCA" & barcodeSwitches)
+        Dim code128 = New Field(document, FieldType.DisplayBarcode, "012345678 CODE128" & barcodeSwitches)
 
         document.Sections.Add(
             New Section(document,
@@ -56,25 +79,10 @@ Module Program
                 New Paragraph(document, ean13),
                 New Paragraph(document, "UPCA:"),
                 New Paragraph(document, upca),
-                New Paragraph(document, "Code 128:"),
+                New Paragraph(document, "CODE128:"),
                 New Paragraph(document, code128)))
 
-        document.Save("Barcodes.pdf")
+        document.Save("Formatted Barcodes.pdf")
     End Sub
-
-    Function CreateBarcodeField(document As DocumentModel, barcodeType As String, barcodeValue As String,
-        Optional heightInPoints As Integer? = Nothing, Optional foregroundColor As String = Nothing,
-        Optional backgroundColor As String = Nothing, Optional showLabel As Boolean = False) As Field
-
-        Dim instructionText As New StringBuilder()
-        instructionText.Append(barcodeValue).Append(" "c).Append(barcodeType)
-
-        If heightInPoints.HasValue Then instructionText.Append(" \h ").Append(LengthUnitConverter.Convert(heightInPoints.Value, LengthUnit.Point, LengthUnit.Twip))
-        If foregroundColor IsNot Nothing Then instructionText.Append(" \f ").Append(foregroundColor)
-        If backgroundColor IsNot Nothing Then instructionText.Append(" \b ").Append(backgroundColor)
-        If showLabel Then instructionText.Append(" \t")
-
-        Return New Field(document, FieldType.DisplayBarcode, instructionText.ToString())
-    End Function
 
 End Module

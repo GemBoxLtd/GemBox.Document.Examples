@@ -43,7 +43,7 @@ public partial class MainWindow : Window
         {
             PrintOptions printOptions = new PrintOptions(printDialog.PrintTicket.GetXmlStream());
 
-            printOptions.FromPage = printDialog.PageRange.PageFrom - 1;
+            printOptions.FromPage = printDialog.PageRange.PageFrom == 0 ? 0 : printDialog.PageRange.PageFrom - 1;
             printOptions.ToPage = printDialog.PageRange.PageTo == 0 ? int.MaxValue : printDialog.PageRange.PageTo - 1;
 
             this.document.Print(printDialog.PrintQueue.FullName, printOptions);
